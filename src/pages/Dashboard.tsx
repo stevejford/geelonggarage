@@ -15,13 +15,26 @@ import {
   CheckCircle,
   XCircle,
   BarChart3,
-  PieChart
+  PieChart,
+  ArrowUpRight,
+  ArrowDownRight,
+  Activity,
+  Plus
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { formatCurrency, formatNumber, formatPercentage, getRelativeTime } from "@/lib/utils";
 import MetricCard from "@/components/dashboard/MetricCard";
-import SimpleBarChart from "@/components/dashboard/SimpleBarChart";
-import SimpleDonutChart from "@/components/dashboard/SimpleDonutChart";
+import DonutChart from "@/components/charts/DonutChart";
+import BarChart from "@/components/charts/BarChart";
+import AreaChart from "@/components/charts/AreaChart";
+import LineChart from "@/components/charts/LineChart";
+import RadialBarChart from "@/components/charts/RadialBarChart";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { StatusBadge } from "@/components/ui/status-badge";
 
 export default function Dashboard() {
   const { user } = useUser();
@@ -101,25 +114,55 @@ export default function Dashboard() {
 
   // Quote status chart data
   const quoteStatusData = [
-    { label: "Open", value: metrics.quotes.open, color: "bg-yellow-500" },
-    { label: "Accepted", value: metrics.quotes.accepted, color: "bg-green-500" },
-    { label: "Declined", value: metrics.quotes.declined, color: "bg-red-500" },
+    metrics.quotes.open,
+    metrics.quotes.accepted,
+    metrics.quotes.declined
   ];
+  const quoteStatusLabels = ["Open", "Accepted", "Declined"];
+  const quoteStatusColors = ["#f59e0b", "#10b981", "#ef4444"];
 
   // Work order status chart data
   const workOrderStatusData = [
-    { label: "Pending", value: metrics.workOrders.pending, color: "bg-gray-500" },
-    { label: "Scheduled", value: metrics.workOrders.scheduled, color: "bg-blue-500" },
-    { label: "In Progress", value: metrics.workOrders.inProgress, color: "bg-yellow-500" },
-    { label: "Completed", value: metrics.workOrders.completed, color: "bg-green-500" },
+    {
+      name: "Work Orders",
+      data: [
+        metrics.workOrders.pending,
+        metrics.workOrders.scheduled,
+        metrics.workOrders.inProgress,
+        metrics.workOrders.completed
+      ]
+    }
   ];
+  const workOrderStatusCategories = ["Pending", "Scheduled", "In Progress", "Completed"];
+  const workOrderStatusColors = ["#6b7280", "#3b82f6", "#f59e0b", "#10b981"];
 
   // Invoice status chart data
   const invoiceStatusData = [
-    { label: "Draft", value: metrics.invoices.draft, color: "bg-gray-500" },
-    { label: "Sent", value: metrics.invoices.sent, color: "bg-blue-500" },
-    { label: "Paid", value: metrics.invoices.paid, color: "bg-green-500" },
+    metrics.invoices.draft,
+    metrics.invoices.sent,
+    metrics.invoices.paid
   ];
+  const invoiceStatusLabels = ["Draft", "Sent", "Paid"];
+  const invoiceStatusColors = ["#6b7280", "#3b82f6", "#10b981"];
+
+  // Monthly revenue data (sample data for now)
+  const monthlyRevenueData = [
+    {
+      name: "Revenue",
+      data: [4500, 6000, 5500, 7800, 8500, 10200, 9800, 12000, 11500, 13800, 15000, 16200]
+    }
+  ];
+  const monthlyRevenueCategories = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+  // Performance metrics (sample data for now)
+  const performanceData = [
+    85, // Quote conversion rate
+    92, // Customer satisfaction
+    78, // Team efficiency
+    95  // Invoice payment rate
+  ];
+  const performanceLabels = ["Quote Conversion", "Customer Satisfaction", "Team Efficiency", "Payment Rate"];
+  const performanceColors = ["#3b82f6", "#10b981", "#f59e0b", "#8b5cf6"];
 
   // Tasks (placeholder for now)
   const tasks = [
@@ -129,14 +172,26 @@ export default function Dashboard() {
   ];
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Welcome back, {firstName}!</h1>
-        <div className="text-sm text-gray-500">{new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
+    <div className="space-y-8">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-bold">Welcome back, {firstName}!</h1>
+          <p className="text-gray-500 mt-1">{new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm">
+            <Calendar className="mr-2 h-4 w-4" />
+            Last 30 Days
+          </Button>
+          <Button size="sm">
+            <Activity className="mr-2 h-4 w-4" />
+            View Reports
+          </Button>
+        </div>
       </div>
 
       {/* Primary Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat, index) => (
           <MetricCard
             key={index}
@@ -145,12 +200,13 @@ export default function Dashboard() {
             icon={stat.icon}
             color={stat.color}
             link={stat.link}
+            trend={index % 2 === 0 ? { value: 12, isPositive: true } : { value: 5, isPositive: false }}
           />
         ))}
       </div>
 
       {/* Financial Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {financialMetrics.map((metric, index) => (
           <MetricCard
             key={index}
@@ -158,110 +214,136 @@ export default function Dashboard() {
             value={metric.value}
             icon={metric.icon}
             color={metric.color}
+            trend={index % 2 === 0 ? { value: 8, isPositive: true } : { value: 3, isPositive: false }}
           />
         ))}
       </div>
 
-      {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        {/* Quote Status Chart */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold">Quote Status</h2>
-            <PieChart className="h-5 w-5 text-gray-400" />
-          </div>
-          <div className="flex justify-center">
-            <SimpleDonutChart data={quoteStatusData} />
-          </div>
+      {/* Revenue Chart */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <AreaChart
+            title="Monthly Revenue"
+            description="Revenue trends over the past 12 months"
+            data={monthlyRevenueData}
+            categories={monthlyRevenueCategories}
+            colors={['#3b82f6']}
+            height={300}
+          />
         </div>
-
-        {/* Work Order Status Chart */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold">Work Order Status</h2>
-            <BarChart3 className="h-5 w-5 text-gray-400" />
-          </div>
-          <div className="flex justify-center">
-            <SimpleBarChart data={workOrderStatusData} />
-          </div>
-        </div>
-
-        {/* Invoice Status Chart */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold">Invoice Status</h2>
-            <PieChart className="h-5 w-5 text-gray-400" />
-          </div>
-          <div className="flex justify-center">
-            <SimpleDonutChart data={invoiceStatusData} />
-          </div>
+        <div>
+          <RadialBarChart
+            title="Performance Metrics"
+            description="Key performance indicators"
+            data={performanceData}
+            labels={performanceLabels}
+            colors={performanceColors}
+            height={300}
+          />
         </div>
       </div>
 
+      {/* Status Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <DonutChart
+          title="Quote Status"
+          description="Distribution of quotes by status"
+          data={quoteStatusData}
+          labels={quoteStatusLabels}
+          colors={quoteStatusColors}
+          height={300}
+        />
+        <BarChart
+          title="Work Order Status"
+          description="Distribution of work orders by status"
+          data={workOrderStatusData}
+          categories={workOrderStatusCategories}
+          colors={workOrderStatusColors}
+          height={300}
+        />
+        <DonutChart
+          title="Invoice Status"
+          description="Distribution of invoices by status"
+          data={invoiceStatusData}
+          labels={invoiceStatusLabels}
+          colors={invoiceStatusColors}
+          height={300}
+        />
+      </div>
+
+      {/* Activity and Tasks */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Recent Activity */}
         <div className="lg:col-span-2">
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-semibold">Recent Activity</h2>
-              <Link to="/" className="text-sm text-blue-600 hover:text-blue-800">View all</Link>
-            </div>
-            <div className="space-y-4">
-              {recentActivity.length === 0 ? (
-                <p className="text-gray-500 text-center py-4">No recent activity</p>
-              ) : (
-                recentActivity.map((activity, index) => (
-                  <div key={index} className="flex items-start gap-3 pb-4 border-b border-gray-100 last:border-0 last:pb-0">
-                    <div className="p-2 rounded-full bg-gray-100">
-                      {activity.type === "lead" && <Users className="h-5 w-5 text-blue-600" />}
-                      {activity.type === "quote" && <FileText className="h-5 w-5 text-yellow-600" />}
-                      {activity.type === "workorder" && <ClipboardList className="h-5 w-5 text-green-600" />}
-                      {activity.type === "invoice" && <Receipt className="h-5 w-5 text-purple-600" />}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+              <CardTitle>Recent Activity</CardTitle>
+              <Link to="/" className="text-sm text-blue-600 hover:text-blue-800 font-medium">View all</Link>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {recentActivity.length === 0 ? (
+                  <p className="text-gray-500 text-center py-4">No recent activity</p>
+                ) : (
+                  recentActivity.map((activity, index) => (
+                    <div key={index} className="flex items-start gap-3 pb-4 border-b border-gray-100 last:border-0 last:pb-0">
+                      <div className="p-2 rounded-full bg-gray-100">
+                        {activity.type === "lead" && <Users className="h-5 w-5 text-blue-600" />}
+                        {activity.type === "quote" && <FileText className="h-5 w-5 text-yellow-600" />}
+                        {activity.type === "workorder" && <ClipboardList className="h-5 w-5 text-green-600" />}
+                        {activity.type === "invoice" && <Receipt className="h-5 w-5 text-purple-600" />}
+                      </div>
+                      <div>
+                        <p className="font-medium">{activity.action}</p>
+                        <p className="text-sm text-gray-500">{activity.name}</p>
+                        <p className="text-xs text-gray-400 mt-1">{getRelativeTime(activity.time)}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-medium">{activity.action}</p>
-                      <p className="text-sm text-gray-500">{activity.name}</p>
-                      <p className="text-xs text-gray-400 mt-1">{getRelativeTime(activity.time)}</p>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
+                  ))
+                )}
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Tasks */}
         <div>
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-semibold">Tasks</h2>
-              <button className="text-sm text-blue-600 hover:text-blue-800">+ Add Task</button>
-            </div>
-            <div className="space-y-3">
-              {tasks.length === 0 ? (
-                <p className="text-gray-500 text-center py-4">No tasks</p>
-              ) : (
-                tasks.map((task, index) => (
-                  <div key={index} className="flex items-center gap-3 p-3 rounded-md hover:bg-gray-50">
-                    <input type="checkbox" className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
-                    <div className="flex-1">
-                      <p className="font-medium">{task.title}</p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <div className="flex items-center text-xs text-gray-500">
-                          <Calendar className="h-3 w-3 mr-1" />
-                          {task.due}
-                        </div>
-                        <div className={`flex items-center text-xs px-1.5 py-0.5 rounded-full ${task.priority === 'High' ? 'bg-red-100 text-red-800' : task.priority === 'Medium' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
-                          <AlertCircle className="h-3 w-3 mr-1" />
-                          {task.priority}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+              <CardTitle>Tasks</CardTitle>
+              <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-800 hover:bg-blue-50">
+                <Plus className="h-4 w-4 mr-1" /> Add Task
+              </Button>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {tasks.length === 0 ? (
+                  <p className="text-gray-500 text-center py-4">No tasks</p>
+                ) : (
+                  tasks.map((task, index) => (
+                    <div key={index} className="flex items-center gap-3 p-3 rounded-md hover:bg-gray-50 border border-gray-100">
+                      <input type="checkbox" className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+                      <div className="flex-1">
+                        <p className="font-medium">{task.title}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <div className="flex items-center text-xs text-gray-500">
+                            <Calendar className="h-3 w-3 mr-1" />
+                            {task.due}
+                          </div>
+                          <StatusBadge
+                            variant={task.priority === 'High' ? 'destructive' : task.priority === 'Medium' ? 'warning' : 'success'}
+                            size="sm"
+                          >
+                            {task.priority}
+                          </StatusBadge>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
+                  ))
+                )}
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

@@ -1,6 +1,7 @@
 import React, { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import { ArrowUpRight, ArrowDownRight } from 'lucide-react';
 
 interface MetricCardProps {
   title: string;
@@ -15,14 +16,14 @@ interface MetricCardProps {
   className?: string;
 }
 
-export default function MetricCard({ 
-  title, 
-  value, 
-  icon, 
-  color, 
-  link, 
+export default function MetricCard({
+  title,
+  value,
+  icon,
+  color,
+  link,
   trend,
-  className 
+  className
 }: MetricCardProps) {
   const colorClasses = {
     blue: 'border-blue-500 text-blue-600',
@@ -34,33 +35,35 @@ export default function MetricCard({
     pink: 'border-pink-500 text-pink-600',
     orange: 'border-orange-500 text-orange-600',
   };
-  
+
   const Card = () => (
     <div className={cn(
-      `bg-white rounded-lg shadow-md p-6 border-l-4 ${colorClasses[color as keyof typeof colorClasses]} hover:shadow-lg transition-shadow`,
+      `bg-white rounded-lg shadow-sm p-6 border-l-4 ${colorClasses[color as keyof typeof colorClasses]} hover:shadow-md transition-shadow`,
       className
     )}>
       <div className="flex justify-between items-start">
         <div>
           <p className="text-sm font-medium text-gray-500">{title}</p>
           <p className="text-3xl font-bold mt-1">{value}</p>
-          
+
           {trend && (
             <div className={`flex items-center mt-2 text-sm ${trend.isPositive ? 'text-green-600' : 'text-red-600'}`}>
-              <span className="mr-1">
-                {trend.isPositive ? '↑' : '↓'}
-              </span>
-              <span>{Math.abs(trend.value)}%</span>
+              {trend.isPositive ? (
+                <ArrowUpRight className="h-4 w-4 mr-1" />
+              ) : (
+                <ArrowDownRight className="h-4 w-4 mr-1" />
+              )}
+              <span>{Math.abs(trend.value)}% from last month</span>
             </div>
           )}
         </div>
-        <div className="p-2 rounded-full bg-gray-50">
+        <div className="p-3 rounded-full bg-gray-50">
           {icon}
         </div>
       </div>
     </div>
   );
-  
+
   if (link) {
     return (
       <Link to={link} className="block">
@@ -68,6 +71,6 @@ export default function MetricCard({
       </Link>
     );
   }
-  
+
   return <Card />;
 }

@@ -2,10 +2,19 @@ import { useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { Button } from "@/components/ui/button";
-import { Plus, Search, FileText, Eye, Clipboard, Check, X } from "lucide-react";
+import { Plus, Search, FileText, Eye, Clipboard, Check, X, Filter, ArrowUpDown, MoreHorizontal, PieChart, BarChart3 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
 import { formatCurrency } from "@/lib/utils";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { StatusBadge } from "@/components/ui/status-badge";
+import DonutChart from "@/components/charts/DonutChart";
+import BarChart from "@/components/charts/BarChart";
 
 export default function QuotesPage() {
   const navigate = useNavigate();
@@ -22,6 +31,66 @@ export default function QuotesPage() {
 
   // Ensure quotes is always an array
   const quotes = Array.isArray(quotesData) ? quotesData : [];
+
+  // Calculate quote status counts for the chart
+  const statusCounts = {
+    Draft: 0,
+    Presented: 0,
+    Accepted: 0,
+    Declined: 0
+  };
+
+  // Calculate monthly quote totals for the chart
+  const monthlyTotals = {
+    Jan: 0, Feb: 0, Mar: 0, Apr: 0, May: 0, Jun: 0,
+    Jul: 0, Aug: 0, Sep: 0, Oct: 0, Nov: 0, Dec: 0
+  };
+
+  let totalQuoteValue = 0;
+  let acceptanceRate = 0;
+  let avgQuoteValue = 0;
+
+  quotes.forEach(quote => {
+    // Count by status
+    if (quote.status in statusCounts) {
+      statusCounts[quote.status as keyof typeof statusCounts]++;
+    }
+
+    // Sum total quote value
+    totalQuoteValue += quote.total;
+
+    // Add to monthly totals
+    const month = new Date(quote.issueDate).getMonth();
+    const monthNames = Object.keys(monthlyTotals);
+    monthlyTotals[monthNames[month]] += quote.total;
+  });
+
+  // Calculate average quote value
+  avgQuoteValue = quotes.length > 0 ? totalQuoteValue / quotes.length : 0;
+
+  // Calculate acceptance rate
+  const totalResponded = statusCounts.Accepted + statusCounts.Declined;
+  acceptanceRate = totalResponded > 0 ? (statusCounts.Accepted / totalResponded) * 100 : 0;
+
+  // Prepare chart data
+  const quoteStatusData = [
+    statusCounts.Draft,
+    statusCounts.Presented,
+    statusCounts.Accepted,
+    statusCounts.Declined
+  ];
+
+  const quoteStatusLabels = ["Draft", "Presented", "Accepted", "Declined"];
+  const quoteStatusColors = ["#6b7280", "#3b82f6", "#10b981", "#ef4444"];
+
+  const monthlyQuoteData = [
+    {
+      name: "Quote Value",
+      data: Object.values(monthlyTotals)
+    }
+  ];
+
+  const monthlyQuoteCategories = Object.keys(monthlyTotals);
 
   // Handle creating a new quote
   const handleCreateQuote = () => {
@@ -79,49 +148,131 @@ export default function QuotesPage() {
   };
 
   return (
-    <div className="container mx-auto py-6">
-      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-6">
+    <div className="container mx-auto py-6 space-y-6">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold">Quotes</h1>
+          <h1 className="text-3xl font-bold">Quotes</h1>
           <p className="text-gray-500 mt-1">Manage customer quotes and estimates</p>
         </div>
-        <Button
-          onClick={handleCreateQuote}
-          className="bg-blue-600 hover:bg-blue-700 text-white"
-        >
+        <Button onClick={handleCreateQuote}>
           <Plus className="mr-2 h-4 w-4" /> New Quote
         </Button>
       </div>
 
-      {/* Filters */}
-      <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
-            <Input
-              type="search"
-              placeholder="Search quotes..."
-              className="pl-9 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </div>
-          <select
-            className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            value={statusFilter || ""}
-            onChange={(e) => setStatusFilter(e.target.value || null)}
-          >
-            <option value="">All Statuses</option>
-            <option value="Draft">Draft</option>
-            <option value="Presented">Presented</option>
-            <option value="Accepted">Accepted</option>
-            <option value="Declined">Declined</option>
-          </select>
-        </div>
+      {/* Dashboard Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg">Total Quotes</CardTitle>
+            <CardDescription>All quotes</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold">{quotes.length}</div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg">Total Value</CardTitle>
+            <CardDescription>Sum of all quotes</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold">{formatCurrency(totalQuoteValue)}</div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg">Avg. Quote Value</CardTitle>
+            <CardDescription>Average per quote</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold">{formatCurrency(avgQuoteValue)}</div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg">Acceptance Rate</CardTitle>
+            <CardDescription>Accepted vs declined</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold">{acceptanceRate.toFixed(1)}%</div>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Content */}
-      <div className="bg-white shadow-md rounded-lg overflow-hidden border border-gray-200">
+      {/* Charts */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <DonutChart
+          title="Quote Status Distribution"
+          description="Breakdown by status"
+          data={quoteStatusData}
+          labels={quoteStatusLabels}
+          colors={quoteStatusColors}
+          height={300}
+        />
+
+        <BarChart
+          title="Monthly Quote Value"
+          description="Quote value by month"
+          data={monthlyQuoteData}
+          categories={monthlyQuoteCategories}
+          colors={["#3b82f6"]}
+          height={300}
+        />
+      </div>
+
+      {/* Filters */}
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex flex-col md:flex-row gap-4 items-center">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
+              <Input
+                type="search"
+                placeholder="Search quotes..."
+                className="pl-9"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+            <Select
+              value={statusFilter || ""}
+              onValueChange={(value) => setStatusFilter(value || null)}
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="All Statuses" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">All Statuses</SelectItem>
+                <SelectItem value="Draft">Draft</SelectItem>
+                <SelectItem value="Presented">Presented</SelectItem>
+                <SelectItem value="Accepted">Accepted</SelectItem>
+                <SelectItem value="Declined">Declined</SelectItem>
+              </SelectContent>
+            </Select>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon">
+                  <Filter className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Sort By</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>Date (Newest)</DropdownMenuItem>
+                <DropdownMenuItem>Date (Oldest)</DropdownMenuItem>
+                <DropdownMenuItem>Amount (High to Low)</DropdownMenuItem>
+                <DropdownMenuItem>Amount (Low to High)</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Quotes Table */}
+      <Card>
         {quotes.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12">
             <FileText className="h-16 w-16 text-gray-300 mb-4" />
@@ -129,82 +280,105 @@ export default function QuotesPage() {
             <p className="text-gray-500 text-center max-w-md mb-6">
               Create your first quote to start tracking estimates and proposals for your customers.
             </p>
-            <Button
-              onClick={handleCreateQuote}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
-            >
+            <Button onClick={handleCreateQuote}>
               <Plus className="mr-2 h-4 w-4" /> Create Quote
             </Button>
           </div>
         ) : (
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Quote #
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Customer
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Date
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Amount
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {quotes.map((quote) => (
-                <tr
-                  key={quote._id.toString()}
-                  className="hover:bg-blue-50 cursor-pointer transition-colors"
-                  onClick={() => handleViewQuote(quote._id.toString())}
-                >
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{quote.quoteNumber}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">
-                      {quote.contact ? `${quote.contact.firstName} ${quote.contact.lastName}` : 'Unknown'}
+          <div className="rounded-md border">
+            <table className="w-full caption-bottom text-sm">
+              <thead className="border-b bg-gray-50">
+                <tr>
+                  <th className="h-12 px-4 text-left align-middle font-medium text-gray-700 whitespace-nowrap">
+                    <div className="flex items-center space-x-1">
+                      <span>Quote #</span>
+                      <ArrowUpDown className="h-4 w-4" />
                     </div>
-                    <div className="text-xs text-gray-500">
-                      {quote.account ? quote.account.name : ''}
+                  </th>
+                  <th className="h-12 px-4 text-left align-middle font-medium text-gray-700 whitespace-nowrap">
+                    <div className="flex items-center space-x-1">
+                      <span>Customer</span>
                     </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-500">{formatDate(quote.issueDate)}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{formatCurrency(quote.total)}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {getStatusBadge(quote.status)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <Button
-                      variant="outline"
-                      className="border-blue-200 text-blue-600 hover:bg-blue-50 hover:text-blue-700"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleViewQuote(quote._id.toString());
-                      }}
-                    >
-                      View
-                    </Button>
-                  </td>
+                  </th>
+                  <th className="h-12 px-4 text-left align-middle font-medium text-gray-700 whitespace-nowrap">
+                    <div className="flex items-center space-x-1">
+                      <span>Date</span>
+                      <ArrowUpDown className="h-4 w-4" />
+                    </div>
+                  </th>
+                  <th className="h-12 px-4 text-left align-middle font-medium text-gray-700 whitespace-nowrap">
+                    <div className="flex items-center space-x-1">
+                      <span>Amount</span>
+                      <ArrowUpDown className="h-4 w-4" />
+                    </div>
+                  </th>
+                  <th className="h-12 px-4 text-left align-middle font-medium text-gray-700 whitespace-nowrap">
+                    <div className="flex items-center space-x-1">
+                      <span>Status</span>
+                    </div>
+                  </th>
+                  <th className="h-12 px-4 text-right align-middle font-medium text-gray-700 whitespace-nowrap">
+                    Actions
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-gray-200 bg-white">
+                {quotes.map((quote) => (
+                  <tr
+                    key={quote._id.toString()}
+                    className="border-b transition-colors hover:bg-gray-50 data-[state=selected]:bg-blue-50 cursor-pointer"
+                    onClick={() => handleViewQuote(quote._id.toString())}
+                  >
+                    <td className="p-4 align-middle">
+                      <div className="font-medium">{quote.quoteNumber}</div>
+                    </td>
+                    <td className="p-4 align-middle">
+                      <div className="font-medium">
+                        {quote.contact ? `${quote.contact.firstName} ${quote.contact.lastName}` : 'Unknown'}
+                      </div>
+                      {quote.account && (
+                        <div className="text-xs text-gray-500">
+                          {quote.account.name}
+                        </div>
+                      )}
+                    </td>
+                    <td className="p-4 align-middle">
+                      <div className="text-gray-700">{formatDate(quote.issueDate)}</div>
+                    </td>
+                    <td className="p-4 align-middle">
+                      <div className="font-medium">{formatCurrency(quote.total)}</div>
+                    </td>
+                    <td className="p-4 align-middle">
+                      <StatusBadge status={quote.status} />
+                    </td>
+                    <td className="p-4 align-middle text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" onClick={(e) => e.stopPropagation()}>
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={(e) => {
+                            e.stopPropagation();
+                            handleViewQuote(quote._id.toString());
+                          }}>
+                            View Details
+                          </DropdownMenuItem>
+                          <DropdownMenuItem>Edit Quote</DropdownMenuItem>
+                          <DropdownMenuItem>Convert to Invoice</DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem className="text-red-600">Delete Quote</DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
-      </div>
+      </Card>
     </div>
   );
 }
