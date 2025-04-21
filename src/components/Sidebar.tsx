@@ -29,7 +29,7 @@ export default function Sidebar() {
     { href: "/work-orders", label: "Work Orders", icon: <ClipboardList size={18} /> },
     { href: "/invoices", label: "Invoices", icon: <Receipt size={18} /> },
     { href: "/settings", label: "Settings", icon: <Settings size={18} /> },
-    { href: "/testing/workflow", label: "Workflow Test", icon: <TestTube size={18} /> },
+    { href: "/testing/workflow2", label: "Workflow Test", icon: <TestTube size={18} /> },
     { href: "/testing/ui-consistency", label: "UI Consistency", icon: <Paintbrush size={18} /> },
   ];
 
