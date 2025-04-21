@@ -1,4 +1,5 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useClerk } from "@clerk/clerk-react";
 import {
   LayoutDashboard,
   Users,
@@ -15,6 +16,8 @@ import {
 
 export default function Sidebar() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { signOut } = useClerk();
 
   // Define links without role filtering
   const links = [
@@ -56,10 +59,17 @@ export default function Sidebar() {
         ))}
       </nav>
       <div className="p-4 border-t border-blue-700">
-        <a href="/api/auth/signout" className="w-full bg-transparent border border-blue-600 text-blue-100 hover:bg-blue-700 hover:text-white flex items-center justify-center py-2 px-4 rounded-md">
+        <button
+          onClick={() => {
+            signOut().then(() => {
+              navigate('/sign-in');
+            });
+          }}
+          className="w-full bg-transparent border border-blue-600 text-blue-100 hover:bg-blue-700 hover:text-white flex items-center justify-center py-2 px-4 rounded-md"
+        >
           <LogOut size={16} className="mr-2" />
           Sign Out
-        </a>
+        </button>
       </div>
     </aside>
   );
