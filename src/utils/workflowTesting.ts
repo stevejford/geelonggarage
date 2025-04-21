@@ -76,6 +76,9 @@ export class WorkflowTester {
         notes: "This is a test lead created for workflow testing."
       };
 
+      // Log the exact data being sent to the mutation
+      console.log("Sending lead data to createLead mutation:", JSON.stringify(leadData));
+
       const leadId = await this.client.mutation(api.leads.createLead, leadData);
 
       if (!leadId) {
@@ -92,6 +95,7 @@ export class WorkflowTester {
 
       console.log("Test lead created successfully:", leadId);
     } catch (error) {
+      console.error("Detailed error in createTestLead:", error);
       this.errors.push(`Error creating test lead: ${error instanceof Error ? error.message : String(error)}`);
       throw error;
     }
