@@ -21,25 +21,25 @@ export class WorkflowTester {
     try {
       // Step 1: Create a test lead
       await this.createTestLead();
-      
+
       // Step 2: Convert lead to contact and account
       await this.convertLeadToContactAndAccount();
-      
+
       // Step 3: Create a quote for the contact/account
       await this.createQuote();
-      
+
       // Step 4: Convert quote to work order
       await this.convertQuoteToWorkOrder();
-      
+
       // Step 5: Complete work order
       await this.completeWorkOrder();
-      
+
       // Step 6: Convert work order to invoice
       await this.convertWorkOrderToInvoice();
-      
+
       // Step 7: Process invoice
       await this.processInvoice();
-      
+
       return {
         success: this.errors.length === 0,
         results: this.results,
@@ -61,28 +61,35 @@ export class WorkflowTester {
   private async createTestLead(): Promise<void> {
     try {
       console.log("Creating test lead...");
-      
+
+      // Store first and last name for later use
+      const firstName = "Test";
+      const lastName = "Customer";
+
+      // Create lead data with name field instead of firstName/lastName
       const leadData = {
-        firstName: "Test",
-        lastName: "Customer",
+        name: `${firstName} ${lastName}`,
         email: `test.${Date.now()}@example.com`,
         phone: "555-123-4567",
         source: "Test",
         status: "New",
         notes: "This is a test lead created for workflow testing."
       };
-      
+
       const leadId = await this.client.mutation(api.leads.createLead, leadData);
-      
+
       if (!leadId) {
         throw new Error("Failed to create lead");
       }
-      
+
+      // Store the lead data with firstName and lastName for later use in conversion
       this.results.lead = {
         id: leadId,
-        ...leadData
+        ...leadData,
+        firstName,
+        lastName
       };
-      
+
       console.log("Test lead created successfully:", leadId);
     } catch (error) {
       this.errors.push(`Error creating test lead: ${error instanceof Error ? error.message : String(error)}`);
@@ -96,11 +103,11 @@ export class WorkflowTester {
   private async convertLeadToContactAndAccount(): Promise<void> {
     try {
       console.log("Converting lead to contact and account...");
-      
+
       if (!this.results.lead?.id) {
         throw new Error("No lead ID available for conversion");
       }
-      
+
       // Create contact
       const contactData = {
         firstName: this.results.lead.firstName,
@@ -110,18 +117,18 @@ export class WorkflowTester {
         source: "Lead Conversion",
         notes: "Contact created from test lead conversion."
       };
-      
+
       const contactId = await this.client.mutation(api.contacts.createContact, contactData);
-      
+
       if (!contactId) {
         throw new Error("Failed to create contact");
       }
-      
+
       this.results.contact = {
         id: contactId,
         ...contactData
       };
-      
+
       // Create account
       const accountData = {
         name: `${this.results.lead.firstName} ${this.results.lead.lastName} Property`,
@@ -132,24 +139,24 @@ export class WorkflowTester {
         contactId: contactId,
         notes: "Account created from test lead conversion."
       };
-      
+
       const accountId = await this.client.mutation(api.accounts.createAccount, accountData);
-      
+
       if (!accountId) {
         throw new Error("Failed to create account");
       }
-      
+
       this.results.account = {
         id: accountId,
         ...accountData
       };
-      
+
       // Update lead status to converted
       await this.client.mutation(api.leads.updateLead, {
         id: this.results.lead.id,
         status: "Converted"
       });
-      
+
       console.log("Lead converted successfully to contact and account:", {
         contactId,
         accountId
@@ -166,14 +173,14 @@ export class WorkflowTester {
   private async createQuote(): Promise<void> {
     try {
       console.log("Creating quote...");
-      
+
       if (!this.results.contact?.id || !this.results.account?.id) {
         throw new Error("Contact or account ID not available");
       }
-      
+
       const now = Date.now();
       const thirtyDaysFromNow = now + 30 * 24 * 60 * 60 * 1000;
-      
+
       // Create line items
       const lineItems = [
         {
@@ -191,13 +198,13 @@ export class WorkflowTester {
           sortOrder: 1
         }
       ];
-      
+
       // Calculate totals
       const subtotal = lineItems.reduce((sum, item) => sum + item.total, 0);
       const taxRate = 7.5;
       const tax = subtotal * (taxRate / 100);
       const total = subtotal + tax;
-      
+
       // Create quote
       const quoteData = {
         contactId: this.results.contact.id,
@@ -211,30 +218,30 @@ export class WorkflowTester {
         notes: "Test quote created for workflow testing.",
         lineItems
       };
-      
+
       const quoteId = await this.client.mutation(api.quotes.createQuote, quoteData);
-      
+
       if (!quoteId) {
         throw new Error("Failed to create quote");
       }
-      
+
       this.results.quote = {
         id: quoteId,
         ...quoteData
       };
-      
+
       // Update quote status to Presented
       await this.client.mutation(api.quotes.updateQuoteStatus, {
         id: quoteId,
         status: "Presented"
       });
-      
+
       // Update quote status to Accepted
       await this.client.mutation(api.quotes.updateQuoteStatus, {
         id: quoteId,
         status: "Accepted"
       });
-      
+
       console.log("Quote created and accepted successfully:", quoteId);
     } catch (error) {
       this.errors.push(`Error creating quote: ${error instanceof Error ? error.message : String(error)}`);
@@ -248,36 +255,36 @@ export class WorkflowTester {
   private async convertQuoteToWorkOrder(): Promise<void> {
     try {
       console.log("Converting quote to work order...");
-      
+
       if (!this.results.quote?.id) {
         throw new Error("Quote ID not available");
       }
-      
+
       // Create work order from quote
       const workOrderData = {
         quoteId: this.results.quote.id,
         scheduledDate: Date.now() + 7 * 24 * 60 * 60 * 1000, // 7 days from now
         notes: "Work order created from test quote."
       };
-      
+
       const workOrderId = await this.client.mutation(api.workOrders.createWorkOrderFromQuote, workOrderData);
-      
+
       if (!workOrderId) {
         throw new Error("Failed to create work order");
       }
-      
+
       // Get the created work order
       const workOrder = await this.client.query(api.workOrders.getWorkOrder, { id: workOrderId });
-      
+
       if (!workOrder) {
         throw new Error("Failed to retrieve work order");
       }
-      
+
       this.results.workOrder = {
         id: workOrderId,
         ...workOrder
       };
-      
+
       console.log("Work order created successfully:", workOrderId);
     } catch (error) {
       this.errors.push(`Error converting quote to work order: ${error instanceof Error ? error.message : String(error)}`);
@@ -291,24 +298,24 @@ export class WorkflowTester {
   private async completeWorkOrder(): Promise<void> {
     try {
       console.log("Completing work order...");
-      
+
       if (!this.results.workOrder?.id) {
         throw new Error("Work order ID not available");
       }
-      
+
       // Update work order status to In Progress
       await this.client.mutation(api.workOrders.updateWorkOrderStatus, {
         id: this.results.workOrder.id,
         status: "In Progress"
       });
-      
+
       // Update work order status to Completed
       await this.client.mutation(api.workOrders.updateWorkOrderStatus, {
         id: this.results.workOrder.id,
         status: "Completed",
         completionNotes: "Work completed successfully during testing."
       });
-      
+
       console.log("Work order completed successfully");
     } catch (error) {
       this.errors.push(`Error completing work order: ${error instanceof Error ? error.message : String(error)}`);
@@ -322,36 +329,36 @@ export class WorkflowTester {
   private async convertWorkOrderToInvoice(): Promise<void> {
     try {
       console.log("Converting work order to invoice...");
-      
+
       if (!this.results.workOrder?.id) {
         throw new Error("Work order ID not available");
       }
-      
+
       // Create invoice from work order
       const invoiceData = {
         workOrderId: this.results.workOrder.id,
         dueDate: Date.now() + 14 * 24 * 60 * 60 * 1000, // 14 days from now
         notes: "Invoice created from test work order."
       };
-      
+
       const invoiceId = await this.client.mutation(api.invoices.createInvoiceFromWorkOrder, invoiceData);
-      
+
       if (!invoiceId) {
         throw new Error("Failed to create invoice");
       }
-      
+
       // Get the created invoice
       const invoice = await this.client.query(api.invoices.getInvoice, { id: invoiceId });
-      
+
       if (!invoice) {
         throw new Error("Failed to retrieve invoice");
       }
-      
+
       this.results.invoice = {
         id: invoiceId,
         ...invoice
       };
-      
+
       console.log("Invoice created successfully:", invoiceId);
     } catch (error) {
       this.errors.push(`Error converting work order to invoice: ${error instanceof Error ? error.message : String(error)}`);
@@ -365,17 +372,17 @@ export class WorkflowTester {
   private async processInvoice(): Promise<void> {
     try {
       console.log("Processing invoice...");
-      
+
       if (!this.results.invoice?.id) {
         throw new Error("Invoice ID not available");
       }
-      
+
       // Update invoice status to Sent
       await this.client.mutation(api.invoices.updateInvoiceStatus, {
         id: this.results.invoice.id,
         status: "Sent"
       });
-      
+
       // Update invoice status to Paid
       await this.client.mutation(api.invoices.updateInvoiceStatus, {
         id: this.results.invoice.id,
@@ -383,7 +390,7 @@ export class WorkflowTester {
         paymentMethod: "Test Payment",
         paymentDate: Date.now()
       });
-      
+
       console.log("Invoice processed successfully");
     } catch (error) {
       this.errors.push(`Error processing invoice: ${error instanceof Error ? error.message : String(error)}`);
