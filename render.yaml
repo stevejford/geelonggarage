@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: geelong-garage
+    env: node
+    buildCommand: npm install && npx convex deploy && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NEXT_PUBLIC_CONVEX_URL
+        value: https://grandiose-swordfish-144.convex.cloud
+      - key: CONVEX_DEPLOY_KEY
+        sync: false
+      - key: NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+        sync: false
+      - key: CLERK_SECRET_KEY
+        sync: false
+    autoDeploy: true
+    healthCheckPath: /api/health
+    plan: starter
+    disk:
+      name: geelong-garage-data
+      mountPath: /data
+      sizeGB: 1
