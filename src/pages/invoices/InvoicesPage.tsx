@@ -33,6 +33,14 @@ export default function InvoicesPage() {
   // Ensure invoices is always an array
   const invoices = Array.isArray(invoicesData) ? invoicesData : [];
 
+  // Check if an invoice is overdue
+  const isOverdue = (invoice: any) => {
+    if (invoice.status === "Paid" || invoice.status === "Void") {
+      return false;
+    }
+    return invoice.dueDate < Date.now() && invoice.status === "Sent";
+  };
+
   // Calculate invoice status counts for the chart
   const statusCounts = {
     Draft: 0,
@@ -147,13 +155,7 @@ export default function InvoicesPage() {
     navigate(`/invoices/${invoiceId}`);
   };
 
-  // Check if an invoice is overdue
-  const isOverdue = (invoice: any) => {
-    if (invoice.status === "Paid" || invoice.status === "Void") {
-      return false;
-    }
-    return invoice.dueDate < Date.now() && invoice.status === "Sent";
-  };
+
 
   // Get status badge color
   const getStatusBadge = (invoice: any) => {
