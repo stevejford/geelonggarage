@@ -2,13 +2,18 @@ services:
   - type: web
     name: geelong-garage
     env: node
-    buildCommand: npm install && npx convex deploy --typecheck=disable && npm run build
+    buildCommand: |
+      echo "VITE_CONVEX_URL=$VITE_CONVEX_URL" > .env
+      echo "VITE_CLERK_PUBLISHABLE_KEY=$VITE_CLERK_PUBLISHABLE_KEY" >> .env
+      npm install && npx convex deploy --typecheck=disable && npm run build
     startCommand: npm start
     envVars:
       - key: VITE_CONVEX_URL
         value: https://patient-tern-95.convex.cloud
       - key: PORT
         value: 10000
+      - key: NODE_ENV
+        value: production
       - key: CONVEX_DEPLOY_KEY
         sync: false
       - key: VITE_CLERK_PUBLISHABLE_KEY

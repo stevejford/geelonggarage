@@ -48,12 +48,26 @@ import TestInquiryPage from "./pages/wordpress/TestInquiryPage";
 import WorkflowTestPage from "./pages/testing/WorkflowTestPage";
 import UIConsistencyPage from "./pages/testing/UIConsistencyPage";
 
-const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL);
+// Get Convex URL from environment variables or fallback to a default
+const convexUrl = import.meta.env.VITE_CONVEX_URL || "https://patient-tern-95.convex.cloud";
+
+// Get Clerk publishable key from environment variables
 const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
+// Initialize Convex client with the URL
+const convex = new ConvexReactClient(convexUrl);
+
+// Check if Clerk key is available
 if (!clerkPubKey) {
   throw new Error("Missing Clerk Publishable Key");
 }
+
+// Log environment info for debugging
+console.log("Environment:", {
+  NODE_ENV: import.meta.env.MODE,
+  convexUrl,
+  hasClerkKey: !!clerkPubKey,
+});
 
 export default function App() {
   return (
