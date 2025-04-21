@@ -33,7 +33,14 @@ export default function Layout() {
               <Menu size={20} />
             </Button>
 
-            {/* Logo removed from top bar */}
+            {/* Logo in navbar */}
+            <div className="flex items-center">
+              <img
+                src="/logo-pdfs.png"
+                alt="Geelong Garage Logo"
+                className="h-10 w-auto"
+              />
+            </div>
           </div>
 
           <div className="flex items-center gap-4">
