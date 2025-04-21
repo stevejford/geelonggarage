@@ -68,7 +68,7 @@ export default function LeadsPage() {
 
   // Status filter options
   const statusOptions = [
-    { value: null, label: "All Statuses" },
+    { value: "all", label: "All Statuses" },
     { value: "New", label: "New" },
     { value: "Contacted", label: "Contacted" },
     { value: "Qualified", label: "Qualified" },
@@ -152,15 +152,15 @@ export default function LeadsPage() {
               />
             </div>
             <Select
-              value={statusFilter || ""}
-              onValueChange={(value) => setStatusFilter(value || null)}
+              value={statusFilter || "all"}
+              onValueChange={(value) => setStatusFilter(value === "all" ? null : value)}
             >
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="All Statuses" />
               </SelectTrigger>
               <SelectContent>
                 {statusOptions.map((option) => (
-                  <SelectItem key={option.label} value={option.value || ""}>
+                  <SelectItem key={option.label} value={option.value}>
                     {option.label}
                   </SelectItem>
                 ))}

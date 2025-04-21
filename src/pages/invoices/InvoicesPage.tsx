@@ -309,14 +309,14 @@ export default function InvoicesPage() {
               />
             </div>
             <Select
-              value={statusFilter || ""}
-              onValueChange={(value) => setStatusFilter(value || null)}
+              value={statusFilter || "all"}
+              onValueChange={(value) => setStatusFilter(value === "all" ? null : value)}
             >
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="All Statuses" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Statuses</SelectItem>
+                <SelectItem value="all">All Statuses</SelectItem>
                 <SelectItem value="Draft">Draft</SelectItem>
                 <SelectItem value="Sent">Sent</SelectItem>
                 <SelectItem value="Paid">Paid</SelectItem>

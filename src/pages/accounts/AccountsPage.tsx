@@ -37,7 +37,7 @@ export default function AccountsPage() {
 
   // Account type filter options
   const typeOptions = [
-    { value: null, label: "All Types" },
+    { value: "all", label: "All Types" },
     { value: "Residential", label: "Residential" },
     { value: "Commercial", label: "Commercial" },
     { value: "Industrial", label: "Industrial" },
@@ -71,15 +71,15 @@ export default function AccountsPage() {
               />
             </div>
             <Select
-              value={typeFilter || ""}
-              onValueChange={(value) => setTypeFilter(value || null)}
+              value={typeFilter || "all"}
+              onValueChange={(value) => setTypeFilter(value === "all" ? null : value)}
             >
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="All Types" />
               </SelectTrigger>
               <SelectContent>
                 {typeOptions.map((option) => (
-                  <SelectItem key={option.label} value={option.value || ""}>
+                  <SelectItem key={option.label} value={option.value}>
                     {option.label}
                   </SelectItem>
                 ))}
