@@ -225,43 +225,35 @@ export class WorkflowTester {
       const now = Date.now();
       const thirtyDaysFromNow = now + 30 * 24 * 60 * 60 * 1000;
 
-      // Create line items
+      // Create line items with only the fields expected by the API
       const lineItems = [
         {
           description: "Service Package A",
           quantity: 1,
-          unitPrice: 299.99,
-          total: 299.99,
-          sortOrder: 0
+          unitPrice: 299.99
         },
         {
           description: "Additional Service",
           quantity: 2,
-          unitPrice: 49.99,
-          total: 99.98,
-          sortOrder: 1
+          unitPrice: 49.99
         }
       ];
 
-      // Calculate totals
-      const subtotal = lineItems.reduce((sum, item) => sum + item.total, 0);
-      const taxRate = 7.5;
-      const tax = subtotal * (taxRate / 100);
-      const total = subtotal + tax;
+      // Log the exact data being sent to the mutation
+      console.log("Line items for quote:", JSON.stringify(lineItems));
 
-      // Create quote
+      // Create quote with only the fields expected by the API
       const quoteData = {
         contactId: this.results.contact.id,
         accountId: this.results.account.id,
-        status: "Draft",
         issueDate: now,
         expiryDate: thirtyDaysFromNow,
-        subtotal,
-        tax,
-        total,
         notes: "Test quote created for workflow testing.",
         lineItems
       };
+
+      // Log the exact data being sent to the mutation
+      console.log("Sending quote data to createQuote mutation:", JSON.stringify(quoteData));
 
       const quoteId = await this.client.mutation(api.quotes.createQuote, quoteData);
 
@@ -275,16 +267,18 @@ export class WorkflowTester {
       };
 
       // Update quote status to Presented
-      await this.client.mutation(api.quotes.updateQuoteStatus, {
+      await this.client.mutation(api.quotes.changeQuoteStatus, {
         id: quoteId,
         status: "Presented"
       });
 
       // Update quote status to Accepted
-      await this.client.mutation(api.quotes.updateQuoteStatus, {
+      await this.client.mutation(api.quotes.changeQuoteStatus, {
         id: quoteId,
         status: "Accepted"
       });
+
+      console.log("Quote status updated to Accepted");
 
       console.log("Quote created and accepted successfully:", quoteId);
     } catch (error) {
