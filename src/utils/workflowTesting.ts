@@ -118,9 +118,11 @@ export class WorkflowTester {
         lastName: this.results.lead.lastName,
         email: this.results.lead.email,
         phone: this.results.lead.phone,
-        source: "Lead Conversion",
-        notes: "Contact created from test lead conversion."
+        notes: "Contact created from test lead conversion. Source: Lead Conversion"
       };
+
+      // Log the exact data being sent to the mutation
+      console.log("Sending contact data to createContact mutation:", JSON.stringify(contactData));
 
       const contactId = await this.client.mutation(api.contacts.createContact, contactData);
 
@@ -136,13 +138,16 @@ export class WorkflowTester {
       // Create account
       const accountData = {
         name: `${this.results.lead.firstName} ${this.results.lead.lastName} Property`,
+        type: "Residential", // Required field
         address: "123 Test Street",
         city: "Test City",
         state: "TS",
         zip: "12345",
-        contactId: contactId,
         notes: "Account created from test lead conversion."
       };
+
+      // Log the exact data being sent to the mutation
+      console.log("Sending account data to createAccount mutation:", JSON.stringify(accountData));
 
       const accountId = await this.client.mutation(api.accounts.createAccount, accountData);
 
@@ -155,6 +160,19 @@ export class WorkflowTester {
         ...accountData
       };
 
+      // Link contact to account
+      const linkData = {
+        contactId,
+        accountId,
+        relationship: "Owner",
+        isPrimary: true
+      };
+
+      // Log the exact data being sent to the mutation
+      console.log("Sending link data to linkContactToAccount mutation:", JSON.stringify(linkData));
+
+      await this.client.mutation(api.accounts.linkContactToAccount, linkData);
+
       // Update lead status to converted
       await this.client.mutation(api.leads.updateLead, {
         id: this.results.lead.id,
@@ -166,6 +184,7 @@ export class WorkflowTester {
         accountId
       });
     } catch (error) {
+      console.error("Detailed error in convertLeadToContactAndAccount:", error);
       this.errors.push(`Error converting lead: ${error instanceof Error ? error.message : String(error)}`);
       throw error;
     }
