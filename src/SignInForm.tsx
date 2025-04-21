@@ -2,6 +2,8 @@
 import { useAuthActions } from "@convex-dev/auth/react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 export function SignInForm() {
   const { signIn } = useAuthActions();
@@ -27,20 +29,21 @@ export function SignInForm() {
           });
         }}
       >
-        <input className="input-field" type="email" name="email" placeholder="Email" required />
-        <input className="input-field" type="password" name="password" placeholder="Password" required />
-        <button className="auth-button" type="submit" disabled={submitting}>
+        <Input type="email" name="email" placeholder="Email" required />
+        <Input type="password" name="password" placeholder="Password" required />
+        <Button type="submit" disabled={submitting} className="w-full">
           {flow === "signIn" ? "Sign in" : "Sign up"}
-        </button>
+        </Button>
         <div className="text-center text-sm text-slate-600">
           <span>{flow === "signIn" ? "Don't have an account? " : "Already have an account? "}</span>
-          <button
+          <Button
             type="button"
-            className="text-blue-500 cursor-pointer"
+            variant="link"
+            className="p-0 h-auto"
             onClick={() => setFlow(flow === "signIn" ? "signUp" : "signIn")}
           >
             {flow === "signIn" ? "Sign up instead" : "Sign in instead"}
-          </button>
+          </Button>
         </div>
       </form>
       <div className="flex items-center justify-center my-3">
@@ -48,9 +51,9 @@ export function SignInForm() {
           <span className="mx-4 text-slate-400 ">or</span>
           <hr className="my-4 grow" />
         </div>
-        <button className="auth-button" onClick={() => void signIn("anonymous")}>
+        <Button className="w-full" onClick={() => void signIn("anonymous")}>
           Sign in anonymously
-        </button>
+        </Button>
     </div>
   );
 }

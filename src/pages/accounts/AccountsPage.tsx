@@ -2,9 +2,12 @@ import { useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { Button } from "@/components/ui/button";
-import { Plus, Search, Building2 } from "lucide-react";
+import { Plus, Search, Building2, Filter, ArrowUpDown, MoreHorizontal } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
+import { Card, CardContent } from "@/components/ui/card";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function AccountsPage() {
   const navigate = useNavigate();
@@ -42,119 +45,158 @@ export default function AccountsPage() {
   ];
 
   return (
-    <div className="container mx-auto py-6">
-      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-6">
+    <div className="container mx-auto py-6 space-y-6">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold">Accounts</h1>
+          <h1 className="text-3xl font-bold">Accounts</h1>
           <p className="text-gray-500 mt-1">Manage your customer properties and businesses</p>
         </div>
-        <Button onClick={handleCreateAccount} className="bg-blue-600 hover:bg-blue-700 text-white">
+        <Button onClick={handleCreateAccount}>
           <Plus className="mr-2 h-4 w-4" /> New Account
         </Button>
       </div>
 
       {/* Filters */}
-      <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
-            <Input
-              type="search"
-              placeholder="Search accounts..."
-              className="pl-9 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex flex-col md:flex-row gap-4 items-center">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
+              <Input
+                type="search"
+                placeholder="Search accounts..."
+                className="pl-9"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+            <Select
+              value={typeFilter || ""}
+              onValueChange={(value) => setTypeFilter(value || null)}
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="All Types" />
+              </SelectTrigger>
+              <SelectContent>
+                {typeOptions.map((option) => (
+                  <SelectItem key={option.label} value={option.value || ""}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon">
+                  <Filter className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Sort By</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>Name (A-Z)</DropdownMenuItem>
+                <DropdownMenuItem>Name (Z-A)</DropdownMenuItem>
+                <DropdownMenuItem>Type</DropdownMenuItem>
+                <DropdownMenuItem>Date Added</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
-          <select
-            className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            value={typeFilter || ""}
-            onChange={(e) => setTypeFilter(e.target.value || null)}
-          >
-            {typeOptions.map((option) => (
-              <option key={option.label} value={option.value || ""}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
       {/* Accounts Table */}
-      <div className="bg-white shadow-md rounded-lg overflow-hidden border border-gray-200">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Name
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Type
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Address
-              </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {accounts.length === 0 && (
+      <Card>
+        <div className="rounded-md border">
+          <table className="w-full caption-bottom text-sm">
+            <thead className="border-b bg-gray-50">
               <tr>
-                <td colSpan={4} className="px-6 py-8 text-center">
-                  <div className="flex flex-col items-center">
-                    <Building2 className="h-12 w-12 text-gray-300 mb-2" />
-                    <p className="text-gray-500 mb-1">No accounts found</p>
-                    <p className="text-sm text-gray-400">Create your first account to get started</p>
-                    <Button
-                      className="mt-4 bg-blue-600 hover:bg-blue-700 text-white"
-                      onClick={handleCreateAccount}
-                    >
-                      <Plus className="mr-2 h-4 w-4" /> New Account
-                    </Button>
+                <th className="h-12 px-4 text-left align-middle font-medium text-gray-700 whitespace-nowrap">
+                  <div className="flex items-center space-x-1">
+                    <span>Name</span>
+                    <ArrowUpDown className="h-4 w-4" />
                   </div>
-                </td>
+                </th>
+                <th className="h-12 px-4 text-left align-middle font-medium text-gray-700 whitespace-nowrap">
+                  <div className="flex items-center space-x-1">
+                    <span>Type</span>
+                    <ArrowUpDown className="h-4 w-4" />
+                  </div>
+                </th>
+                <th className="h-12 px-4 text-left align-middle font-medium text-gray-700 whitespace-nowrap">
+                  <div className="flex items-center space-x-1">
+                    <span>Address</span>
+                  </div>
+                </th>
+                <th className="h-12 px-4 text-right align-middle font-medium text-gray-700 whitespace-nowrap">
+                  Actions
+                </th>
               </tr>
-            )}
+            </thead>
+            <tbody className="divide-y divide-gray-200 bg-white">
+              {accounts.length === 0 && (
+                <tr>
+                  <td colSpan={4} className="p-8 text-center">
+                    <div className="flex flex-col items-center">
+                      <Building2 className="h-12 w-12 text-gray-300 mb-2" />
+                      <p className="text-gray-500 mb-1">No accounts found</p>
+                      <p className="text-sm text-gray-400">Create your first account to get started</p>
+                      <Button
+                        className="mt-4"
+                        onClick={handleCreateAccount}
+                      >
+                        <Plus className="mr-2 h-4 w-4" /> New Account
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
+              )}
 
-            {accounts.map((account) => (
-              <tr
-                key={account._id.toString()}
-                className="hover:bg-blue-50 cursor-pointer transition-colors"
-                onClick={() => handleViewAccount(account._id.toString())}
-              >
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-medium text-gray-900">{account.name}</div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-500">{account.type}</div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-500">
-                    {account.address}
-                    {account.city && `, ${account.city}`}
-                    {account.state && `, ${account.state}`}
-                    {account.zip && ` ${account.zip}`}
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <Button
-                    variant="outline"
-                    className="border-blue-200 text-blue-600 hover:bg-blue-50 hover:text-blue-700"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleViewAccount(account._id.toString());
-                    }}
-                  >
-                    View
-                  </Button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+              {accounts.map((account) => (
+                <tr
+                  key={account._id.toString()}
+                  className="border-b transition-colors hover:bg-gray-50 data-[state=selected]:bg-blue-50 cursor-pointer"
+                  onClick={() => handleViewAccount(account._id.toString())}
+                >
+                  <td className="p-4 align-middle">
+                    <div className="font-medium">{account.name}</div>
+                  </td>
+                  <td className="p-4 align-middle">
+                    <div className="text-gray-700">{account.type}</div>
+                  </td>
+                  <td className="p-4 align-middle">
+                    <div className="text-gray-700">
+                      {account.address}
+                      {account.city && `, ${account.city}`}
+                      {account.state && `, ${account.state}`}
+                      {account.zip && ` ${account.zip}`}
+                    </div>
+                  </td>
+                  <td className="p-4 align-middle text-right">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" onClick={(e) => e.stopPropagation()}>
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={(e) => {
+                          e.stopPropagation();
+                          handleViewAccount(account._id.toString());
+                        }}>
+                          View Details
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>Edit Account</DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem className="text-red-600">Delete Account</DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Card>
     </div>
   );
 }
