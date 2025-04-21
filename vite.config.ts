@@ -11,4 +11,23 @@ export default defineConfig({
       "components": path.resolve(__dirname, "src/components"),
     },
   },
+  preview: {
+    host: true,
+    port: process.env.PORT ? parseInt(process.env.PORT) : 5173,
+    strictPort: true,
+    // Allow all hosts including Render domain
+    cors: true,
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+    },
+  },
+  server: {
+    host: true,
+    port: process.env.PORT ? parseInt(process.env.PORT) : 5173,
+    strictPort: true,
+    cors: true,
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+    },
+  },
 });
