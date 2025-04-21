@@ -347,17 +347,21 @@ export class WorkflowTester {
       }
 
       // Update work order status to In Progress
-      await this.client.mutation(api.workOrders.updateWorkOrderStatus, {
+      await this.client.mutation(api.workOrders.changeWorkOrderStatus, {
         id: this.results.workOrder.id,
         status: "In Progress"
       });
 
+      console.log("Work order status updated to In Progress");
+
       // Update work order status to Completed
-      await this.client.mutation(api.workOrders.updateWorkOrderStatus, {
+      await this.client.mutation(api.workOrders.changeWorkOrderStatus, {
         id: this.results.workOrder.id,
         status: "Completed",
-        completionNotes: "Work completed successfully during testing."
+        completedDate: Date.now() // Use completedDate instead of completionNotes
       });
+
+      console.log("Work order status updated to Completed");
 
       console.log("Work order completed successfully");
     } catch (error) {
@@ -378,11 +382,16 @@ export class WorkflowTester {
       }
 
       // Create invoice from work order
+      const now = Date.now();
       const invoiceData = {
         workOrderId: this.results.workOrder.id,
-        dueDate: Date.now() + 14 * 24 * 60 * 60 * 1000, // 14 days from now
+        issueDate: now, // Required parameter
+        dueDate: now + 14 * 24 * 60 * 60 * 1000, // 14 days from now
         notes: "Invoice created from test work order."
       };
+
+      // Log the exact data being sent to the mutation
+      console.log("Sending invoice data to createInvoiceFromWorkOrder mutation:", JSON.stringify(invoiceData));
 
       const invoiceId = await this.client.mutation(api.invoices.createInvoiceFromWorkOrder, invoiceData);
 
@@ -421,18 +430,21 @@ export class WorkflowTester {
       }
 
       // Update invoice status to Sent
-      await this.client.mutation(api.invoices.updateInvoiceStatus, {
+      await this.client.mutation(api.invoices.changeInvoiceStatus, {
         id: this.results.invoice.id,
         status: "Sent"
       });
 
+      console.log("Invoice status updated to Sent");
+
       // Update invoice status to Paid
-      await this.client.mutation(api.invoices.updateInvoiceStatus, {
+      await this.client.mutation(api.invoices.changeInvoiceStatus, {
         id: this.results.invoice.id,
-        status: "Paid",
-        paymentMethod: "Test Payment",
-        paymentDate: Date.now()
+        status: "Paid"
+        // Note: changeInvoiceStatus doesn't accept paymentMethod or paymentDate
       });
+
+      console.log("Invoice status updated to Paid");
 
       console.log("Invoice processed successfully");
     } catch (error) {
