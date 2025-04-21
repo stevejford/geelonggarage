@@ -45,8 +45,8 @@ A comprehensive garage management system built with Next.js, Convex, and Clerk.
 3. Set up environment variables:
    Create a `.env.local` file with the following variables:
    ```
-   NEXT_PUBLIC_CONVEX_URL=your_convex_url
-   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
+   VITE_CONVEX_URL=your_convex_url
+   VITE_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
    CLERK_SECRET_KEY=your_clerk_secret_key
    ```
 
@@ -67,8 +67,10 @@ A comprehensive garage management system built with Next.js, Convex, and Clerk.
 
 5. Set the following environment variables in Render:
    - `CONVEX_DEPLOY_KEY`: Your Convex deployment key
-   - `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`: Your Clerk publishable key
+   - `VITE_CLERK_PUBLISHABLE_KEY`: Your Clerk publishable key
    - `CLERK_SECRET_KEY`: Your Clerk secret key
+   - `VITE_CONVEX_URL`: Your Convex URL (e.g., https://patient-tern-95.convex.cloud)
+   - `PORT`: 10000
 
 6. Click "Create Web Service" to deploy.
 
