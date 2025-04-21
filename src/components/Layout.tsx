@@ -33,14 +33,7 @@ export default function Layout() {
               <Menu size={20} />
             </Button>
 
-            {/* Logo */}
-            <div className="flex items-center">
-              <img
-                src="/logo-pdfs.png"
-                alt="Geelong Garage Logo"
-                className="h-10 w-auto"
-              />
-            </div>
+            {/* Logo removed from top bar */}
           </div>
 
           <div className="flex items-center gap-4">
@@ -75,27 +68,20 @@ export default function Layout() {
       </header>
 
       <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar - shown based on sidebarOpen state */}
-        {sidebarOpen ? (
-          <div className="fixed md:relative inset-0 z-50 md:z-0">
-            {/* Overlay for mobile only */}
-            <div
-              className="fixed inset-0 bg-black/50 md:hidden"
-              onClick={() => setSidebarOpen(false)}
-            />
-            <div className="relative z-10 h-full w-64 max-w-[80vw]">
-              {/* Logo centered over sidebar */}
-              <div className="absolute top-0 left-0 right-0 flex justify-center mt-2 z-10">
-                <img
-                  src="/logo-pdfs.png"
-                  alt="Geelong Garage Logo"
-                  className="h-12 w-auto"
-                />
-              </div>
-              <Sidebar collapsed={false} />
-            </div>
+        {/* Sidebar with improved transition */}
+        <div
+          className={`fixed md:relative inset-0 z-50 md:z-0 transition-all duration-500 ease-in-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:-translate-x-full'}`}
+        >
+          {/* Overlay for mobile only */}
+          <div
+            className={`fixed inset-0 bg-black/50 md:hidden transition-opacity duration-500 ${sidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+            onClick={() => setSidebarOpen(false)}
+          />
+          <div className="relative z-10 h-full w-64 max-w-[80vw]">
+            {/* Logo removed */}
+            <Sidebar collapsed={false} />
           </div>
-        ) : null}
+        </div>
 
         {/* Main Content */}
         <main className="flex-1 overflow-auto bg-gray-50 p-4 md:p-6 transition-all duration-300">
