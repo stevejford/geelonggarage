@@ -38,12 +38,8 @@ export default function Sidebar({ collapsed = false }: SidebarProps) {
   ];
 
   return (
-    <aside className={`${collapsed ? 'w-16' : 'w-64'} bg-gradient-to-b from-blue-900 to-blue-800 h-full shadow-lg flex flex-col transition-all duration-300 ease-in-out`}>
-      {!collapsed && (
-        <div className="p-4 border-b border-blue-700 flex justify-center">
-          <h1 className="text-xl font-bold text-white">Menu</h1>
-        </div>
-      )}
+    <aside className={`${collapsed ? 'w-16' : 'w-64'} bg-gradient-to-b from-blue-900 to-blue-800 h-full shadow-lg flex flex-col transition-all duration-300 ease-in-out pt-8`}>
+      {/* Removed Menu header */}
       <nav className="p-2 space-y-1 flex-1 overflow-y-auto" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
         {links.map((link) => (
           <Link
