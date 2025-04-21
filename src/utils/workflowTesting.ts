@@ -300,12 +300,17 @@ export class WorkflowTester {
 
       // Create work order from quote
       const workOrderData = {
+        contactId: this.results.contact.id,
+        accountId: this.results.account.id,
         quoteId: this.results.quote.id,
         scheduledDate: Date.now() + 7 * 24 * 60 * 60 * 1000, // 7 days from now
         notes: "Work order created from test quote."
       };
 
-      const workOrderId = await this.client.mutation(api.workOrders.createWorkOrderFromQuote, workOrderData);
+      // Log the exact data being sent to the mutation
+      console.log("Sending work order data to createWorkOrder mutation:", JSON.stringify(workOrderData));
+
+      const workOrderId = await this.client.mutation(api.workOrders.createWorkOrder, workOrderData);
 
       if (!workOrderId) {
         throw new Error("Failed to create work order");
