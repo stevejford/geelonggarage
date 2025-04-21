@@ -69,20 +69,39 @@ Always use the `StatusBadge` component from `@/components/ui/status-badge` for s
 
 ## Typography Standards
 
+### Font Families
+- Primary Font: `Inter` (sans-serif) for UI elements, body text, and forms
+- Secondary Font: `Lora` (serif) for headings and titles
+
+### Font Sizes
+- Form Labels: 16px (1rem) - `text-form-label`
+- Input Fields: 16px (1rem) - `text-form-input`
+- Helper Text / Error Messages: 14px (0.875rem) - `text-form-helper`
+- Buttons: 16px (1rem) - `text-form-button`
+- Form Headings: 20px (1.25rem) - `text-form-heading`
+
 ### Headings
-- Page titles: `text-3xl font-bold`
-- Section headings: `text-xl font-semibold`
-- Card titles: `text-lg font-semibold`
-- Subsection headings: `text-base font-medium`
+- Page titles (h1): `text-3xl font-bold font-serif`
+- Section headings (h2): `text-2xl font-semibold font-serif`
+- Card titles (h3): `text-xl font-semibold font-serif`
+- Subsection headings (h4): `text-lg font-medium font-serif`
 
 ### Body Text
-- Standard text: `text-base`
-- Small text: `text-sm`
-- Extra small text: `text-xs`
+- Standard text: `text-base font-sans`
+- Small text: `text-sm font-sans`
+- Extra small text: `text-xs font-sans`
 
-### Font Family
-- Use the default font family defined in tailwind.config.js
-- Don't use custom font families in component styles
+### Line Height
+- Body text: 1.5 (150%) - `leading-relaxed`
+- Form elements: 1.5 (150%) - `leading-form`
+- Headings: 1.3 (130%) - `leading-tight`
+
+### Best Practices
+- Maintain consistent typography across the application
+- Use relative units (rem) for font sizes to ensure accessibility
+- Ensure text contrast meets WCAG guidelines
+- Limit design to 2-3 font weights for a clean look
+- Use proper visual hierarchy with consistent heading sizes
 
 ## Form Standards
 
