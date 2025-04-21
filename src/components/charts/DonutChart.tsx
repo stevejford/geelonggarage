@@ -2,6 +2,7 @@ import React from 'react';
 import ReactApexChart from 'react-apexcharts';
 import { ApexOptions } from 'apexcharts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import ApexChartsWrapper from './ApexChartsWrapper';
 
 interface DonutChartProps {
   title: string;
@@ -110,7 +111,9 @@ export default function DonutChart({
         {description && <CardDescription>{description}</CardDescription>}
       </CardHeader>
       <CardContent>
-        <ReactApexChart options={options} series={series} type="donut" height={height} />
+        <ApexChartsWrapper>
+          <ReactApexChart options={options} series={series} type="donut" height={height} />
+        </ApexChartsWrapper>
       </CardContent>
     </Card>
   );
