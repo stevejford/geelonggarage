@@ -46,6 +46,7 @@ import TestInquiryPage from "./pages/wordpress/TestInquiryPage";
 
 // Testing
 import WorkflowTestPage from "./pages/testing/WorkflowTestPage";
+import WorkflowTestPage2 from "./pages/testing/WorkflowTestPage2";
 import UIConsistencyPage from "./pages/testing/UIConsistencyPage";
 
 // Get Convex URL from environment variables or fallback to a default
@@ -126,6 +127,7 @@ export default function App() {
 
               {/* Testing */}
               <Route path="testing/workflow" element={<WorkflowTestPage />} />
+              <Route path="testing/workflow2" element={<WorkflowTestPage2 />} />
               <Route path="testing/ui-consistency" element={<UIConsistencyPage />} />
             </Route>
           </Routes>
