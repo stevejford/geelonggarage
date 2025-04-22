@@ -5,52 +5,58 @@ import { BrowserRouter as Router, Route, Routes, Navigate, useNavigate } from "r
 import { Toaster } from "@/components/ui/toaster";
 import { SearchProvider } from "./contexts/SearchContext";
 import GoogleMapsProvider from "@/components/common/GoogleMapsProvider";
-import Dashboard from "./pages/Dashboard";
-import Settings from "./pages/settings/SettingsPage";
+import { lazy, Suspense } from 'react';
+import { PageLoader } from "@/components/ui/loading";
 import Layout from "./components/Layout";
+
+// Core pages (keep these non-lazy for faster initial load)
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import ResetPassword from "./pages/auth/ResetPassword";
 
+// Lazy-loaded pages
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Settings = lazy(() => import("./pages/settings/SettingsPage"));
+
 // Lead pages
-import LeadsPage from "./pages/leads/LeadsPage";
-import NewLeadPage from "./pages/leads/NewLeadPage";
-import LeadDetailPage from "./pages/leads/LeadDetailPage";
+const LeadsPage = lazy(() => import("./pages/leads/LeadsPage"));
+const NewLeadPage = lazy(() => import("./pages/leads/NewLeadPage"));
+const LeadDetailPage = lazy(() => import("./pages/leads/LeadDetailPage"));
 
 // Contact pages
-import ContactsPage from "./pages/contacts/ContactsPage";
-import NewContactPage from "./pages/contacts/NewContactPage";
-import ContactDetailPage from "./pages/contacts/ContactDetailPage";
+const ContactsPage = lazy(() => import("./pages/contacts/ContactsPage"));
+const NewContactPage = lazy(() => import("./pages/contacts/NewContactPage"));
+const ContactDetailPage = lazy(() => import("./pages/contacts/ContactDetailPage"));
 
 // Account pages
-import AccountsPage from "./pages/accounts/AccountsPage";
-import NewAccountPage from "./pages/accounts/NewAccountPage";
-import AccountDetailPage from "./pages/accounts/AccountDetailPage";
+const AccountsPage = lazy(() => import("./pages/accounts/AccountsPage"));
+const NewAccountPage = lazy(() => import("./pages/accounts/NewAccountPage"));
+const AccountDetailPage = lazy(() => import("./pages/accounts/AccountDetailPage"));
 
 // Quote pages
-import QuotesPage from "./pages/quotes/QuotesPage";
-import NewQuotePage from "./pages/quotes/NewQuotePage";
-import QuoteDetailPage from "./pages/quotes/QuoteDetailPage";
+const QuotesPage = lazy(() => import("./pages/quotes/QuotesPage"));
+const NewQuotePage = lazy(() => import("./pages/quotes/NewQuotePage"));
+const QuoteDetailPage = lazy(() => import("./pages/quotes/QuoteDetailPage"));
 
 // Work Order pages
-import WorkOrdersPage from "./pages/workOrders/WorkOrdersPage";
-import NewWorkOrderPage from "./pages/workOrders/NewWorkOrderPage";
-import WorkOrderDetailPage from "./pages/workOrders/WorkOrderDetailPage";
+const WorkOrdersPage = lazy(() => import("./pages/workOrders/WorkOrdersPage"));
+const NewWorkOrderPage = lazy(() => import("./pages/workOrders/NewWorkOrderPage"));
+const WorkOrderDetailPage = lazy(() => import("./pages/workOrders/WorkOrderDetailPage"));
 
 // Invoice pages
-import InvoicesPage from "./pages/invoices/InvoicesPage";
-import NewInvoicePage from "./pages/invoices/NewInvoicePage";
-import InvoiceDetailPage from "./pages/invoices/InvoiceDetailPage";
+const InvoicesPage = lazy(() => import("./pages/invoices/InvoicesPage"));
+const NewInvoicePage = lazy(() => import("./pages/invoices/NewInvoicePage"));
+const InvoiceDetailPage = lazy(() => import("./pages/invoices/InvoiceDetailPage"));
 
 // WordPress integration
-import TestInquiryPage from "./pages/wordpress/TestInquiryPage";
+const TestInquiryPage = lazy(() => import("./pages/wordpress/TestInquiryPage"));
 
 // Testing
-import WorkflowTestPage from "./pages/testing/WorkflowTestPage";
-import WorkflowTestPage2 from "./pages/testing/WorkflowTestPage2";
-import UIConsistencyPage from "./pages/testing/UIConsistencyPage";
-import ChartDataTestPage from "./pages/testing/ChartDataTestPage";
+const WorkflowTestPage = lazy(() => import("./pages/testing/WorkflowTestPage"));
+const WorkflowTestPage2 = lazy(() => import("./pages/testing/WorkflowTestPage2"));
+const UIConsistencyPage = lazy(() => import("./pages/testing/UIConsistencyPage"));
+const ChartDataTestPage = lazy(() => import("./pages/testing/ChartDataTestPage"));
 
 // Get Convex URL from environment variables or fallback to a default
 const convexUrl = import.meta.env.VITE_CONVEX_URL || "https://patient-tern-95.convex.cloud";
@@ -94,47 +100,147 @@ export default function App() {
                   }
                 >
                   <Route index element={<Navigate to="/dashboard" replace />} />
-                  <Route path="dashboard" element={<Dashboard />} />
-                  <Route path="settings" element={<Settings />} />
+                  <Route path="dashboard" element={
+                    <Suspense fallback={<PageLoader />}>
+                      <Dashboard />
+                    </Suspense>
+                  } />
+                  <Route path="settings" element={
+                    <Suspense fallback={<PageLoader />}>
+                      <Settings />
+                    </Suspense>
+                  } />
 
                   {/* Lead routes */}
-                  <Route path="leads" element={<LeadsPage />} />
-                  <Route path="leads/new" element={<NewLeadPage />} />
-                  <Route path="leads/:id" element={<LeadDetailPage />} />
+                  <Route path="leads" element={
+                    <Suspense fallback={<PageLoader />}>
+                      <LeadsPage />
+                    </Suspense>
+                  } />
+                  <Route path="leads/new" element={
+                    <Suspense fallback={<PageLoader />}>
+                      <NewLeadPage />
+                    </Suspense>
+                  } />
+                  <Route path="leads/:id" element={
+                    <Suspense fallback={<PageLoader />}>
+                      <LeadDetailPage />
+                    </Suspense>
+                  } />
 
                   {/* Contact routes */}
-                  <Route path="contacts" element={<ContactsPage />} />
-                  <Route path="contacts/new" element={<NewContactPage />} />
-                  <Route path="contacts/:id" element={<ContactDetailPage />} />
+                  <Route path="contacts" element={
+                    <Suspense fallback={<PageLoader />}>
+                      <ContactsPage />
+                    </Suspense>
+                  } />
+                  <Route path="contacts/new" element={
+                    <Suspense fallback={<PageLoader />}>
+                      <NewContactPage />
+                    </Suspense>
+                  } />
+                  <Route path="contacts/:id" element={
+                    <Suspense fallback={<PageLoader />}>
+                      <ContactDetailPage />
+                    </Suspense>
+                  } />
 
                   {/* Account routes */}
-                  <Route path="accounts" element={<AccountsPage />} />
-                  <Route path="accounts/new" element={<NewAccountPage />} />
-                  <Route path="accounts/:id" element={<AccountDetailPage />} />
+                  <Route path="accounts" element={
+                    <Suspense fallback={<PageLoader />}>
+                      <AccountsPage />
+                    </Suspense>
+                  } />
+                  <Route path="accounts/new" element={
+                    <Suspense fallback={<PageLoader />}>
+                      <NewAccountPage />
+                    </Suspense>
+                  } />
+                  <Route path="accounts/:id" element={
+                    <Suspense fallback={<PageLoader />}>
+                      <AccountDetailPage />
+                    </Suspense>
+                  } />
 
                   {/* Quote routes */}
-                  <Route path="quotes" element={<QuotesPage />} />
-                  <Route path="quotes/new" element={<NewQuotePage />} />
-                  <Route path="quotes/:id" element={<QuoteDetailPage />} />
+                  <Route path="quotes" element={
+                    <Suspense fallback={<PageLoader />}>
+                      <QuotesPage />
+                    </Suspense>
+                  } />
+                  <Route path="quotes/new" element={
+                    <Suspense fallback={<PageLoader />}>
+                      <NewQuotePage />
+                    </Suspense>
+                  } />
+                  <Route path="quotes/:id" element={
+                    <Suspense fallback={<PageLoader />}>
+                      <QuoteDetailPage />
+                    </Suspense>
+                  } />
 
                   {/* Work Order routes */}
-                  <Route path="work-orders" element={<WorkOrdersPage />} />
-                  <Route path="work-orders/new" element={<NewWorkOrderPage />} />
-                  <Route path="work-orders/:id" element={<WorkOrderDetailPage />} />
+                  <Route path="work-orders" element={
+                    <Suspense fallback={<PageLoader />}>
+                      <WorkOrdersPage />
+                    </Suspense>
+                  } />
+                  <Route path="work-orders/new" element={
+                    <Suspense fallback={<PageLoader />}>
+                      <NewWorkOrderPage />
+                    </Suspense>
+                  } />
+                  <Route path="work-orders/:id" element={
+                    <Suspense fallback={<PageLoader />}>
+                      <WorkOrderDetailPage />
+                    </Suspense>
+                  } />
 
                   {/* Invoice routes */}
-                  <Route path="invoices" element={<InvoicesPage />} />
-                  <Route path="invoices/new" element={<NewInvoicePage />} />
-                  <Route path="invoices/:id" element={<InvoiceDetailPage />} />
+                  <Route path="invoices" element={
+                    <Suspense fallback={<PageLoader />}>
+                      <InvoicesPage />
+                    </Suspense>
+                  } />
+                  <Route path="invoices/new" element={
+                    <Suspense fallback={<PageLoader />}>
+                      <NewInvoicePage />
+                    </Suspense>
+                  } />
+                  <Route path="invoices/:id" element={
+                    <Suspense fallback={<PageLoader />}>
+                      <InvoiceDetailPage />
+                    </Suspense>
+                  } />
 
                   {/* WordPress integration */}
-                  <Route path="test-inquiry" element={<TestInquiryPage />} />
+                  <Route path="test-inquiry" element={
+                    <Suspense fallback={<PageLoader />}>
+                      <TestInquiryPage />
+                    </Suspense>
+                  } />
 
                   {/* Testing */}
-                  <Route path="testing/workflow" element={<WorkflowTestPage />} />
-                  <Route path="testing/workflow2" element={<WorkflowTestPage2 />} />
-                  <Route path="testing/chart-data" element={<ChartDataTestPage />} />
-                  <Route path="testing/ui-consistency" element={<UIConsistencyPage />} />
+                  <Route path="testing/workflow" element={
+                    <Suspense fallback={<PageLoader />}>
+                      <WorkflowTestPage />
+                    </Suspense>
+                  } />
+                  <Route path="testing/workflow2" element={
+                    <Suspense fallback={<PageLoader />}>
+                      <WorkflowTestPage2 />
+                    </Suspense>
+                  } />
+                  <Route path="testing/chart-data" element={
+                    <Suspense fallback={<PageLoader />}>
+                      <ChartDataTestPage />
+                    </Suspense>
+                  } />
+                  <Route path="testing/ui-consistency" element={
+                    <Suspense fallback={<PageLoader />}>
+                      <UIConsistencyPage />
+                    </Suspense>
+                  } />
                 </Route>
               </Routes>
             </Router>

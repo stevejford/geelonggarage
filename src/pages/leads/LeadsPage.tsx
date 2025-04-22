@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { AnimatedNumber } from "@/components/ui/animated-number";
 import { Separator } from "@/components/ui/separator";
 import DonutChart from "@/components/charts/DonutChart";
 import { SampleDataOverlay } from "@/components/ui/sample-data-overlay";
@@ -118,7 +119,7 @@ export default function LeadsPage() {
                   data={leadStatusData}
                   labels={leadStatusLabels}
                   colors={leadStatusColors}
-                  height={250}
+                  height={350} // Standardized height for all donut charts
                 />
               </div>
             </CardContent>
@@ -134,7 +135,13 @@ export default function LeadsPage() {
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-medium">Total Leads</span>
-                  <span className="text-2xl font-bold">{leads.length}</span>
+                  <span className="text-2xl font-bold">
+                    <AnimatedNumber
+                      value={leads.length}
+                      delay={0} // First counter
+                      formatFn={(val) => Math.round(val).toString()}
+                    />
+                  </span>
                 </div>
                 <Separator />
                 <div className="space-y-2">
@@ -144,7 +151,13 @@ export default function LeadsPage() {
                         <div className="w-3 h-3 rounded-full" style={{ backgroundColor: leadStatusColors[index] }}></div>
                         <span className="text-sm">{label}</span>
                       </div>
-                      <span className="font-medium">{leadStatusData[index]}</span>
+                      <span className="font-medium">
+                        <AnimatedNumber
+                          value={leadStatusData[index]}
+                          delay={150 + (index * 100)} // Staggered delay for each status
+                          formatFn={(val) => Math.round(val).toString()}
+                        />
+                      </span>
                     </div>
                   ))}
                 </div>

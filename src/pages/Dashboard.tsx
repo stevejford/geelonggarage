@@ -1,7 +1,6 @@
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useUser } from "@clerk/clerk-react";
-import { useSearch } from "@/contexts/SearchContext";
 import {
   Users,
   Building2,
@@ -41,7 +40,6 @@ import { SampleDataOverlay } from "@/components/ui/sample-data-overlay";
 export default function Dashboard() {
   const { user } = useUser();
   const firstName = user?.firstName || "User";
-  const { globalSearch } = useSearch();
 
   // Fetch dashboard metrics
   const metrics = useQuery(api.dashboard.getDashboardMetrics) || {
@@ -55,39 +53,32 @@ export default function Dashboard() {
   // Fetch recent activity
   const recentActivity = useQuery(api.dashboard.getRecentActivity, { limit: 10 }) || [];
 
-  // Filter activity based on global search
-  const filteredActivity = globalSearch
-    ? recentActivity.filter(activity =>
-        activity.name.toLowerCase().includes(globalSearch.toLowerCase()) ||
-        activity.action.toLowerCase().includes(globalSearch.toLowerCase()))
-    : recentActivity;
-
   // Stats cards data
   const stats = [
     {
       title: "Total Leads",
-      value: formatNumber(metrics.counts.leads),
+      value: metrics.counts.leads,
       icon: <Users className="h-6 w-6 text-blue-600" />,
       color: "blue",
       link: "/leads"
     },
     {
       title: "Total Contacts",
-      value: formatNumber(metrics.counts.contacts),
+      value: metrics.counts.contacts,
       icon: <Users className="h-6 w-6 text-green-600" />,
       color: "green",
       link: "/contacts"
     },
     {
       title: "Total Accounts",
-      value: formatNumber(metrics.counts.accounts),
+      value: metrics.counts.accounts,
       icon: <Building2 className="h-6 w-6 text-purple-600" />,
       color: "purple",
       link: "/accounts"
     },
     {
       title: "Open Quotes",
-      value: formatNumber(metrics.quotes.open),
+      value: metrics.quotes.open,
       icon: <FileText className="h-6 w-6 text-yellow-600" />,
       color: "yellow",
       link: "/quotes"
@@ -98,25 +89,25 @@ export default function Dashboard() {
   const financialMetrics = [
     {
       title: "Total Revenue",
-      value: formatCurrency(metrics.invoices.totalRevenue),
+      value: metrics.invoices.totalRevenue,
       icon: <DollarSign className="h-6 w-6 text-green-600" />,
       color: "green"
     },
     {
       title: "Outstanding Revenue",
-      value: formatCurrency(metrics.invoices.outstandingRevenue),
+      value: metrics.invoices.outstandingRevenue,
       icon: <Clock className="h-6 w-6 text-orange-600" />,
       color: "orange"
     },
     {
       title: "Quote Conversion",
-      value: formatPercentage(metrics.quotes.conversionRate),
+      value: `${metrics.quotes.conversionRate.toFixed(1)}%`,
       icon: <TrendingUp className="h-6 w-6 text-blue-600" />,
       color: "blue"
     },
     {
       title: "Completed Work Orders",
-      value: formatNumber(metrics.workOrders.completed),
+      value: metrics.workOrders.completed,
       icon: <CheckCircle className="h-6 w-6 text-indigo-600" />,
       color: "indigo"
     },
@@ -237,6 +228,7 @@ export default function Dashboard() {
             icon={stat.icon}
             color={stat.color}
             link={stat.link}
+            index={index} // Pass index for staggered animation
             trend={index % 2 === 0 ? { value: 12, isPositive: true } : { value: 5, isPositive: false }}
           />
         ))}
@@ -251,6 +243,7 @@ export default function Dashboard() {
             value={metric.value}
             icon={metric.icon}
             color={metric.color}
+            index={index + 4} // Offset index for staggered animation (after the first set of cards)
             trend={index % 2 === 0 ? { value: 8, isPositive: true } : { value: 3, isPositive: false }}
           />
         ))}
@@ -292,7 +285,7 @@ export default function Dashboard() {
             data={quoteStatusData}
             labels={quoteStatusLabels}
             colors={quoteStatusColors}
-            height={300}
+            height={350} // Increased height to accommodate legend
           />
         </div>
         <div className="relative">
@@ -314,7 +307,7 @@ export default function Dashboard() {
             data={invoiceStatusData}
             labels={invoiceStatusLabels}
             colors={invoiceStatusColors}
-            height={300}
+            height={350} // Increased height to accommodate legend
           />
         </div>
       </div>
@@ -330,12 +323,10 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {filteredActivity.length === 0 ? (
-                  <p className="text-gray-500 text-center py-4">
-                    {globalSearch ? `No activity matching "${globalSearch}"` : "No recent activity"}
-                  </p>
+                {recentActivity.length === 0 ? (
+                  <p className="text-gray-500 text-center py-4">No recent activity</p>
                 ) : (
-                  filteredActivity.map((activity, index) => (
+                  recentActivity.map((activity, index) => (
                     <div key={index} className="flex items-start gap-3 pb-4 border-b border-gray-100 last:border-0 last:pb-0">
                       <div className="p-2 rounded-full bg-gray-100">
                         {activity.type === "lead" && <Users className="h-5 w-5 text-blue-600" />}
@@ -381,7 +372,7 @@ export default function Dashboard() {
                             {task.due}
                           </div>
                           <StatusBadge
-                            variant={task.priority === 'High' ? 'destructive' : task.priority === 'Medium' ? 'warning' : 'success'}
+                            variant={task.priority === 'High' ? 'overdue' : task.priority === 'Medium' ? 'pending' : 'completed'}
                             size="sm"
                           >
                             {task.priority}

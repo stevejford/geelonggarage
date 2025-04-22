@@ -1,12 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
-import { useSearch } from "@/contexts/SearchContext";
 import { Button } from "@/components/ui/button";
 import { Plus, Search, Receipt, CheckCircle, Send, AlertTriangle, XCircle, FileText, Filter, ArrowUpDown, MoreHorizontal, PieChart, BarChart3, DollarSign, Clock } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { AnimatedNumber } from "@/components/ui/animated-number";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -23,14 +23,6 @@ export default function InvoicesPage() {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
-  const { globalSearch } = useSearch();
-
-  // Sync local search with global search
-  useEffect(() => {
-    if (globalSearch) {
-      setSearch(globalSearch);
-    }
-  }, [globalSearch]);
 
   // Fetch invoices with optional filtering
   const invoicesData = useQuery(api.invoices.getInvoices, {
@@ -102,8 +94,8 @@ export default function InvoicesPage() {
       totalPaidValue += invoice.total;
 
       // Calculate days to payment if paid
-      if (invoice.paidDate && invoice.issueDate) {
-        const daysToPayment = Math.floor((invoice.paidDate - invoice.issueDate) / (1000 * 60 * 60 * 24));
+      if (invoice.status === "Paid" && invoice.issueDate) {
+        const daysToPayment = Math.floor((invoice.updatedAt - invoice.issueDate) / (1000 * 60 * 60 * 24));
         totalDaysToPayment += daysToPayment;
         paidInvoicesCount++;
 
@@ -122,8 +114,8 @@ export default function InvoicesPage() {
 
     // Add to monthly totals
     const month = new Date(invoice.issueDate).getMonth();
-    const monthNames = Object.keys(monthlyTotals);
-    monthlyTotals[monthNames[month]] += invoice.total;
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'] as const;
+    monthlyTotals[monthNames[month] as keyof typeof monthlyTotals] += invoice.total;
   });
 
   // Calculate average days to payment
@@ -150,7 +142,8 @@ export default function InvoicesPage() {
       // Create a bell curve-like distribution centered around current month
       const distanceFromCurrent = Math.abs(i - currentMonth);
       const factor = Math.max(0, 1 - (distanceFromCurrent / 6));
-      monthlyTotals[monthNames[i]] = Math.round(500 + (1500 * factor) + (Math.random() * 300));
+      const month = monthNames[i] as keyof typeof monthlyTotals;
+      monthlyTotals[month] = Math.round(500 + (1500 * factor) + (Math.random() * 300));
     }
   }
 
@@ -282,7 +275,13 @@ export default function InvoicesPage() {
             <CardDescription>Unpaid invoices</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{formatCurrency(totalInvoiceValue - totalPaidValue)}</div>
+            <div className="text-3xl font-bold">
+              <AnimatedNumber
+                value={totalInvoiceValue - totalPaidValue}
+                delay={0} // First card
+                formatFn={(val) => formatCurrency(val)}
+              />
+            </div>
           </CardContent>
         </Card>
 
@@ -292,7 +291,13 @@ export default function InvoicesPage() {
             <CardDescription>Past due invoices</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-red-600">{formatCurrency(totalOverdueValue)}</div>
+            <div className="text-3xl font-bold text-red-600">
+              <AnimatedNumber
+                value={totalOverdueValue}
+                delay={150} // Second card
+                formatFn={(val) => formatCurrency(val)}
+              />
+            </div>
           </CardContent>
         </Card>
 
@@ -302,7 +307,13 @@ export default function InvoicesPage() {
             <CardDescription>Collected revenue</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-green-600">{formatCurrency(totalPaidValue)}</div>
+            <div className="text-3xl font-bold text-green-600">
+              <AnimatedNumber
+                value={totalPaidValue}
+                delay={300} // Third card
+                formatFn={(val) => formatCurrency(val)}
+              />
+            </div>
           </CardContent>
         </Card>
 
@@ -314,7 +325,13 @@ export default function InvoicesPage() {
           <CardContent>
             <div className="flex items-center">
               <Clock className="h-5 w-5 mr-2 text-blue-600" />
-              <span className="text-3xl font-bold">{avgDaysToPayment}</span>
+              <span className="text-3xl font-bold">
+                <AnimatedNumber
+                  value={avgDaysToPayment}
+                  delay={450} // Fourth card
+                  formatFn={(val) => Math.round(val).toString()}
+                />
+              </span>
               <span className="ml-1 text-gray-500">days</span>
             </div>
           </CardContent>
@@ -331,7 +348,7 @@ export default function InvoicesPage() {
             data={invoiceStatusData}
             labels={invoiceStatusLabels}
             colors={invoiceStatusColors}
-            height={300}
+            height={350} // Increased height to accommodate legend
           />
         </div>
 
@@ -344,7 +361,6 @@ export default function InvoicesPage() {
             categories={monthlyInvoiceCategories}
             colors={["#3b82f6"]}
             height={300}
-            isCurrency={true}
           />
         </div>
       </div>
@@ -533,3 +549,6 @@ export default function InvoicesPage() {
     </div>
   );
 }
+
+
+

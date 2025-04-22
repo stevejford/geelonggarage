@@ -2,6 +2,7 @@ import React, { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { AnimatedNumber } from '@/components/ui/animated-number';
 
 interface MetricCardProps {
   title: string;
@@ -14,6 +15,7 @@ interface MetricCardProps {
     isPositive: boolean;
   };
   className?: string;
+  index?: number; // Added for staggered animations
 }
 
 export default function MetricCard({
@@ -23,7 +25,8 @@ export default function MetricCard({
   color,
   link,
   trend,
-  className
+  className,
+  index = 0 // Default to 0 if not provided
 }: MetricCardProps) {
   const colorClasses = {
     blue: 'border-blue-500 text-blue-600',
@@ -44,7 +47,30 @@ export default function MetricCard({
       <div className="flex justify-between items-start">
         <div>
           <p className="text-sm font-medium text-gray-500">{title}</p>
-          <p className="text-3xl font-bold mt-1">{value}</p>
+          <p className="text-3xl font-bold mt-1">
+            {typeof value === 'number' ? (
+              <AnimatedNumber
+                value={value}
+                delay={index * 150} // Staggered delay based on card index
+                formatFn={(val) => {
+                  // Check if the value is a currency
+                  if (title.toLowerCase().includes('revenue')) {
+                    return `$${val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                  }
+                  // For percentage values
+                  else if (typeof value === 'string' && value.includes('%')) {
+                    return `${val.toFixed(1)}%`;
+                  }
+                  // For regular numbers
+                  else {
+                    return Math.round(val).toLocaleString();
+                  }
+                }}
+              />
+            ) : (
+              value
+            )}
+          </p>
 
           {trend && (
             <div className={`flex items-center mt-2 text-sm ${trend.isPositive ? 'text-green-600' : 'text-red-600'}`}>

@@ -2,116 +2,6 @@ import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { generateWorkOrderNumber } from "./utils/numberGenerator";
-import { formatDate } from "./utils/formatters";
-
-// Search work orders with advanced filtering
-export const searchWorkOrders = query({
-  args: {
-    search: v.optional(v.string()),
-    type: v.optional(v.string()),
-    field: v.optional(v.string()),
-    limit: v.optional(v.number()),
-  },
-  handler: async (ctx, args) => {
-    // Start with a base query
-    let workOrdersQuery = ctx.db.query("workOrders").order("desc");
-
-    // Get all work orders
-    let workOrders = await workOrdersQuery.collect();
-
-    // Apply search filter if provided
-    if (args.search && args.search.trim() !== "") {
-      const searchTerm = args.search.trim().toLowerCase();
-
-      // Get related entities for each work order
-      const workOrdersWithDetails = await Promise.all(
-        workOrders.map(async (workOrder) => {
-          const contact = workOrder.contactId ? await ctx.db.get(workOrder.contactId) : null;
-          const account = workOrder.accountId ? await ctx.db.get(workOrder.accountId) : null;
-          const quote = workOrder.quoteId ? await ctx.db.get(workOrder.quoteId) : null;
-          return { workOrder, contact, account, quote };
-        })
-      );
-
-      // Filter based on search term and field
-      workOrders = workOrdersWithDetails
-        .filter(({ workOrder, contact, account, quote }) => {
-          // If type filter is applied and doesn't match, exclude
-          if (args.type && args.type !== 'all' && args.type !== 'workOrders') {
-            return false;
-          }
-
-          // Apply field-specific filtering if specified
-          if (args.field && args.field !== 'any') {
-            switch (args.field) {
-              case 'number':
-                return workOrder.workOrderNumber?.toLowerCase().includes(searchTerm);
-              case 'service':
-                return workOrder.notes?.toLowerCase().includes(searchTerm);
-              case 'name':
-                if (contact) {
-                  const contactName = `${contact.firstName} ${contact.lastName}`.toLowerCase();
-                  return contactName.includes(searchTerm);
-                }
-                if (account) {
-                  return account.name.toLowerCase().includes(searchTerm);
-                }
-                return false;
-              case 'date':
-                const scheduledDateStr = workOrder.scheduledDate ? formatDate(workOrder.scheduledDate).toLowerCase() : '';
-                const completedDateStr = workOrder.completedDate ? formatDate(workOrder.completedDate).toLowerCase() : '';
-                return scheduledDateStr.includes(searchTerm) || completedDateStr.includes(searchTerm);
-              case 'status':
-                return workOrder.status.toLowerCase().includes(searchTerm);
-              default:
-                return false;
-            }
-          }
-
-          // Search across all fields
-          // Work order fields
-          if (workOrder.workOrderNumber?.toLowerCase().includes(searchTerm)) return true;
-          if (workOrder.notes?.toLowerCase().includes(searchTerm)) return true;
-          if (workOrder.status.toLowerCase().includes(searchTerm)) return true;
-
-          // Dates
-          const scheduledDateStr = workOrder.scheduledDate ? formatDate(workOrder.scheduledDate).toLowerCase() : '';
-          const completedDateStr = workOrder.completedDate ? formatDate(workOrder.completedDate).toLowerCase() : '';
-          if (scheduledDateStr.includes(searchTerm) || completedDateStr.includes(searchTerm)) return true;
-
-          // Contact fields
-          if (contact) {
-            const contactName = `${contact.firstName} ${contact.lastName}`.toLowerCase();
-            if (contactName.includes(searchTerm)) return true;
-            if (contact.email?.toLowerCase().includes(searchTerm)) return true;
-            if (contact.phone?.toLowerCase().includes(searchTerm)) return true;
-          }
-
-          // Account fields
-          if (account) {
-            if (account.name.toLowerCase().includes(searchTerm)) return true;
-            if (account.address?.toLowerCase().includes(searchTerm)) return true;
-            if (account.city?.toLowerCase().includes(searchTerm)) return true;
-            if (account.state?.toLowerCase().includes(searchTerm)) return true;
-            if (account.zip?.toLowerCase().includes(searchTerm)) return true;
-          }
-
-          // Quote fields
-          if (quote && quote.quoteNumber?.toLowerCase().includes(searchTerm)) return true;
-
-          return false;
-        })
-        .map(({ workOrder }) => workOrder);
-    }
-
-    // Apply limit if provided
-    if (args.limit && args.limit > 0) {
-      workOrders = workOrders.slice(0, args.limit);
-    }
-
-    return workOrders;
-  },
-});
 
 // Get all work orders with optional filtering
 export const getWorkOrders = query({
@@ -188,70 +78,12 @@ export const getWorkOrders = query({
 
     let workOrders = await workOrdersQuery.collect();
 
-    // Apply search filter if provided
+    // Apply search filter if provided (case-insensitive substring match on workOrderNumber)
     if (typeof args.search === "string" && args.search.trim() !== "") {
-      const searchTerm = args.search.trim().toLowerCase();
-
-      // First, get all the work orders with their related entities
-      const workOrdersWithDetails = await Promise.all(
-        workOrders.map(async (workOrder) => {
-          const contact = await ctx.db.get(workOrder.contactId);
-          const account = await ctx.db.get(workOrder.accountId);
-
-          // Get quote if available
-          let quote = null;
-          if (workOrder.quoteId) {
-            quote = await ctx.db.get(workOrder.quoteId);
-          }
-
-          return { workOrder, contact, account, quote };
-        })
+      const search = args.search.toLowerCase();
+      workOrders = workOrders.filter((wo: { workOrderNumber: string }) =>
+        wo.workOrderNumber.toLowerCase().includes(search)
       );
-
-      // Then filter based on all relevant fields
-      workOrders = workOrdersWithDetails
-        .filter(({ workOrder, contact, account, quote }) => {
-          // Search in work order fields
-          if (workOrder.workOrderNumber.toLowerCase().includes(searchTerm)) return true;
-          if (workOrder.notes?.toLowerCase().includes(searchTerm)) return true;
-
-          // Format and check dates
-          if (workOrder.scheduledDate) {
-            const scheduledDateStr = new Date(workOrder.scheduledDate).toLocaleDateString();
-            if (scheduledDateStr.includes(searchTerm)) return true;
-          }
-
-          if (workOrder.completedDate) {
-            const completedDateStr = new Date(workOrder.completedDate).toLocaleDateString();
-            if (completedDateStr.includes(searchTerm)) return true;
-          }
-
-          // Check status
-          if (workOrder.status.toLowerCase().includes(searchTerm)) return true;
-
-          // Search in contact fields
-          if (contact) {
-            const contactName = `${contact.firstName} ${contact.lastName}`.toLowerCase();
-            if (contactName.includes(searchTerm)) return true;
-            if (contact.email?.toLowerCase().includes(searchTerm)) return true;
-            if (contact.phone?.toLowerCase().includes(searchTerm)) return true;
-          }
-
-          // Search in account fields
-          if (account) {
-            if (account.name.toLowerCase().includes(searchTerm)) return true;
-            if (account.address.toLowerCase().includes(searchTerm)) return true;
-            if (account.city?.toLowerCase().includes(searchTerm)) return true;
-            if (account.state?.toLowerCase().includes(searchTerm)) return true;
-            if (account.zip?.toLowerCase().includes(searchTerm)) return true;
-          }
-
-          // Search in quote fields
-          if (quote && quote.quoteNumber?.toLowerCase().includes(searchTerm)) return true;
-
-          return false;
-        })
-        .map(({ workOrder }) => workOrder);
     }
 
     // Filter by technician if provided

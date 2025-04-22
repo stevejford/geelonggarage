@@ -1,5 +1,4 @@
-import { useState, useEffect } from "react";
-import { useSearch } from "@/contexts/SearchContext";
+import { useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { Button } from "@/components/ui/button";
@@ -14,14 +13,6 @@ export default function AccountsPage() {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<string | null>(null);
-  const { globalSearch } = useSearch();
-
-  // Sync local search with global search
-  useEffect(() => {
-    if (globalSearch) {
-      setSearch(globalSearch);
-    }
-  }, [globalSearch]);
 
   // Fetch accounts with optional filtering
   const accountsData = useQuery(api.accounts.getAccounts, {

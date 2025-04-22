@@ -1,5 +1,4 @@
-import { useState, useEffect } from "react";
-import { useSearch } from "@/contexts/SearchContext";
+import { useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { Button } from "@/components/ui/button";
@@ -7,6 +6,7 @@ import { Plus, Search, FileText, Eye, Clipboard, Check, X, Filter, ArrowUpDown, 
 import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
 import { formatCurrency } from "@/lib/utils";
+import { AnimatedNumber } from "@/components/ui/animated-number";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -22,14 +22,6 @@ export default function QuotesPage() {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
-  const { globalSearch } = useSearch();
-
-  // Sync local search with global search
-  useEffect(() => {
-    if (globalSearch) {
-      setSearch(globalSearch);
-    }
-  }, [globalSearch]);
 
   // Fetch quotes with optional filtering
   const quotesData = useQuery(api.quotes.getQuotes, {
@@ -76,7 +68,7 @@ export default function QuotesPage() {
     // Add to monthly totals
     const month = new Date(quote.issueDate).getMonth();
     const monthNames = Object.keys(monthlyTotals);
-    monthlyTotals[monthNames[month]] += quote.total;
+    monthlyTotals[monthNames[month] as keyof typeof monthlyTotals] += quote.total;
   });
 
   // Calculate average quote value
@@ -105,7 +97,8 @@ export default function QuotesPage() {
       // Create a bell curve-like distribution centered around current month
       const distanceFromCurrent = Math.abs(i - currentMonth);
       const factor = Math.max(0, 1 - (distanceFromCurrent / 6));
-      monthlyTotals[monthNames[i]] = Math.round(300 + (4000 * factor) + (Math.random() * 500));
+      const monthName = monthNames[i] as keyof typeof monthlyTotals;
+      monthlyTotals[monthName] = Math.round(300 + (4000 * factor) + (Math.random() * 500));
     }
   }
 
@@ -211,7 +204,12 @@ export default function QuotesPage() {
             <CardDescription>All quotes</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{quotes.length}</div>
+            <div className="text-3xl font-bold">
+              <AnimatedNumber
+                value={quotes.length}
+                formatFn={(val) => Math.round(val).toString()}
+              />
+            </div>
           </CardContent>
         </Card>
 
@@ -221,7 +219,13 @@ export default function QuotesPage() {
             <CardDescription>Sum of all quotes</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{formatCurrency(totalQuoteValue)}</div>
+            <div className="text-3xl font-bold">
+              <AnimatedNumber
+                value={totalQuoteValue}
+                delay={0} // First card
+                formatFn={(val) => formatCurrency(val)}
+              />
+            </div>
           </CardContent>
         </Card>
 
@@ -231,7 +235,13 @@ export default function QuotesPage() {
             <CardDescription>Average per quote</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{formatCurrency(avgQuoteValue)}</div>
+            <div className="text-3xl font-bold">
+              <AnimatedNumber
+                value={avgQuoteValue}
+                delay={150} // Second card
+                formatFn={(val) => formatCurrency(val)}
+              />
+            </div>
           </CardContent>
         </Card>
 
@@ -241,7 +251,13 @@ export default function QuotesPage() {
             <CardDescription>Accepted vs declined</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{acceptanceRate.toFixed(1)}%</div>
+            <div className="text-3xl font-bold">
+              <AnimatedNumber
+                value={acceptanceRate}
+                delay={300} // Third card
+                formatFn={(val) => `${val.toFixed(1)}%`}
+              />
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -256,7 +272,7 @@ export default function QuotesPage() {
             data={quoteStatusData}
             labels={quoteStatusLabels}
             colors={quoteStatusColors}
-            height={300}
+            height={350} // Increased height to accommodate legend
           />
         </div>
 
@@ -269,7 +285,6 @@ export default function QuotesPage() {
             categories={monthlyQuoteCategories}
             colors={["#3b82f6"]}
             height={300}
-            isCurrency={true}
           />
         </div>
       </div>
@@ -433,5 +448,7 @@ export default function QuotesPage() {
     </div>
   );
 }
+
+
 
 

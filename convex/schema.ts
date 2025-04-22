@@ -36,26 +36,13 @@ const applicationTables = {
     source: v.optional(v.string()),
     status: v.string(), // New, Contacted, Qualified, Unqualified, Converted
     notes: v.optional(v.string()),
-    // Address fields
-    unit: v.optional(v.string()), // Unit/Suite/Floor number
-    address: v.optional(v.string()),
-    city: v.optional(v.string()),
-    state: v.optional(v.string()),
-    zip: v.optional(v.string()), // Used as postcode in Australia
-    country: v.optional(v.string()),
-    // Google Places fields
-    placeId: v.optional(v.string()),
-    formattedAddress: v.optional(v.string()),
-    latitude: v.optional(v.number()),
-    longitude: v.optional(v.number()),
     createdAt: v.number(),
     updatedAt: v.number(),
     createdBy: v.optional(v.string()), // userId
   })
     .index("by_status", ["status"])
     .index("by_createdAt", ["createdAt"])
-    .index("by_createdBy", ["createdBy"])
-    .index("by_placeId", ["placeId"]),
+    .index("by_createdBy", ["createdBy"]),
 
   // Contact management
   contacts: defineTable({
@@ -63,11 +50,10 @@ const applicationTables = {
     lastName: v.string(),
     email: v.optional(v.string()),
     phone: v.optional(v.string()),
-    unit: v.optional(v.string()), // Unit/Suite/Floor number
     address: v.optional(v.string()),
     city: v.optional(v.string()),
     state: v.optional(v.string()),
-    zip: v.optional(v.string()), // Used as postcode in Australia
+    zip: v.optional(v.string()),
     country: v.optional(v.string()),
     notes: v.optional(v.string()),
     // Google Places fields
@@ -88,42 +74,35 @@ const applicationTables = {
   accounts: defineTable({
     name: v.string(), // Property/Business name
     type: v.string(), // Residential, Commercial, etc.
-    unit: v.optional(v.string()), // Unit/Suite/Floor number
     address: v.string(),
+    unit: v.optional(v.string()),
     city: v.optional(v.string()),
     state: v.optional(v.string()),
-    zip: v.optional(v.string()), // Used as postcode in Australia
+    zip: v.optional(v.string()),
     country: v.optional(v.string()),
     notes: v.optional(v.string()),
-    // Google Places fields
+    // Google Maps data
     placeId: v.optional(v.string()),
     formattedAddress: v.optional(v.string()),
     latitude: v.optional(v.number()),
     longitude: v.optional(v.number()),
-    // Business details
     businessCategory: v.optional(v.string()),
-    website: v.optional(v.string()),
-    phoneNumber: v.optional(v.string()),
-    openingHours: v.optional(v.array(v.string())),
     businessStatus: v.optional(v.string()),
-    // Support both old and new photo data structures during transition
+    isFranchise: v.optional(v.boolean()),
+    phoneNumber: v.optional(v.string()),
+    website: v.optional(v.string()),
+    openingHours: v.optional(v.array(v.string())),
+    // Google Maps photo data
     photoCount: v.optional(v.number()),
     photoMetadata: v.optional(v.array(v.object({
+      photoReference: v.string(),
       width: v.number(),
       height: v.number(),
-      attribution: v.optional(v.string()),
-      index: v.number(),
+      attribution: v.string(),
+      index: v.number()
     }))),
-    // Keep the old structure temporarily for backward compatibility
-    photoReferences: v.optional(v.array(v.object({
-      reference: v.string(),
-      width: v.number(),
-      height: v.number(),
-      attribution: v.optional(v.string()),
-    }))),
-    // Franchise fields
-    isFranchise: v.optional(v.boolean()),
-    parentAccountId: v.optional(v.id("accounts")),
+    // Legacy field - will be migrated to photoMetadata
+    photoReferences: v.optional(v.array(v.any())),
     createdAt: v.number(),
     updatedAt: v.number(),
     createdBy: v.optional(v.string()), // userId
@@ -132,8 +111,7 @@ const applicationTables = {
     .index("by_type", ["type"])
     .index("by_createdAt", ["createdAt"])
     .index("by_createdBy", ["createdBy"])
-    .index("by_placeId", ["placeId"])
-    .index("by_parentAccountId", ["parentAccountId"]),
+    .index("by_placeId", ["placeId"]),
 
   // Contact-Account relationships
   contactAccounts: defineTable({

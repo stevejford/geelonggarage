@@ -1,6 +1,6 @@
 /**
  * UI Consistency Checker
- * 
+ *
  * This utility helps identify UI inconsistencies across the application.
  * It checks for:
  * - Color usage consistency
@@ -30,7 +30,9 @@ export class UIConsistencyChecker {
     this.checkComponentConsistency();
     this.checkLayoutConsistency();
     this.checkAccessibility();
-    
+    this.checkChartConsistency();
+    this.checkAnimationConsistency();
+
     return this.results;
   }
 
@@ -236,6 +238,76 @@ export class UIConsistencyChecker {
       severity: 'medium',
       location: 'Various components',
       recommendation: 'Use appropriate semantic HTML elements (buttons, headings, etc.)'
+    });
+  }
+
+  /**
+   * Check for chart consistency issues
+   */
+  private checkChartConsistency(): void {
+    // Check donut chart styling
+    this.results.push({
+      category: 'Charts',
+      element: 'Donut Charts',
+      issue: 'Donut charts now display static totals in the center',
+      severity: 'low',
+      location: 'Dashboard, Leads, Quotes, and Invoices pages',
+      recommendation: 'Verify all donut charts display static totals without animation'
+    });
+
+    // Check legend placement
+    this.results.push({
+      category: 'Charts',
+      element: 'Chart Legends',
+      issue: 'Chart legends should be inside the card',
+      severity: 'medium',
+      location: 'All chart components',
+      recommendation: 'Ensure all chart legends are properly positioned inside their cards'
+    });
+
+    // Check chart heights
+    this.results.push({
+      category: 'Charts',
+      element: 'Chart Heights',
+      issue: 'Chart heights should be consistent across similar charts',
+      severity: 'low',
+      location: 'Dashboard, Leads, Quotes, and Invoices pages',
+      recommendation: 'Standardize chart heights (350px for donut charts with legends)'
+    });
+  }
+
+  /**
+   * Check for animation consistency issues
+   */
+  private checkAnimationConsistency(): void {
+    // Check animated numbers
+    this.results.push({
+      category: 'Animations',
+      element: 'Animated Numbers',
+      issue: 'Animated numbers should be used consistently for metric cards',
+      severity: 'medium',
+      location: 'Dashboard, Leads, Quotes, and Invoices pages',
+      recommendation: 'Use AnimatedNumber component for all metric values except donut chart totals'
+    });
+
+    // Check animation timing
+    this.results.push({
+      category: 'Animations',
+      element: 'Animation Duration',
+      issue: 'Animation duration should be consistent across similar elements',
+      severity: 'low',
+      location: 'All animated components',
+      recommendation: 'Use consistent animation duration (1800ms) for all animated numbers'
+    });
+
+    // Check staggered animations
+    this.results.push({
+      category: 'Animations',
+      element: 'Staggered Animations',
+      issue: 'Staggered animations should be used for multiple metrics on the same page',
+      severity: 'low',
+      location: 'Dashboard, Leads, Quotes, and Invoices pages',
+      recommendation: 'Use staggered delays for multiple animated numbers on the same page'
     });
   }
 }

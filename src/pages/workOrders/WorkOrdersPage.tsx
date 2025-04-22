@@ -1,5 +1,4 @@
-import { useState, useEffect } from "react";
-import { useSearch } from "@/contexts/SearchContext";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
@@ -12,14 +11,6 @@ export default function WorkOrdersPage() {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
-  const { globalSearch } = useSearch();
-
-  // Sync local search with global search
-  useEffect(() => {
-    if (globalSearch) {
-      setSearch(globalSearch);
-    }
-  }, [globalSearch]);
 
   // Fetch work orders with optional filtering
   const workOrdersData = useQuery(api.workOrders.getWorkOrders, {
