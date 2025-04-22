@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
+import { useSearch } from "@/contexts/SearchContext";
 import { Button } from "@/components/ui/button";
 import { Plus, Search, Receipt, CheckCircle, Send, AlertTriangle, XCircle, FileText, Filter, ArrowUpDown, MoreHorizontal, PieChart, BarChart3, DollarSign, Clock } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -16,11 +17,20 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import DonutChart from "@/components/charts/DonutChart";
 import BarChart from "@/components/charts/BarChart";
 import LineChart from "@/components/charts/LineChart";
+import { SampleDataOverlay } from "@/components/ui/sample-data-overlay";
 
 export default function InvoicesPage() {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
+  const { globalSearch } = useSearch();
+
+  // Sync local search with global search
+  useEffect(() => {
+    if (globalSearch) {
+      setSearch(globalSearch);
+    }
+  }, [globalSearch]);
 
   // Fetch invoices with optional filtering
   const invoicesData = useQuery(api.invoices.getInvoices, {
@@ -55,6 +65,10 @@ export default function InvoicesPage() {
     Jan: 0, Feb: 0, Mar: 0, Apr: 0, May: 0, Jun: 0,
     Jul: 0, Aug: 0, Sep: 0, Oct: 0, Nov: 0, Dec: 0
   };
+
+  // Add some sample data for better visualization if no real data exists
+  const currentMonth = new Date().getMonth();
+  const monthNames = Object.keys(monthlyTotals);
 
   // Calculate payment timeline data
   const paymentTimeline = {
@@ -114,6 +128,47 @@ export default function InvoicesPage() {
 
   // Calculate average days to payment
   avgDaysToPayment = paidInvoicesCount > 0 ? Math.round(totalDaysToPayment / paidInvoicesCount) : 0;
+
+  // If there's no real data at all, add sample data for better visualization
+  const hasRealInvoiceData = invoices.length > 0;
+  const hasAnyStatusData = Object.values(statusCounts).some(count => count > 0);
+  const hasAnyMonthlyData = Object.values(monthlyTotals).some(value => value > 0);
+  const hasAnyTimelineData = Object.values(paymentTimeline).some(count => count > 0);
+
+  if (!hasRealInvoiceData && !hasAnyStatusData) {
+    // Only add sample status counts if there's no real status data
+    statusCounts.Draft = 2;
+    statusCounts.Sent = 3;
+    statusCounts.Paid = 5;
+    statusCounts.Void = 1;
+    statusCounts.Overdue = 2;
+  }
+
+  if (!hasRealInvoiceData && !hasAnyMonthlyData) {
+    // Only add sample monthly data if there's no real monthly data
+    for (let i = 0; i < 12; i++) {
+      // Create a bell curve-like distribution centered around current month
+      const distanceFromCurrent = Math.abs(i - currentMonth);
+      const factor = Math.max(0, 1 - (distanceFromCurrent / 6));
+      monthlyTotals[monthNames[i]] = Math.round(500 + (1500 * factor) + (Math.random() * 300));
+    }
+  }
+
+  if (!hasRealInvoiceData && !hasAnyTimelineData) {
+    // Only add sample payment timeline data if there's no real timeline data
+    paymentTimeline["0-15"] = 3;
+    paymentTimeline["16-30"] = 2;
+    paymentTimeline["31-60"] = 1;
+    paymentTimeline["60+"] = 1;
+  }
+
+  if (!hasRealInvoiceData && totalInvoiceValue === 0 && totalPaidValue === 0) {
+    // Only set sample metrics if there are no real metrics
+    totalInvoiceValue = 4500;
+    totalPaidValue = 2500;
+    totalOverdueValue = 1200;
+    avgDaysToPayment = 18;
+  }
 
   // Prepare chart data
   const invoiceStatusData = [
@@ -268,33 +323,43 @@ export default function InvoicesPage() {
 
       {/* Charts */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <DonutChart
-          title="Invoice Status Distribution"
-          description="Breakdown by status"
-          data={invoiceStatusData}
-          labels={invoiceStatusLabels}
-          colors={invoiceStatusColors}
-          height={300}
-        />
+        <div className="relative">
+          <SampleDataOverlay show={!hasRealInvoiceData || !hasAnyStatusData} />
+          <DonutChart
+            title="Invoice Status Distribution"
+            description="Breakdown by status"
+            data={invoiceStatusData}
+            labels={invoiceStatusLabels}
+            colors={invoiceStatusColors}
+            height={300}
+          />
+        </div>
 
-        <BarChart
-          title="Monthly Invoice Value"
-          description="Invoice value by month"
-          data={monthlyInvoiceData}
-          categories={monthlyInvoiceCategories}
-          colors={["#3b82f6"]}
-          height={300}
-        />
+        <div className="relative">
+          <SampleDataOverlay show={!hasRealInvoiceData || !hasAnyMonthlyData} />
+          <BarChart
+            title="Monthly Invoice Value"
+            description="Invoice value by month"
+            data={monthlyInvoiceData}
+            categories={monthlyInvoiceCategories}
+            colors={["#3b82f6"]}
+            height={300}
+            isCurrency={true}
+          />
+        </div>
       </div>
 
-      <BarChart
-        title="Payment Timeline Analysis"
-        description="How quickly invoices are paid"
-        data={paymentTimelineData}
-        categories={paymentTimelineCategories}
-        colors={["#10b981"]}
-        height={250}
-      />
+      <div className="relative">
+        <SampleDataOverlay show={!hasRealInvoiceData || !hasAnyTimelineData} />
+        <BarChart
+          title="Payment Timeline Analysis"
+          description="How quickly invoices are paid"
+          data={paymentTimelineData}
+          categories={paymentTimelineCategories}
+          colors={["#10b981"]}
+          height={250}
+        />
+      </div>
 
       {/* Filters */}
       <Card>

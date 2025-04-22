@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearch } from "@/contexts/SearchContext";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { Button } from "@/components/ui/button";
@@ -15,11 +16,20 @@ import { Separator } from "@/components/ui/separator";
 import { StatusBadge } from "@/components/ui/status-badge";
 import DonutChart from "@/components/charts/DonutChart";
 import BarChart from "@/components/charts/BarChart";
+import { SampleDataOverlay } from "@/components/ui/sample-data-overlay";
 
 export default function QuotesPage() {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
+  const { globalSearch } = useSearch();
+
+  // Sync local search with global search
+  useEffect(() => {
+    if (globalSearch) {
+      setSearch(globalSearch);
+    }
+  }, [globalSearch]);
 
   // Fetch quotes with optional filtering
   const quotesData = useQuery(api.quotes.getQuotes, {
@@ -46,6 +56,10 @@ export default function QuotesPage() {
     Jul: 0, Aug: 0, Sep: 0, Oct: 0, Nov: 0, Dec: 0
   };
 
+  // Add some sample data for better visualization if no real data exists
+  const currentMonth = new Date().getMonth();
+  const monthNames = Object.keys(monthlyTotals);
+
   let totalQuoteValue = 0;
   let acceptanceRate = 0;
   let avgQuoteValue = 0;
@@ -71,6 +85,36 @@ export default function QuotesPage() {
   // Calculate acceptance rate
   const totalResponded = statusCounts.Accepted + statusCounts.Declined;
   acceptanceRate = totalResponded > 0 ? (statusCounts.Accepted / totalResponded) * 100 : 0;
+
+  // If there's no real data at all, add sample data for better visualization
+  const hasRealQuoteData = quotes.length > 0;
+  const hasAnyStatusData = Object.values(statusCounts).some(count => count > 0);
+  const hasAnyMonthlyData = Object.values(monthlyTotals).some(value => value > 0);
+
+  if (!hasRealQuoteData && !hasAnyStatusData) {
+    // Only add sample status counts if there's no real status data
+    statusCounts.Draft = 3;
+    statusCounts.Presented = 4;
+    statusCounts.Accepted = 8;
+    statusCounts.Declined = 2;
+  }
+
+  if (!hasRealQuoteData && !hasAnyMonthlyData) {
+    // Only add sample monthly data if there's no real monthly data
+    for (let i = 0; i < 12; i++) {
+      // Create a bell curve-like distribution centered around current month
+      const distanceFromCurrent = Math.abs(i - currentMonth);
+      const factor = Math.max(0, 1 - (distanceFromCurrent / 6));
+      monthlyTotals[monthNames[i]] = Math.round(300 + (4000 * factor) + (Math.random() * 500));
+    }
+  }
+
+  if (!hasRealQuoteData && totalQuoteValue === 0) {
+    // Only set sample metrics if there are no real metrics
+    totalQuoteValue = 4399.67;
+    avgQuoteValue = 439.97;
+    acceptanceRate = 80.0;
+  }
 
   // Prepare chart data
   const quoteStatusData = [
@@ -204,23 +248,30 @@ export default function QuotesPage() {
 
       {/* Charts */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <DonutChart
-          title="Quote Status Distribution"
-          description="Breakdown by status"
-          data={quoteStatusData}
-          labels={quoteStatusLabels}
-          colors={quoteStatusColors}
-          height={300}
-        />
+        <div className="relative">
+          <SampleDataOverlay show={!hasRealQuoteData || !hasAnyStatusData} />
+          <DonutChart
+            title="Quote Status Distribution"
+            description="Breakdown by status"
+            data={quoteStatusData}
+            labels={quoteStatusLabels}
+            colors={quoteStatusColors}
+            height={300}
+          />
+        </div>
 
-        <BarChart
-          title="Monthly Quote Value"
-          description="Quote value by month"
-          data={monthlyQuoteData}
-          categories={monthlyQuoteCategories}
-          colors={["#3b82f6"]}
-          height={300}
-        />
+        <div className="relative">
+          <SampleDataOverlay show={!hasRealQuoteData || !hasAnyMonthlyData} />
+          <BarChart
+            title="Monthly Quote Value"
+            description="Quote value by month"
+            data={monthlyQuoteData}
+            categories={monthlyQuoteCategories}
+            colors={["#3b82f6"]}
+            height={300}
+            isCurrency={true}
+          />
+        </div>
       </div>
 
       {/* Filters */}

@@ -11,7 +11,8 @@ import {
   Settings,
   LogOut,
   TestTube,
-  Paintbrush
+  Paintbrush,
+  BarChart3
 } from "lucide-react";
 
 interface SidebarProps {
@@ -34,6 +35,7 @@ export default function Sidebar({ collapsed = false }: SidebarProps) {
     { href: "/invoices", label: "Invoices", icon: <Receipt size={18} /> },
     { href: "/settings", label: "Settings", icon: <Settings size={18} /> },
     { href: "/testing/workflow2", label: "Workflow Test", icon: <TestTube size={18} /> },
+    { href: "/testing/chart-data", label: "Chart Data Test", icon: <BarChart3 size={18} /> },
     { href: "/testing/ui-consistency", label: "UI Consistency", icon: <Paintbrush size={18} /> },
   ];
 

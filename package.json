@@ -9,7 +9,8 @@
     "dev:backend": "convex dev",
     "build": "vite build",
     "start": "vite preview --port $PORT --host",
-    "lint": "tsc -p convex -noEmit --pretty false && tsc -p . -noEmit --pretty false && convex dev --once && vite build"
+    "lint": "tsc -p convex -noEmit --pretty false && tsc -p . -noEmit --pretty false && convex dev --once && vite build",
+    "generate:chart-test-data": "node scripts/chart-test-data-generator.js"
   },
   "dependencies": {
     "@auth/core": "^0.37.4",

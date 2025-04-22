@@ -1,0 +1,21 @@
+/* Styles for Google Maps Autocomplete */
+
+/* Style the dropdown */
+.pac-container {
+  border-radius: 0.375rem;
+  margin-top: 4px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  font-family: inherit;
+  z-index: 9999;
+}
+
+/* Style the dropdown items */
+.pac-item {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+}
+
+/* Style the dropdown item hover */
+.pac-item:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}

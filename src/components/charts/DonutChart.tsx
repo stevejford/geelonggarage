@@ -27,6 +27,25 @@ export default function DonutChart({
     chart: {
       type: 'donut',
       fontFamily: 'inherit',
+      animations: {
+        enabled: true,
+        easing: 'easeinout',
+        speed: 800,
+        animateGradually: {
+          enabled: true,
+          delay: 150
+        },
+        dynamicAnimation: {
+          enabled: true,
+          speed: 350
+        }
+      },
+      padding: {
+        top: 10,
+        right: 10,
+        bottom: 10,
+        left: 10
+      }
     },
     colors: colors,
     labels: labels,
@@ -35,6 +54,7 @@ export default function DonutChart({
     },
     plotOptions: {
       pie: {
+        offsetY: 10, // Add some top padding to center the donut better
         donut: {
           size: '65%',
           labels: {
@@ -48,7 +68,8 @@ export default function DonutChart({
               fontWeight: 600,
               color: '#374151',
               formatter: function (w) {
-                return w.globals.seriesTotals.reduce((a: number, b: number) => a + b, 0).toString();
+                const total = w.globals.seriesTotals.reduce((a: number, b: number) => a + b, 0);
+                return total > 0 ? total.toString() : 'No Data';
               },
             },
             value: {
@@ -59,7 +80,7 @@ export default function DonutChart({
               color: '#374151',
               offsetY: -10,
               formatter: function (val) {
-                return val.toString();
+                return val > 0 ? val.toString() : '';
               },
             },
           },
@@ -70,6 +91,7 @@ export default function DonutChart({
       position: 'bottom',
       fontFamily: 'inherit',
       fontSize: '14px',
+      offsetY: 5, // Add some space between chart and legend
       labels: {
         colors: '#64748b',
       },
@@ -94,8 +116,24 @@ export default function DonutChart({
           chart: {
             height: 300,
           },
+          plotOptions: {
+            pie: {
+              offsetY: 0, // Reset offset on mobile
+              donut: {
+                labels: {
+                  total: {
+                    fontSize: '14px',
+                  },
+                  value: {
+                    fontSize: '18px',
+                  },
+                },
+              },
+            },
+          },
           legend: {
             position: 'bottom',
+            offsetY: 0,
           },
         },
       },
@@ -110,7 +148,7 @@ export default function DonutChart({
         <CardTitle>{title}</CardTitle>
         {description && <CardDescription>{description}</CardDescription>}
       </CardHeader>
-      <CardContent>
+      <CardContent className="pt-2 pb-4">
         <ApexChartsWrapper>
           <ReactApexChart options={options} series={series} type="donut" height={height} />
         </ApexChartsWrapper>

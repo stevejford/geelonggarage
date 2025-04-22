@@ -1,0 +1,25 @@
+.search-select__control {
+  border: none !important;
+  box-shadow: none !important;
+  background-color: transparent !important;
+}
+
+.search-select__indicator-separator {
+  display: none !important;
+}
+
+.search-select__dropdown-indicator {
+  padding: 0 8px !important;
+}
+
+.search-select__menu {
+  z-index: 100 !important;
+}
+
+.search-select__value-container {
+  padding: 0 8px !important;
+}
+
+.search-select__single-value {
+  font-size: 0.875rem !important;
+}

@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import DonutChart from "@/components/charts/DonutChart";
+import { SampleDataOverlay } from "@/components/ui/sample-data-overlay";
 
 export default function LeadsPage() {
   const navigate = useNavigate();
@@ -44,6 +45,19 @@ export default function LeadsPage() {
       statusCounts[lead.status as keyof typeof statusCounts]++;
     }
   });
+
+  // If there's no real data at all, add sample data for better visualization
+  const hasRealLeadData = leads.length > 0;
+  const hasAnyStatusData = Object.values(statusCounts).some(count => count > 0);
+
+  if (!hasRealLeadData && !hasAnyStatusData) {
+    // Only add sample status counts if there's no real status data
+    statusCounts.New = 2;
+    statusCounts.Contacted = 0;
+    statusCounts.Qualified = 0;
+    statusCounts.Unqualified = 0;
+    statusCounts.Converted = 12;
+  }
 
   const leadStatusData = [
     statusCounts.New,
@@ -97,13 +111,16 @@ export default function LeadsPage() {
               <CardDescription>Overview of your leads by status</CardDescription>
             </CardHeader>
             <CardContent>
-              <DonutChart
-                title=""
-                data={leadStatusData}
-                labels={leadStatusLabels}
-                colors={leadStatusColors}
-                height={250}
-              />
+              <div className="relative">
+                <SampleDataOverlay show={!hasRealLeadData || !hasAnyStatusData} />
+                <DonutChart
+                  title=""
+                  data={leadStatusData}
+                  labels={leadStatusLabels}
+                  colors={leadStatusColors}
+                  height={250}
+                />
+              </div>
             </CardContent>
           </Card>
         </div>

@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearch } from "@/contexts/SearchContext";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { Button } from "@/components/ui/button";
@@ -6,9 +7,22 @@ import { Plus, Search, UserCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
 
+// Helper function to format dates
+const formatDate = (timestamp: number) => {
+  return new Date(timestamp).toLocaleDateString();
+};
+
 export default function ContactsPage() {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
+  const { globalSearch } = useSearch();
+
+  // Sync local search with global search
+  useEffect(() => {
+    if (globalSearch) {
+      setSearch(globalSearch);
+    }
+  }, [globalSearch]);
 
   // Fetch contacts with optional filtering
   const contactsData = useQuery(api.contacts.getContacts, {
@@ -72,6 +86,12 @@ export default function ContactsPage() {
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Address
               </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Linked Accounts
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Created
+              </th>
               <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Actions
               </th>
@@ -80,7 +100,7 @@ export default function ContactsPage() {
           <tbody className="bg-white divide-y divide-gray-200">
             {contacts.length === 0 && (
               <tr>
-                <td colSpan={4} className="px-6 py-8 text-center">
+                <td colSpan={6} className="px-6 py-8 text-center">
                   <div className="flex flex-col items-center">
                     <UserCircle className="h-12 w-12 text-gray-300 mb-2" />
                     <p className="text-gray-500 mb-1">No contacts found</p>
@@ -102,30 +122,81 @@ export default function ContactsPage() {
                 className="hover:bg-blue-50 cursor-pointer transition-colors"
                 onClick={() => handleViewContact(contact._id.toString())}
               >
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-6 py-4">
                   <div className="text-sm font-medium text-gray-900">
                     {contact.firstName} {contact.lastName}
                   </div>
+                  {contact.notes && (
+                    <div className="text-xs text-gray-500 mt-1 truncate max-w-[200px]">
+                      {contact.notes}
+                    </div>
+                  )}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-6 py-4">
                   <div className="text-sm text-gray-500">
-                    {contact.email && <div>{contact.email}</div>}
-                    {contact.phone && <div>{contact.phone}</div>}
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-500">
-                    {contact.address && (
-                      <div>
-                        {contact.address}
-                        {contact.city && `, ${contact.city}`}
-                        {contact.state && `, ${contact.state}`}
-                        {contact.zip && ` ${contact.zip}`}
+                    {contact.email && (
+                      <div className="flex items-center">
+                        <span className="text-xs text-gray-400 w-12">Email:</span>
+                        <a href={`mailto:${contact.email}`} className="text-blue-600 hover:underline" onClick={(e) => e.stopPropagation()}>
+                          {contact.email}
+                        </a>
+                      </div>
+                    )}
+                    {contact.phone && (
+                      <div className="flex items-center mt-1">
+                        <span className="text-xs text-gray-400 w-12">Phone:</span>
+                        <a href={`tel:${contact.phone}`} className="text-blue-600 hover:underline" onClick={(e) => e.stopPropagation()}>
+                          {contact.phone}
+                        </a>
                       </div>
                     )}
                   </div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <td className="px-6 py-4">
+                  <div className="text-sm text-gray-500">
+                    {contact.address ? (
+                      <div>
+                        <div>{contact.address}</div>
+                        <div>
+                          {contact.city && `${contact.city}, `}
+                          {contact.state && `${contact.state} `}
+                          {contact.zip}
+                        </div>
+                      </div>
+                    ) : (
+                      <span className="text-gray-400 text-xs">No address</span>
+                    )}
+                  </div>
+                </td>
+                <td className="px-6 py-4">
+                  {contact.accounts && contact.accounts.length > 0 ? (
+                    <div className="text-sm">
+                      {contact.accounts.map((account, index) => (
+                        <div key={account._id.toString()} className="mb-1 last:mb-0">
+                          <div className="font-medium text-gray-900">
+                            {account.name}
+                            {account.isPrimary && (
+                              <span className="ml-1 inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                Primary
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {account.type} • {account.relationship || "Customer"}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <span className="text-gray-400 text-xs">No linked accounts</span>
+                  )}
+                </td>
+                <td className="px-6 py-4">
+                  <div className="text-sm text-gray-500">
+                    {formatDate(contact.createdAt)}
+                  </div>
+                </td>
+                <td className="px-6 py-4 text-right text-sm font-medium">
                   <Button
                     variant="outline"
                     className="border-blue-200 text-blue-600 hover:bg-blue-50 hover:text-blue-700"

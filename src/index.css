@@ -1,3 +1,6 @@
+@import './styles/search-select.css';
+@import './styles/place-autocomplete.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

@@ -3,6 +3,8 @@ import { ConvexReactClient } from "convex/react";
 import { ClerkProvider, useAuth } from "@clerk/clerk-react";
 import { BrowserRouter as Router, Route, Routes, Navigate, useNavigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
+import { SearchProvider } from "./contexts/SearchContext";
+import GoogleMapsProvider from "@/components/common/GoogleMapsProvider";
 import Dashboard from "./pages/Dashboard";
 import Settings from "./pages/settings/SettingsPage";
 import Layout from "./components/Layout";
@@ -48,6 +50,7 @@ import TestInquiryPage from "./pages/wordpress/TestInquiryPage";
 import WorkflowTestPage from "./pages/testing/WorkflowTestPage";
 import WorkflowTestPage2 from "./pages/testing/WorkflowTestPage2";
 import UIConsistencyPage from "./pages/testing/UIConsistencyPage";
+import ChartDataTestPage from "./pages/testing/ChartDataTestPage";
 
 // Get Convex URL from environment variables or fallback to a default
 const convexUrl = import.meta.env.VITE_CONVEX_URL || "https://patient-tern-95.convex.cloud";
@@ -74,64 +77,69 @@ export default function App() {
   return (
     <ClerkProvider publishableKey={clerkPubKey}>
       <ConvexProvider client={convex}>
-        <Router>
-          <Routes>
-            <Route path="/sign-in/*" element={<Login />} />
-            <Route path="/sign-up/*" element={<Register />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
-            <Route
-              path="/"
-              element={
-                <RequireAuth>
-                  <Layout />
-                </RequireAuth>
-              }
-            >
-              <Route index element={<Navigate to="/dashboard" replace />} />
-              <Route path="dashboard" element={<Dashboard />} />
-              <Route path="settings" element={<Settings />} />
+        <SearchProvider>
+          <GoogleMapsProvider>
+            <Router>
+              <Routes>
+                <Route path="/sign-in/*" element={<Login />} />
+                <Route path="/sign-up/*" element={<Register />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
+                <Route
+                  path="/"
+                  element={
+                    <RequireAuth>
+                      <Layout />
+                    </RequireAuth>
+                  }
+                >
+                  <Route index element={<Navigate to="/dashboard" replace />} />
+                  <Route path="dashboard" element={<Dashboard />} />
+                  <Route path="settings" element={<Settings />} />
 
-              {/* Lead routes */}
-              <Route path="leads" element={<LeadsPage />} />
-              <Route path="leads/new" element={<NewLeadPage />} />
-              <Route path="leads/:id" element={<LeadDetailPage />} />
+                  {/* Lead routes */}
+                  <Route path="leads" element={<LeadsPage />} />
+                  <Route path="leads/new" element={<NewLeadPage />} />
+                  <Route path="leads/:id" element={<LeadDetailPage />} />
 
-              {/* Contact routes */}
-              <Route path="contacts" element={<ContactsPage />} />
-              <Route path="contacts/new" element={<NewContactPage />} />
-              <Route path="contacts/:id" element={<ContactDetailPage />} />
+                  {/* Contact routes */}
+                  <Route path="contacts" element={<ContactsPage />} />
+                  <Route path="contacts/new" element={<NewContactPage />} />
+                  <Route path="contacts/:id" element={<ContactDetailPage />} />
 
-              {/* Account routes */}
-              <Route path="accounts" element={<AccountsPage />} />
-              <Route path="accounts/new" element={<NewAccountPage />} />
-              <Route path="accounts/:id" element={<AccountDetailPage />} />
+                  {/* Account routes */}
+                  <Route path="accounts" element={<AccountsPage />} />
+                  <Route path="accounts/new" element={<NewAccountPage />} />
+                  <Route path="accounts/:id" element={<AccountDetailPage />} />
 
-              {/* Quote routes */}
-              <Route path="quotes" element={<QuotesPage />} />
-              <Route path="quotes/new" element={<NewQuotePage />} />
-              <Route path="quotes/:id" element={<QuoteDetailPage />} />
+                  {/* Quote routes */}
+                  <Route path="quotes" element={<QuotesPage />} />
+                  <Route path="quotes/new" element={<NewQuotePage />} />
+                  <Route path="quotes/:id" element={<QuoteDetailPage />} />
 
-              {/* Work Order routes */}
-              <Route path="work-orders" element={<WorkOrdersPage />} />
-              <Route path="work-orders/new" element={<NewWorkOrderPage />} />
-              <Route path="work-orders/:id" element={<WorkOrderDetailPage />} />
+                  {/* Work Order routes */}
+                  <Route path="work-orders" element={<WorkOrdersPage />} />
+                  <Route path="work-orders/new" element={<NewWorkOrderPage />} />
+                  <Route path="work-orders/:id" element={<WorkOrderDetailPage />} />
 
-              {/* Invoice routes */}
-              <Route path="invoices" element={<InvoicesPage />} />
-              <Route path="invoices/new" element={<NewInvoicePage />} />
-              <Route path="invoices/:id" element={<InvoiceDetailPage />} />
+                  {/* Invoice routes */}
+                  <Route path="invoices" element={<InvoicesPage />} />
+                  <Route path="invoices/new" element={<NewInvoicePage />} />
+                  <Route path="invoices/:id" element={<InvoiceDetailPage />} />
 
-              {/* WordPress integration */}
-              <Route path="test-inquiry" element={<TestInquiryPage />} />
+                  {/* WordPress integration */}
+                  <Route path="test-inquiry" element={<TestInquiryPage />} />
 
-              {/* Testing */}
-              <Route path="testing/workflow" element={<WorkflowTestPage />} />
-              <Route path="testing/workflow2" element={<WorkflowTestPage2 />} />
-              <Route path="testing/ui-consistency" element={<UIConsistencyPage />} />
-            </Route>
-          </Routes>
-        </Router>
+                  {/* Testing */}
+                  <Route path="testing/workflow" element={<WorkflowTestPage />} />
+                  <Route path="testing/workflow2" element={<WorkflowTestPage2 />} />
+                  <Route path="testing/chart-data" element={<ChartDataTestPage />} />
+                  <Route path="testing/ui-consistency" element={<UIConsistencyPage />} />
+                </Route>
+              </Routes>
+            </Router>
+          </GoogleMapsProvider>
+        </SearchProvider>
       </ConvexProvider>
       <Toaster />
     </ClerkProvider>

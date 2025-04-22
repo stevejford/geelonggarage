@@ -3,6 +3,205 @@ import { v } from "convex/values";
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { generateInvoiceNumber } from "./utils/numberGenerator";
 import { Doc, Id } from "./_generated/dataModel";
+import { formatDate, formatCurrency } from "./utils/formatters";
+import { createMatchInfo } from "./utils/searchUtils";
+
+// Search invoices with advanced filtering
+export const searchInvoices = query({
+  args: {
+    search: v.optional(v.string()),
+    type: v.optional(v.string()),
+    field: v.optional(v.string()),
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    // Start with a base query
+    let invoicesQuery = ctx.db.query("invoices").order("desc");
+
+    // Get all invoices
+    let invoices = await invoicesQuery.collect();
+
+    // Apply search filter if provided
+    if (args.search && args.search.trim() !== "") {
+      const searchTerm = args.search.trim().toLowerCase();
+
+      // Get related entities for each invoice
+      const invoicesWithDetails = await Promise.all(
+        invoices.map(async (invoice) => {
+          const contact = invoice.contactId ? await ctx.db.get(invoice.contactId) : null;
+          const account = invoice.accountId ? await ctx.db.get(invoice.accountId) : null;
+          const workOrder = invoice.workOrderId ? await ctx.db.get(invoice.workOrderId) : null;
+          const quote = invoice.quoteId ? await ctx.db.get(invoice.quoteId) : null;
+          return { invoice, contact, account, workOrder, quote };
+        })
+      );
+
+      // Map and filter with match info
+      const invoicesWithMatches = invoicesWithDetails
+        .map(({ invoice, contact, account, workOrder, quote }) => {
+          // If type filter is applied and doesn't match, exclude
+          if (args.type && args.type !== 'all' && args.type !== 'invoices') {
+            return { invoice, matchInfo: null };
+          }
+
+          let matchInfo = null;
+
+          // Apply field-specific filtering if specified
+          if (args.field && args.field !== 'any') {
+            switch (args.field) {
+              case 'number':
+                if (invoice.invoiceNumber?.toLowerCase().includes(searchTerm)) {
+                  matchInfo = createMatchInfo('Invoice #', invoice.invoiceNumber, searchTerm);
+                  return { invoice, matchInfo };
+                }
+                return { invoice, matchInfo: null };
+              case 'amount':
+                const totalStr = formatCurrency(invoice.total);
+                if (totalStr.toLowerCase().includes(searchTerm)) {
+                  matchInfo = createMatchInfo('Amount', totalStr, searchTerm);
+                  return { invoice, matchInfo };
+                }
+                return { invoice, matchInfo: null };
+              case 'name':
+                if (contact) {
+                  const contactName = `${contact.firstName} ${contact.lastName}`;
+                  if (contactName.toLowerCase().includes(searchTerm)) {
+                    matchInfo = createMatchInfo('Customer', contactName, searchTerm);
+                    return { invoice, matchInfo };
+                  }
+                }
+                if (account) {
+                  if (account.name.toLowerCase().includes(searchTerm)) {
+                    matchInfo = createMatchInfo('Account', account.name, searchTerm);
+                    return { invoice, matchInfo };
+                  }
+                }
+                return { invoice, matchInfo: null };
+              case 'date':
+                const issueDateStr = formatDate(invoice.issueDate);
+                const dueDateStr = formatDate(invoice.dueDate);
+                if (issueDateStr.toLowerCase().includes(searchTerm)) {
+                  matchInfo = createMatchInfo('Issue Date', issueDateStr, searchTerm);
+                  return { invoice, matchInfo };
+                }
+                if (dueDateStr.toLowerCase().includes(searchTerm)) {
+                  matchInfo = createMatchInfo('Due Date', dueDateStr, searchTerm);
+                  return { invoice, matchInfo };
+                }
+                return { invoice, matchInfo: null };
+              case 'status':
+                if (invoice.status.toLowerCase().includes(searchTerm)) {
+                  matchInfo = createMatchInfo('Status', invoice.status, searchTerm);
+                  return { invoice, matchInfo };
+                }
+                return { invoice, matchInfo: null };
+              default:
+                return { invoice, matchInfo: null };
+            }
+          }
+
+          // Search across all fields
+          // Invoice fields
+          if (invoice.invoiceNumber?.toLowerCase().includes(searchTerm)) {
+            matchInfo = createMatchInfo('Invoice #', invoice.invoiceNumber, searchTerm);
+            return { invoice, matchInfo };
+          }
+          if (invoice.notes?.toLowerCase().includes(searchTerm)) {
+            matchInfo = createMatchInfo('Notes', invoice.notes, searchTerm);
+            return { invoice, matchInfo };
+          }
+
+          const totalStr = formatCurrency(invoice.total);
+          if (totalStr.toLowerCase().includes(searchTerm)) {
+            matchInfo = createMatchInfo('Amount', totalStr, searchTerm);
+            return { invoice, matchInfo };
+          }
+
+          if (invoice.status.toLowerCase().includes(searchTerm)) {
+            matchInfo = createMatchInfo('Status', invoice.status, searchTerm);
+            return { invoice, matchInfo };
+          }
+
+          // Dates
+          const issueDateStr = formatDate(invoice.issueDate);
+          const dueDateStr = formatDate(invoice.dueDate);
+          if (issueDateStr.toLowerCase().includes(searchTerm)) {
+            matchInfo = createMatchInfo('Issue Date', issueDateStr, searchTerm);
+            return { invoice, matchInfo };
+          }
+          if (dueDateStr.toLowerCase().includes(searchTerm)) {
+            matchInfo = createMatchInfo('Due Date', dueDateStr, searchTerm);
+            return { invoice, matchInfo };
+          }
+
+          // Contact fields
+          if (contact) {
+            const contactName = `${contact.firstName} ${contact.lastName}`;
+            if (contactName.toLowerCase().includes(searchTerm)) {
+              matchInfo = createMatchInfo('Customer', contactName, searchTerm);
+              return { invoice, matchInfo };
+            }
+            if (contact.email?.toLowerCase().includes(searchTerm)) {
+              matchInfo = createMatchInfo('Customer Email', contact.email, searchTerm);
+              return { invoice, matchInfo };
+            }
+            if (contact.phone?.toLowerCase().includes(searchTerm)) {
+              matchInfo = createMatchInfo('Customer Phone', contact.phone, searchTerm);
+              return { invoice, matchInfo };
+            }
+          }
+
+          // Account fields
+          if (account) {
+            if (account.name.toLowerCase().includes(searchTerm)) {
+              matchInfo = createMatchInfo('Account', account.name, searchTerm);
+              return { invoice, matchInfo };
+            }
+            if (account.address?.toLowerCase().includes(searchTerm)) {
+              matchInfo = createMatchInfo('Account Address', account.address, searchTerm);
+              return { invoice, matchInfo };
+            }
+            const accountLocation = [account.city, account.state, account.zip].filter(Boolean).join(', ');
+            if (accountLocation.toLowerCase().includes(searchTerm)) {
+              matchInfo = createMatchInfo('Account Location', accountLocation, searchTerm);
+              return { invoice, matchInfo };
+            }
+          }
+
+          // Work order fields
+          if (workOrder && workOrder.workOrderNumber?.toLowerCase().includes(searchTerm)) {
+            matchInfo = createMatchInfo('Work Order', workOrder.workOrderNumber, searchTerm);
+            return { invoice, matchInfo };
+          }
+
+          // Quote fields
+          if (quote && quote.quoteNumber?.toLowerCase().includes(searchTerm)) {
+            matchInfo = createMatchInfo('Quote', quote.quoteNumber, searchTerm);
+            return { invoice, matchInfo };
+          }
+
+          return { invoice, matchInfo: null };
+        })
+        .filter(({ matchInfo }) => matchInfo !== null);
+
+      // Extract invoices and add match info directly to the invoice object
+      invoices = invoicesWithMatches.map(({ invoice, matchInfo }) => {
+        return {
+          ...invoice,
+          matchField: matchInfo?.field || '',
+          matchContext: matchInfo?.context || ''
+        };
+      });
+    }
+
+    // Apply limit if provided
+    if (args.limit && args.limit > 0) {
+      invoices = invoices.slice(0, args.limit);
+    }
+
+    return invoices;
+  },
+});
 
 // Get all invoices with optional filtering
 export const getInvoices = query({
@@ -68,13 +267,68 @@ export const getInvoices = query({
     // Fetch results using the final query object
     let invoices = await finalQuery.collect();
 
-    // TS2339 Fix: Apply search filter *after* fetching using standard JS filter
+    // Apply search filter if provided
     if (args.search && args.search.trim() !== "") {
       const searchTerm = args.search.trim().toLowerCase();
-      invoices = invoices.filter(invoice =>
-        invoice.invoiceNumber?.toLowerCase().includes(searchTerm) ||
-        invoice.notes?.toLowerCase().includes(searchTerm)
+
+      // First, get all the invoices with their related entities
+      const invoicesWithDetails = await Promise.all(
+        invoices.map(async (invoice) => {
+          const contact = invoice.contactId ? await ctx.db.get(invoice.contactId) : null;
+          const account = invoice.accountId ? await ctx.db.get(invoice.accountId) : null;
+          const workOrder = invoice.workOrderId ? await ctx.db.get(invoice.workOrderId) : null;
+          const quote = invoice.quoteId ? await ctx.db.get(invoice.quoteId) : null;
+          return { invoice, contact, account, workOrder, quote };
+        })
       );
+
+      // Then filter based on all relevant fields
+      invoices = invoicesWithDetails
+        .filter(({ invoice, contact, account, workOrder, quote }) => {
+          // Search in invoice fields
+          if (invoice.invoiceNumber?.toLowerCase().includes(searchTerm)) return true;
+          if (invoice.notes?.toLowerCase().includes(searchTerm)) return true;
+
+          // Format and check dates
+          const issueDateStr = new Date(invoice.issueDate).toLocaleDateString();
+          if (issueDateStr.includes(searchTerm)) return true;
+
+          const dueDateStr = new Date(invoice.dueDate).toLocaleDateString();
+          if (dueDateStr.includes(searchTerm)) return true;
+
+          // Format and check amounts
+          const totalStr = invoice.total.toString();
+          if (totalStr.includes(searchTerm)) return true;
+
+          // Check status
+          if (invoice.status.toLowerCase().includes(searchTerm)) return true;
+
+          // Search in contact fields
+          if (contact) {
+            const contactName = `${contact.firstName} ${contact.lastName}`.toLowerCase();
+            if (contactName.includes(searchTerm)) return true;
+            if (contact.email?.toLowerCase().includes(searchTerm)) return true;
+            if (contact.phone?.toLowerCase().includes(searchTerm)) return true;
+          }
+
+          // Search in account fields
+          if (account) {
+            if (account.name.toLowerCase().includes(searchTerm)) return true;
+            if (account.address.toLowerCase().includes(searchTerm)) return true;
+            if (account.city?.toLowerCase().includes(searchTerm)) return true;
+            if (account.state?.toLowerCase().includes(searchTerm)) return true;
+            if (account.zip?.toLowerCase().includes(searchTerm)) return true;
+          }
+
+          // Search in work order fields
+          if (workOrder && workOrder.workOrderNumber?.toLowerCase().includes(searchTerm)) return true;
+
+          // Search in quote fields
+          if (quote && quote.quoteNumber?.toLowerCase().includes(searchTerm)) return true;
+
+          return false;
+        })
+        .map(({ invoice }) => invoice);
     }
 
     // Determine if manual sort is needed (if sort field wasn't the primary index used)

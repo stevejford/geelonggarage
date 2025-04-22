@@ -2,14 +2,16 @@ import { Outlet } from "react-router-dom";
 import { useUser } from "@clerk/clerk-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
-import { Menu, Bell, Search } from "lucide-react";
+import { Menu, Bell } from "lucide-react";
 import Sidebar from "./Sidebar";
 import { useState, useEffect } from "react";
+import NavbarSearch from "./NavbarSearch";
 
 export default function Layout() {
   const { user } = useUser();
   const firstName = user?.firstName || "User";
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
   // Initialize sidebar state
   useEffect(() => {
     // Check if we should open the sidebar by default on larger screens
@@ -43,17 +45,15 @@ export default function Layout() {
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
-            {/* Search */}
-            <div className="relative w-64 hidden md:block">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
-              <input
-                type="search"
-                placeholder="Search..."
-                className="w-full pl-8 pr-4 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
+          {/* Enhanced Global Search - Container matches content width */}
+          <div className="hidden md:block flex-1 max-w-[calc(100%-500px)] px-4">
+            {/* This container has the same width constraints as the page content */}
+            <div className="container mx-auto">
+              <NavbarSearch />
             </div>
+          </div>
 
+          <div className="flex items-center gap-4">
             {/* Notifications */}
             <Button variant="ghost" size="icon" className="text-gray-500 hover:text-gray-700">
               <Bell size={20} />

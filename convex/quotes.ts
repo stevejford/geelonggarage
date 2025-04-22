@@ -4,6 +4,113 @@ import { v } from "convex/values";
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { generateQuoteNumber } from "./utils/numberGenerator";
 import { Id } from "./_generated/dataModel";
+import { formatDate } from "./utils/formatters";
+
+// Search quotes with advanced filtering
+export const searchQuotes = query({
+  args: {
+    search: v.optional(v.string()),
+    type: v.optional(v.string()),
+    field: v.optional(v.string()),
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    // Start with a base query
+    let quotesQuery = ctx.db.query("quotes").order("desc");
+
+    // Get all quotes
+    let quotes = await quotesQuery.collect();
+
+    // Apply search filter if provided
+    if (args.search && args.search.trim() !== "") {
+      const searchTerm = args.search.trim().toLowerCase();
+
+      // Get related entities for each quote
+      const quotesWithDetails = await Promise.all(
+        quotes.map(async (quote) => {
+          const contact = quote.contactId ? await ctx.db.get(quote.contactId) : null;
+          const account = quote.accountId ? await ctx.db.get(quote.accountId) : null;
+          return { quote, contact, account };
+        })
+      );
+
+      // Filter based on search term and field
+      quotes = quotesWithDetails
+        .filter(({ quote, contact, account }) => {
+          // If type filter is applied and doesn't match, exclude
+          if (args.type && args.type !== 'all' && args.type !== 'quotes') {
+            return false;
+          }
+
+          // Apply field-specific filtering if specified
+          if (args.field && args.field !== 'any') {
+            switch (args.field) {
+              case 'number':
+                return quote.quoteNumber?.toLowerCase().includes(searchTerm);
+              case 'amount':
+                return quote.total.toString().includes(searchTerm);
+              case 'name':
+                if (contact) {
+                  const contactName = `${contact.firstName} ${contact.lastName}`.toLowerCase();
+                  return contactName.includes(searchTerm);
+                }
+                if (account) {
+                  return account.name.toLowerCase().includes(searchTerm);
+                }
+                return false;
+              case 'date':
+                const issueDateStr = formatDate(quote.issueDate).toLowerCase();
+                const expiryDateStr = quote.expiryDate ? formatDate(quote.expiryDate).toLowerCase() : '';
+                return issueDateStr.includes(searchTerm) || expiryDateStr.includes(searchTerm);
+              case 'status':
+                return quote.status.toLowerCase().includes(searchTerm);
+              default:
+                return false;
+            }
+          }
+
+          // Search across all fields
+          // Quote fields
+          if (quote.quoteNumber?.toLowerCase().includes(searchTerm)) return true;
+          if (quote.notes?.toLowerCase().includes(searchTerm)) return true;
+          if (quote.total.toString().includes(searchTerm)) return true;
+          if (quote.status.toLowerCase().includes(searchTerm)) return true;
+
+          // Dates
+          const issueDateStr = formatDate(quote.issueDate).toLowerCase();
+          const expiryDateStr = quote.expiryDate ? formatDate(quote.expiryDate).toLowerCase() : '';
+          if (issueDateStr.includes(searchTerm) || expiryDateStr.includes(searchTerm)) return true;
+
+          // Contact fields
+          if (contact) {
+            const contactName = `${contact.firstName} ${contact.lastName}`.toLowerCase();
+            if (contactName.includes(searchTerm)) return true;
+            if (contact.email?.toLowerCase().includes(searchTerm)) return true;
+            if (contact.phone?.toLowerCase().includes(searchTerm)) return true;
+          }
+
+          // Account fields
+          if (account) {
+            if (account.name.toLowerCase().includes(searchTerm)) return true;
+            if (account.address?.toLowerCase().includes(searchTerm)) return true;
+            if (account.city?.toLowerCase().includes(searchTerm)) return true;
+            if (account.state?.toLowerCase().includes(searchTerm)) return true;
+            if (account.zip?.toLowerCase().includes(searchTerm)) return true;
+          }
+
+          return false;
+        })
+        .map(({ quote }) => quote);
+    }
+
+    // Apply limit if provided
+    if (args.limit && args.limit > 0) {
+      quotes = quotes.slice(0, args.limit);
+    }
+
+    return quotes;
+  },
+});
 
 // Get all quotes with optional filtering
 export const getQuotes = query({
@@ -26,12 +133,7 @@ export const getQuotes = query({
     // Determine if search is being performed
     const isSearching = !!(args.search && args.search.trim() !== "");
 
-    if (isSearching) {
-      // Use only the search index (no other filters or sorts)
-      // Convex typegen may not recognize the search index, so we cast to any to suppress TS errors.
-      quotesQuery = (ctx.db.query("quotes") as any)
-        .withSearchIndex("search_quotes", (q: any) => q.search("quoteNumber", args.search!));
-    } else if (args.status !== undefined && args.status !== null) {
+    if (args.status !== undefined && args.status !== null) {
       quotesQuery = ctx.db
         .query("quotes")
         .withIndex("by_status", q => q.eq("status", args.status!));
@@ -64,8 +166,61 @@ export const getQuotes = query({
 
     let quotes = await quotesQuery.collect();
 
+    // Apply search filter if provided
+    if (isSearching) {
+      const searchTerm = args.search!.trim().toLowerCase();
+
+      // First, get all the quotes
+      const quotesWithDetails = await Promise.all(
+        quotes.map(async (quote) => {
+          const contact = await ctx.db.get(quote.contactId);
+          const account = await ctx.db.get(quote.accountId);
+          return { quote, contact, account };
+        })
+      );
+
+      // Then filter based on all relevant fields
+      quotes = quotesWithDetails
+        .filter(({ quote, contact, account }) => {
+          // Search in quote fields
+          if (quote.quoteNumber.toLowerCase().includes(searchTerm)) return true;
+          if (quote.notes?.toLowerCase().includes(searchTerm)) return true;
+
+          // Format and check dates
+          const issueDateStr = new Date(quote.issueDate).toLocaleDateString();
+          if (issueDateStr.includes(searchTerm)) return true;
+
+          // Format and check amounts
+          const totalStr = quote.total.toString();
+          if (totalStr.includes(searchTerm)) return true;
+
+          // Check status
+          if (quote.status.toLowerCase().includes(searchTerm)) return true;
+
+          // Search in contact fields
+          if (contact) {
+            const contactName = `${contact.firstName} ${contact.lastName}`.toLowerCase();
+            if (contactName.includes(searchTerm)) return true;
+            if (contact.email?.toLowerCase().includes(searchTerm)) return true;
+            if (contact.phone?.toLowerCase().includes(searchTerm)) return true;
+          }
+
+          // Search in account fields
+          if (account) {
+            if (account.name.toLowerCase().includes(searchTerm)) return true;
+            if (account.address.toLowerCase().includes(searchTerm)) return true;
+            if (account.city?.toLowerCase().includes(searchTerm)) return true;
+            if (account.state?.toLowerCase().includes(searchTerm)) return true;
+            if (account.zip?.toLowerCase().includes(searchTerm)) return true;
+          }
+
+          return false;
+        })
+        .map(({ quote }) => quote);
+    }
+
     // Sort the results if not using an index-based sort
-    if (!isSearching && sortBy !== "createdAt" && sortBy !== "quoteNumber") {
+    if (sortBy !== "createdAt" && sortBy !== "quoteNumber") {
       quotes = quotes.sort((a: Doc<"quotes">, b: Doc<"quotes">) => {
         const aValue = a[sortBy as keyof typeof a];
         const bValue = b[sortBy as keyof typeof b];
@@ -79,8 +234,8 @@ export const getQuotes = query({
         }
         return 0;
       });
-    } else if (!isSearching && ((sortOrder === "asc" && sortBy === "createdAt") ||
-               (sortOrder === "desc" && sortBy === "quoteNumber"))) {
+    } else if ((sortOrder === "asc" && sortBy === "createdAt") ||
+               (sortOrder === "desc" && sortBy === "quoteNumber")) {
       // Reverse the results if needed based on the index order
       quotes = quotes.reverse();
     }

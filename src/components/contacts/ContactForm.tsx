@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useMutation } from "convex/react";
+import { useState, useEffect } from "react";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Id } from "../../../convex/_generated/dataModel";
+import AddressAutocomplete from "../common/AddressAutocomplete";
+import DuplicateWarning from "../common/DuplicateWarning";
 
 type ContactFormProps = {
   contact?: {
@@ -19,7 +21,12 @@ type ContactFormProps = {
     city?: string;
     state?: string;
     zip?: string;
+    country?: string;
     notes?: string;
+    placeId?: string;
+    formattedAddress?: string;
+    latitude?: number;
+    longitude?: number;
   };
   onSuccess?: () => void;
 };
@@ -28,7 +35,7 @@ export default function ContactForm({ contact, onSuccess }: ContactFormProps) {
   const navigate = useNavigate();
   const createContact = useMutation(api.contacts.createContact);
   const updateContact = useMutation(api.contacts.updateContact);
-  
+
   const [formData, setFormData] = useState({
     firstName: contact?.firstName || "",
     lastName: contact?.lastName || "",
@@ -37,37 +44,98 @@ export default function ContactForm({ contact, onSuccess }: ContactFormProps) {
     address: contact?.address || "",
     city: contact?.city || "",
     state: contact?.state || "",
-    zip: contact?.zip || "",
+    postcode: contact?.zip || "", // Using zip field for postcode
+    country: contact?.country || "Australia", // Default to Australia
     notes: contact?.notes || "",
+    placeId: contact?.placeId || "",
+    formattedAddress: contact?.formattedAddress || "",
+    latitude: contact?.latitude || 0,
+    longitude: contact?.longitude || 0,
   });
-  
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+  const [ignoreDuplicates, setIgnoreDuplicates] = useState(false);
+
+  // Check for potential duplicates
+  const checkDuplicates = useQuery(api.contacts.checkDuplicateContacts,
+    formData.firstName && formData.lastName ? {
+      firstName: formData.firstName,
+      lastName: formData.lastName,
+      email: formData.email || undefined,
+      phone: formData.phone || undefined,
+      placeId: formData.placeId || undefined,
+      address: formData.formattedAddress || formData.address || undefined,
+      excludeId: contact?._id.toString(),
+    } : 'skip'
+  );
+
+  const [potentialDuplicates, setPotentialDuplicates] = useState<any[]>([]);
+
+  // Update duplicates when check results change
+  useEffect(() => {
+    if (Array.isArray(checkDuplicates) && checkDuplicates.length > 0 && !contact) {
+      setPotentialDuplicates(checkDuplicates);
+    } else {
+      setPotentialDuplicates([]);
+    }
+  }, [checkDuplicates, contact]);
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
-  
+
+  // Handle address selection from Google Places
+  const handleAddressChange = (addressData: any) => {
+    setFormData(prev => ({
+      ...prev,
+      address: addressData.address,
+      city: addressData.city,
+      state: addressData.state,
+      postcode: addressData.postcode,
+      country: addressData.country,
+      placeId: addressData.placeId,
+      formattedAddress: addressData.formattedAddress,
+      latitude: addressData.latitude,
+      longitude: addressData.longitude,
+    }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
     setError(null);
-    
+
+    // Check for duplicates before submitting
+    if (potentialDuplicates.length > 0 && !ignoreDuplicates && !contact) {
+      // Show duplicate warning - don't submit yet
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    setIsSubmitting(true);
+
     try {
+      // Convert postcode to zip for backend compatibility
+      const submissionData = {
+        ...formData,
+        zip: formData.postcode, // Map postcode to zip for the backend
+        postcode: undefined // Remove postcode as it's not in the schema
+      };
+
       if (contact) {
         // Update existing contact
         await updateContact({
           id: contact._id,
-          ...formData,
+          ...submissionData,
         });
       } else {
         // Create new contact
-        await createContact(formData);
+        await createContact(submissionData);
       }
-      
+
       if (onSuccess) {
         onSuccess();
       } else {
@@ -79,7 +147,7 @@ export default function ContactForm({ contact, onSuccess }: ContactFormProps) {
       setIsSubmitting(false);
     }
   };
-  
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {error && (
@@ -87,7 +155,15 @@ export default function ContactForm({ contact, onSuccess }: ContactFormProps) {
           {error}
         </div>
       )}
-      
+
+      {potentialDuplicates.length > 0 && !ignoreDuplicates && !contact && (
+        <DuplicateWarning
+          type="contact"
+          duplicates={potentialDuplicates}
+          onIgnore={() => setIgnoreDuplicates(true)}
+        />
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-2">
           <Label htmlFor="firstName">First Name *</Label>
@@ -99,7 +175,7 @@ export default function ContactForm({ contact, onSuccess }: ContactFormProps) {
             required
           />
         </div>
-        
+
         <div className="space-y-2">
           <Label htmlFor="lastName">Last Name *</Label>
           <Input
@@ -110,7 +186,7 @@ export default function ContactForm({ contact, onSuccess }: ContactFormProps) {
             required
           />
         </div>
-        
+
         <div className="space-y-2">
           <Label htmlFor="email">Email</Label>
           <Input
@@ -121,7 +197,7 @@ export default function ContactForm({ contact, onSuccess }: ContactFormProps) {
             onChange={handleChange}
           />
         </div>
-        
+
         <div className="space-y-2">
           <Label htmlFor="phone">Phone</Label>
           <Input
@@ -132,49 +208,29 @@ export default function ContactForm({ contact, onSuccess }: ContactFormProps) {
           />
         </div>
       </div>
-      
+
+      {/* Address Autocomplete */}
       <div className="space-y-2">
-        <Label htmlFor="address">Address</Label>
-        <Input
-          id="address"
-          name="address"
-          value={formData.address}
-          onChange={handleChange}
+        <AddressAutocomplete
+          label="Address"
+          value={{
+            address: formData.address,
+            city: formData.city,
+            state: formData.state,
+            postcode: formData.postcode,
+            country: formData.country,
+            placeId: formData.placeId,
+            formattedAddress: formData.formattedAddress,
+            latitude: formData.latitude,
+            longitude: formData.longitude,
+          }}
+          onChange={handleAddressChange}
+          className="space-y-2"
         />
       </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="space-y-2">
-          <Label htmlFor="city">City</Label>
-          <Input
-            id="city"
-            name="city"
-            value={formData.city}
-            onChange={handleChange}
-          />
-        </div>
-        
-        <div className="space-y-2">
-          <Label htmlFor="state">State</Label>
-          <Input
-            id="state"
-            name="state"
-            value={formData.state}
-            onChange={handleChange}
-          />
-        </div>
-        
-        <div className="space-y-2">
-          <Label htmlFor="zip">ZIP Code</Label>
-          <Input
-            id="zip"
-            name="zip"
-            value={formData.zip}
-            onChange={handleChange}
-          />
-        </div>
-      </div>
-      
+
+      {/* Address fields are now included in the AddressAutocomplete component */}
+
       <div className="space-y-2">
         <Label htmlFor="notes">Notes</Label>
         <Textarea
@@ -185,7 +241,7 @@ export default function ContactForm({ contact, onSuccess }: ContactFormProps) {
           onChange={handleChange}
         />
       </div>
-      
+
       <div className="flex justify-end space-x-4">
         <Button
           type="button"
