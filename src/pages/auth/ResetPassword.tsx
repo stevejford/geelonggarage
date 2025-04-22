@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, Lock, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
+import { Card, CardContent } from "@/components/ui/card";
 
 export default function ResetPassword() {
   const navigate = useNavigate();
@@ -68,21 +69,23 @@ export default function ResetPassword() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-50 to-white">
-      <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-xl shadow-lg border border-gray-100">
-        <div className="flex justify-center mb-2">
-          <img src="/logo-pdfs.png" alt="Geelong Garage Logo" className="h-16 w-auto" />
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-blue-50 via-white to-blue-50">
+      <Card className="w-full max-w-md border-0 shadow-xl overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-blue-500/10 to-transparent h-16 z-0"></div>
+        <div className="relative z-10 flex justify-center mt-8 mb-4">
+          <img src="/logo-pdfs.png" alt="Geelong Garage Logo" className="h-16 w-auto drop-shadow-sm" />
         </div>
-        <div className="text-center">
-          <h2 className="text-2xl font-bold">
-            {isSuccess ? "Password Reset Complete" : "Set New Password"}
-          </h2>
-          <p className="text-gray-500 mt-2">
-            {isSuccess
-              ? "Your password has been reset successfully"
-              : "Create a new password for your account"}
-          </p>
-        </div>
+        <CardContent className="p-8 pt-0 space-y-6">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-gray-800">
+              {isSuccess ? "Password Reset Complete" : "Set New Password"}
+            </h2>
+            <p className="text-gray-600 mt-2">
+              {isSuccess
+                ? "Your password has been reset successfully"
+                : "Create a new password for your account"}
+            </p>
+          </div>
 
         {!isSuccess ? (
           <form className="space-y-4" onSubmit={handleSubmit}>
@@ -154,7 +157,8 @@ export default function ResetPassword() {
             </Button>
           </div>
         )}
-      </div>
+      </CardContent>
+      </Card>
     </div>
   );
 }

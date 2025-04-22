@@ -1,15 +1,49 @@
-import { Outlet } from "react-router-dom";
-import { useUser } from "@clerk/clerk-react";
+import { Outlet, useNavigate } from "react-router-dom";
+import { useUser, useClerk } from "@clerk/clerk-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
-import { Menu, Bell, Search } from "lucide-react";
+import { Menu, Bell, Search, DoorOpen, User, Settings } from "lucide-react";
 import Sidebar from "./Sidebar";
 import { useState, useEffect } from "react";
+import FloatingSignOutButton from "./FloatingSignOutButton";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
 
 export default function Layout() {
   const { user } = useUser();
+  const { signOut } = useClerk();
+  const navigate = useNavigate();
   const firstName = user?.firstName || "User";
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Handle sign out with proper session cleanup
+  const handleSignOut = async () => {
+    try {
+      // Sign out of all sessions
+      await signOut();
+
+      // Clear any local storage or cookies that might persist session data
+      localStorage.clear();
+      sessionStorage.clear();
+
+      // Redirect to sign-in page
+      navigate("/sign-in");
+
+      // Force page reload to ensure clean state
+      window.location.href = "/sign-in";
+    } catch (error) {
+      console.error("Error during sign out:", error);
+      // Fallback to direct navigation if signOut fails
+      window.location.href = "/sign-in";
+    }
+  };
+
   // Initialize sidebar state
   useEffect(() => {
     // Check if we should open the sidebar by default on larger screens
@@ -59,16 +93,42 @@ export default function Layout() {
               <Bell size={20} />
             </Button>
 
-            {/* User profile */}
+            {/* User profile with dropdown */}
             <div className="flex items-center gap-3">
               <div className="hidden md:block">
                 <div className="text-sm font-medium text-gray-700">{firstName}</div>
                 <div className="text-xs text-gray-500">Admin</div>
               </div>
-              <Avatar className="h-9 w-9 border-2 border-white shadow-sm">
-                <AvatarImage src={user?.imageUrl} />
-                <AvatarFallback className="bg-blue-600 text-white">{firstName[0]}</AvatarFallback>
-              </Avatar>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Avatar className="h-9 w-9 border-2 border-white shadow-sm cursor-pointer hover:ring-2 hover:ring-blue-200 transition-all">
+                    <AvatarImage src={user?.imageUrl} />
+                    <AvatarFallback className="bg-blue-600 text-white">{firstName[0]}</AvatarFallback>
+                  </Avatar>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">{user?.fullName || firstName}</p>
+                      <p className="text-xs leading-none text-gray-500">{user?.emailAddresses[0].emailAddress}</p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem>
+                    <User className="mr-2 h-4 w-4" />
+                    <span>Profile</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Settings className="mr-2 h-4 w-4" />
+                    <span>Settings</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut} className="text-red-600 focus:text-red-600">
+                    <DoorOpen className="mr-2 h-4 w-4" />
+                    <span>Logout</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </div>
@@ -96,6 +156,9 @@ export default function Layout() {
             <Outlet />
           </div>
         </main>
+
+        {/* Floating Sign Out Button */}
+        <FloatingSignOutButton />
       </div>
     </div>
   );

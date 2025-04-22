@@ -9,11 +9,12 @@ import { lazy, Suspense } from 'react';
 import { PageLoader } from "@/components/ui/loading";
 import Layout from "./components/Layout";
 
-// Core pages (keep these non-lazy for faster initial load)
-import Login from "./pages/auth/Login";
-import Register from "./pages/auth/Register";
-import ForgotPassword from "./pages/auth/ForgotPassword";
-import ResetPassword from "./pages/auth/ResetPassword";
+// Custom auth components
+import CustomSignIn from "./components/auth/CustomSignIn";
+import CustomSignUp from "./components/auth/CustomSignUp";
+import CustomForgotPassword from "./components/auth/CustomForgotPassword";
+import CustomResetPassword from "./components/auth/CustomResetPassword";
+import SSOCallback from "./pages/auth/SSOCallback";
 
 // Lazy-loaded pages
 const Dashboard = lazy(() => import("./pages/Dashboard"));
@@ -87,10 +88,11 @@ export default function App() {
           <GoogleMapsProvider>
             <Router>
               <Routes>
-                <Route path="/sign-in/*" element={<Login />} />
-                <Route path="/sign-up/*" element={<Register />} />
-                <Route path="/forgot-password" element={<ForgotPassword />} />
-                <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/sign-in/*" element={<CustomSignIn />} />
+                <Route path="/sign-up/*" element={<CustomSignUp />} />
+                <Route path="/forgot-password" element={<CustomForgotPassword />} />
+                <Route path="/reset-password" element={<CustomResetPassword />} />
+                <Route path="/sso-callback" element={<SSOCallback />} />
                 <Route
                   path="/"
                   element={

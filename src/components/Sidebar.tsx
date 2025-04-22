@@ -59,20 +59,7 @@ export default function Sidebar({ collapsed = false }: SidebarProps) {
           </Link>
         ))}
       </nav>
-      <div className="p-2 border-t border-blue-700">
-        <button
-          onClick={() => {
-            signOut().then(() => {
-              navigate('/sign-in');
-            });
-          }}
-          className={`w-full bg-transparent border border-blue-600 text-blue-100 hover:bg-blue-700 hover:text-white flex items-center ${collapsed ? 'justify-center p-2' : 'justify-center py-2 px-4'} rounded-md`}
-          title={collapsed ? "Sign Out" : undefined}
-        >
-          <LogOut size={16} className={collapsed ? '' : 'mr-2'} />
-          {!collapsed && "Sign Out"}
-        </button>
-      </div>
+      {/* Sign out button removed - now in avatar dropdown and floating button */}
     </aside>
   );
 }
