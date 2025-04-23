@@ -41,23 +41,39 @@ export const getAccounts = query({
         sortBy === "createdAt" ? "by_createdAt" :
         "by_createdBy";
 
-      if (sortOrder === "asc") {
-        orderedQuery = accountsQuery.withIndex(indexName, q => q);
-      } else {
-        // Descending order not supported, fallback to ascending
-        orderedQuery = accountsQuery.withIndex(indexName, q => q);
-      }
+      // Use the appropriate index for sorting
+      orderedQuery = accountsQuery.withIndex(indexName, q => q);
     } else {
-      orderedQuery = accountsQuery;
+      // Default to sorting by name if no valid sort field is provided
+      orderedQuery = accountsQuery.withIndex("by_name", q => q);
     }
 
-    // Apply limit via paginate with PaginationOptions object
+    // Apply limit via collect
     const limit = args.limit && args.limit > 0 ? args.limit : 100;
 
-    // Provide a default cursor value of null for the first page
-    const paginated = await orderedQuery.paginate({ numItems: limit, cursor: null });
+    // Use collect() to get the actual array of accounts
+    const accounts = await orderedQuery.collect();
 
-    return paginated;
+    // Apply search filter if provided (since we can't do it in the query)
+    let filteredAccounts = accounts;
+    if (args.search && args.search.trim() !== "") {
+      const searchTerm = args.search.trim().toLowerCase();
+      filteredAccounts = accounts.filter(account =>
+        account.name.toLowerCase().includes(searchTerm) ||
+        (account.address && account.address.toLowerCase().includes(searchTerm)) ||
+        (account.city && account.city.toLowerCase().includes(searchTerm)) ||
+        (account.state && account.state.toLowerCase().includes(searchTerm)) ||
+        (account.zip && account.zip.toLowerCase().includes(searchTerm))
+      );
+    }
+
+    // Apply manual sorting for descending order if needed
+    if (sortOrder === "desc") {
+      filteredAccounts = [...filteredAccounts].reverse();
+    }
+
+    // Apply limit after filtering and sorting
+    return filteredAccounts.slice(0, limit);
   },
 });
 

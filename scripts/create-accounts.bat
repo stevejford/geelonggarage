@@ -1,0 +1,19 @@
+@echo off
+echo Creating test accounts...
+
+echo Creating Acme Corporation...
+npx convex run accounts:createAccount "{ \"name\": \"Acme Corporation\", \"type\": \"Commercial\", \"address\": \"123 Business Ave\", \"city\": \"Metropolis\", \"state\": \"NY\", \"zip\": \"10001\", \"notes\": \"Large enterprise client\" }"
+
+echo Creating Smith Family Residence...
+npx convex run accounts:createAccount "{ \"name\": \"Smith Family Residence\", \"type\": \"Residential\", \"address\": \"456 Maple Street\", \"city\": \"Springfield\", \"state\": \"IL\", \"zip\": \"62701\", \"notes\": \"Regular maintenance customer\" }"
+
+echo Creating Sunshine Cafe...
+npx convex run accounts:createAccount "{ \"name\": \"Sunshine Cafe\", \"type\": \"Commercial\", \"address\": \"789 Beach Blvd\", \"city\": \"Oceanview\", \"state\": \"CA\", \"zip\": \"90210\", \"notes\": \"Small business client\" }"
+
+echo Creating City Hospital...
+npx convex run accounts:createAccount "{ \"name\": \"City Hospital\", \"type\": \"Commercial\", \"address\": \"101 Health Way\", \"city\": \"Wellness\", \"state\": \"WA\", \"zip\": \"98001\", \"notes\": \"Critical infrastructure client\" }"
+
+echo Creating Johnson Apartment Building...
+npx convex run accounts:createAccount "{ \"name\": \"Johnson Apartment Building\", \"type\": \"Residential\", \"address\": \"202 Tower Road\", \"city\": \"Highrise\", \"state\": \"TX\", \"zip\": \"75001\", \"notes\": \"Multi-unit property\" }"
+
+echo Test accounts creation complete!

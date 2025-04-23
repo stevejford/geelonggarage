@@ -39,3 +39,6 @@ next-env.d.ts
 
 # Convex
 .convex/
+
+# Mobile app (in development)
+mobile/
