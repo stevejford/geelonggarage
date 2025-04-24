@@ -133,7 +133,7 @@ export default function App() {
                   } />
                   <Route path="communication" element={
                     <Suspense fallback={<PageLoader />}>
-                      <CommunicationHubWrapper />
+                      <CommunicationHub />
                     </Suspense>
                   } />
 
