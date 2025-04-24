@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useMutation, useQuery } from "convex/react";
+import { useMutation, useQuery, useAction } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -16,7 +16,9 @@ import {
   AlertCircle,
   XCircle,
   User,
-  Receipt
+  Receipt,
+  Download,
+  Loader2
 } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import {
@@ -29,24 +31,30 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useToast } from "@/components/ui/use-toast";
+import { PDFPreview } from "@/components/ui/pdf-preview";
 
 export default function WorkOrderDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   // State for confirmation dialogs
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showStatusDialog, setShowStatusDialog] = useState(false);
+  const [showPdfPreview, setShowPdfPreview] = useState(false);
   const [newStatus, setNewStatus] = useState<string>("");
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
   // Fetch work order details
   const workOrder = useQuery(api.workOrders.getWorkOrder, {
     id: id as any
   });
 
-  // Mutations
+  // Mutations and actions
   const deleteWorkOrder = useMutation(api.workOrders.deleteWorkOrder);
   const changeWorkOrderStatus = useMutation(api.workOrders.changeWorkOrderStatus);
+  const generatePdf = useAction(api.pdf.generatePdf);
 
   // Handle work order deletion
   const handleDelete = async () => {
@@ -87,6 +95,49 @@ export default function WorkOrderDetailPage() {
   const createInvoice = () => {
     alert("Invoice creation will be implemented in a future update.");
   };
+
+  // Generate PDF
+  const handleGeneratePDF = async () => {
+    if (!id) return;
+
+    try {
+      setIsGeneratingPdf(true);
+
+      // Generate the PDF
+      const result = await generatePdf({
+        type: "workOrder",
+        id: id as any,
+      });
+
+      if (!result.success) {
+        throw new Error(result.error || "Failed to generate PDF");
+      }
+
+      // Show success message
+      toast({
+        title: "Success",
+        description: result.message || "PDF generated successfully.",
+      });
+
+      // Show the PDF preview
+      setShowPdfPreview(true);
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      toast({
+        title: "Error",
+        description: "Failed to generate PDF. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  };
+
+  // Get PDF URL from our Convex query
+  const pdfUrl = useQuery(api.pdf.getPdfUrl, {
+    type: "workOrder",
+    id: id as any,
+  });
 
   if (!workOrder) {
     return (
@@ -203,11 +254,33 @@ export default function WorkOrderDetailPage() {
         {(workOrder.status === "Pending" || workOrder.status === "Scheduled") && (
           <Button
             variant="outline"
-            onClick={() => navigate(`/work-orders/edit/${id}`)}
+            onClick={() => {
+              // Instead of navigating to a separate edit page, we can handle editing differently
+              toast({
+                title: "Edit Work Order",
+                description: "This feature is coming soon. For now, please use the PDF generation feature.",
+              });
+            }}
           >
             <Edit className="mr-2 h-4 w-4" /> Edit
           </Button>
         )}
+
+        <Button
+          variant="outline"
+          onClick={handleGeneratePDF}
+          disabled={isGeneratingPdf}
+        >
+          {isGeneratingPdf ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Generating...
+            </>
+          ) : (
+            <>
+              <Download className="mr-2 h-4 w-4" /> {workOrder.pdfStorageId ? "View PDF" : "Generate PDF"}
+            </>
+          )}
+        </Button>
 
         <Button
           variant="destructive"
@@ -411,6 +484,24 @@ export default function WorkOrderDetailPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* PDF Preview Dialog */}
+      {showPdfPreview && (
+        <PDFPreview
+          open={showPdfPreview}
+          onOpenChange={setShowPdfPreview}
+          pdfUrl={pdfUrl || ""}
+          title={`Work Order ${workOrder?.workOrderNumber || ""}`}
+          documentType="workOrder"
+          documentId={id || ""}
+          onSend={() => {
+            toast({
+              title: "Feature Coming Soon",
+              description: "Sending work orders via email will be available in a future update.",
+            });
+          }}
+        />
+      )}
     </div>
   );
 }

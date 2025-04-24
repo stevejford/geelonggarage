@@ -49,6 +49,7 @@ const QuoteDetailPage = lazy(() => import("./pages/quotes/QuoteDetailPage"));
 const WorkOrdersPage = lazy(() => import("./pages/workOrders/WorkOrdersPage"));
 const NewWorkOrderPage = lazy(() => import("./pages/workOrders/NewWorkOrderPage"));
 const WorkOrderDetailPage = lazy(() => import("./pages/workOrders/WorkOrderDetailPage"));
+const EditWorkOrderPage = lazy(() => import("./pages/workOrders/EditWorkOrderPage"));
 
 // Invoice pages
 const InvoicesPage = lazy(() => import("./pages/invoices/InvoicesPage"));
@@ -216,6 +217,11 @@ export default function App() {
                   <Route path="work-orders/new" element={
                     <Suspense fallback={<PageLoader />}>
                       <NewWorkOrderPage />
+                    </Suspense>
+                  } />
+                  <Route path="work-orders/edit/:id" element={
+                    <Suspense fallback={<PageLoader />}>
+                      <WorkOrderDetailPage />
                     </Suspense>
                   } />
                   <Route path="work-orders/:id" element={
