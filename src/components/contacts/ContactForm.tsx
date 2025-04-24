@@ -28,13 +28,18 @@ type ContactFormProps = {
     latitude?: number;
     longitude?: number;
   };
-  onSuccess?: () => void;
+  accountId?: Id<"accounts">;
+  onSuccess?: (contactId: string) => void;
 };
 
-export default function ContactForm({ contact, onSuccess }: ContactFormProps) {
+export default function ContactForm({ contact, accountId, onSuccess }: ContactFormProps) {
   const navigate = useNavigate();
   const createContact = useMutation(api.contacts.createContact);
   const updateContact = useMutation(api.contacts.updateContact);
+  const linkContactToAccount = useMutation(api.accounts.linkContactToAccount);
+
+  // If accountId is provided, fetch the account to pre-fill address
+  const account = accountId ? useQuery(api.accounts.getAccount, { id: accountId }) : null;
 
   const [formData, setFormData] = useState({
     firstName: contact?.firstName || "",
@@ -81,6 +86,24 @@ export default function ContactForm({ contact, onSuccess }: ContactFormProps) {
     }
   }, [checkDuplicates, contact]);
 
+  // Pre-fill address from account if provided
+  useEffect(() => {
+    if (account && !contact) {
+      setFormData(prev => ({
+        ...prev,
+        address: account.address || prev.address,
+        city: account.city || prev.city,
+        state: account.state || prev.state,
+        postcode: account.zip || prev.postcode,
+        country: account.country || prev.country,
+        placeId: account.placeId || prev.placeId,
+        formattedAddress: account.formattedAddress || prev.formattedAddress,
+        latitude: account.latitude || prev.latitude,
+        longitude: account.longitude || prev.longitude,
+      }));
+    }
+  }, [account, contact]);
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -125,19 +148,32 @@ export default function ContactForm({ contact, onSuccess }: ContactFormProps) {
         postcode: undefined // Remove postcode as it's not in the schema
       };
 
+      let contactId;
+
       if (contact) {
         // Update existing contact
         await updateContact({
           id: contact._id,
           ...submissionData,
         });
+        contactId = contact._id;
       } else {
         // Create new contact
-        await createContact(submissionData);
+        contactId = await createContact(submissionData);
+
+        // If accountId is provided, link the contact to the account
+        if (accountId && contactId) {
+          await linkContactToAccount({
+            contactId,
+            accountId,
+            relationship: "Contact", // Default relationship
+            isPrimary: false, // Not primary by default
+          });
+        }
       }
 
-      if (onSuccess) {
-        onSuccess();
+      if (onSuccess && contactId) {
+        onSuccess(contactId.toString());
       } else {
         navigate("/contacts");
       }

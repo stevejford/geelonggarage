@@ -6,6 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Container } from "@/components/ui/container";
+import { FormLayout, FormSection, FormRow, FormActions } from "@/components/ui/form-layout";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell, TableFooter } from "@/components/ui/table";
 import {
   ArrowLeft,
   Plus,
@@ -222,99 +227,117 @@ export default function NewInvoicePage() {
   };
 
   return (
-    <div className="container mx-auto py-6">
-      <div className="flex items-center mb-6">
-        <Button
-          variant="ghost"
-          className="mr-4"
-          onClick={() => navigate("/invoices")}
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" /> Back
-        </Button>
-        <h1 className="text-2xl font-bold">New Invoice</h1>
-      </div>
-
-      <form onSubmit={handleSubmit} className="space-y-8">
-        <div className="bg-white shadow-md rounded-lg p-6">
-          <h2 className="text-lg font-medium mb-4">Invoice Source</h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            <div>
+    <Container padding="md">
+      <FormLayout
+        title="New Invoice"
+        description="Create a new invoice for your customer"
+        backLink="/invoices"
+        backLinkText="Back to Invoices"
+        footer={
+          <>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => navigate("/invoices")}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" onClick={handleSubmit}>
+              <Save className="mr-2 h-4 w-4" /> Save Invoice
+            </Button>
+          </>
+        }
+      >
+        <form onSubmit={handleSubmit}>
+        <FormSection title="Invoice Source">
+          <FormRow>
+            <div className="space-y-2">
               <Label htmlFor="workOrder">From Work Order</Label>
-              <select
-                id="workOrder"
-                className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              <Select
                 value={selectedWorkOrderId}
-                onChange={(e) => handleWorkOrderSelect(e.target.value)}
+                onValueChange={handleWorkOrderSelect}
               >
-                <option value="">Select a work order</option>
-                {Array.isArray(workOrders) && workOrders.map((workOrder) => (
-                  <option key={workOrder._id.toString()} value={workOrder._id.toString()}>
-                    {workOrder.workOrderNumber} - {workOrder.contact?.firstName} {workOrder.contact?.lastName}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger id="workOrder">
+                  <SelectValue placeholder="Select a work order" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Array.isArray(workOrders) && workOrders.map((workOrder) => (
+                    <SelectItem key={workOrder._id.toString()} value={workOrder._id.toString()}>
+                      {workOrder.workOrderNumber} - {workOrder.contact?.firstName} {workOrder.contact?.lastName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="quote">From Quote</Label>
-              <select
-                id="quote"
-                className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              <Select
                 value={selectedQuoteId}
-                onChange={(e) => handleQuoteSelect(e.target.value)}
+                onValueChange={handleQuoteSelect}
                 disabled={!!selectedWorkOrderId}
               >
-                <option value="">Select a quote</option>
-                {Array.isArray(quotes) && quotes.map((quote) => (
-                  <option key={quote._id.toString()} value={quote._id.toString()}>
-                    {quote.quoteNumber} - {quote.contact?.firstName} {quote.contact?.lastName}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger id="quote">
+                  <SelectValue placeholder="Select a quote" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Array.isArray(quotes) && quotes.map((quote) => (
+                    <SelectItem key={quote._id.toString()} value={quote._id.toString()}>
+                      {quote.quoteNumber} - {quote.contact?.firstName} {quote.contact?.lastName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-          </div>
+          </FormRow>
 
-          <h2 className="text-lg font-medium mb-4">Invoice Information</h2>
+        </FormSection>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
+        <FormSection title="Invoice Information" className="mt-6">
+          <FormRow>
+            <div className="space-y-2">
               <Label htmlFor="contact">Customer Contact</Label>
-              <select
-                id="contact"
-                className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              <Select
                 value={selectedContactId}
-                onChange={(e) => setSelectedContactId(e.target.value)}
+                onValueChange={setSelectedContactId}
                 required
               >
-                <option value="">Select a contact</option>
-                {Array.isArray(contacts) && contacts.map((contact) => (
-                  <option key={contact._id.toString()} value={contact._id.toString()}>
-                    {contact.firstName} {contact.lastName}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger id="contact">
+                  <SelectValue placeholder="Select a contact" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Array.isArray(contacts) && contacts.map((contact) => (
+                    <SelectItem key={contact._id.toString()} value={contact._id.toString()}>
+                      {contact.firstName} {contact.lastName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="account">Customer Account</Label>
-              <select
-                id="account"
-                className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              <Select
                 value={selectedAccountId}
-                onChange={(e) => setSelectedAccountId(e.target.value)}
+                onValueChange={setSelectedAccountId}
                 required
               >
-                <option value="">Select an account</option>
-                {Array.isArray(accounts) && accounts.map((account) => (
-                  <option key={account._id.toString()} value={account._id.toString()}>
-                    {account.name}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger id="account">
+                  <SelectValue placeholder="Select an account" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Array.isArray(accounts) && accounts.map((account) => (
+                    <SelectItem key={account._id.toString()} value={account._id.toString()}>
+                      {account.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
+          </FormRow>
 
-            <div>
+          <FormRow>
+            <div className="space-y-2">
               <Label htmlFor="issueDate">Issue Date</Label>
               <Input
                 id="issueDate"
@@ -325,7 +348,7 @@ export default function NewInvoicePage() {
               />
             </div>
 
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="dueDate">Due Date</Label>
               <Input
                 id="dueDate"
@@ -335,59 +358,46 @@ export default function NewInvoicePage() {
                 required
               />
             </div>
-          </div>
+          </FormRow>
 
-          <div className="mt-4">
+          <div className="space-y-2">
             <Label htmlFor="notes">Notes</Label>
             <Textarea
               id="notes"
               placeholder="Enter any additional notes or terms..."
-              className="mt-1"
               rows={3}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
             />
           </div>
-        </div>
+        </FormSection>
 
-        <div className="bg-white shadow-md rounded-lg p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-medium">Line Items</h2>
+        <FormSection title="Line Items" className="mt-6">
+          <div className="flex justify-end mb-4">
             <Button
               type="button"
               variant="outline"
               onClick={addLineItem}
-              className="text-blue-600 border-blue-200 hover:bg-blue-50"
             >
               <Plus className="mr-2 h-4 w-4" /> Add Item
             </Button>
           </div>
 
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead>
-                <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Description
-                  </th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
-                    Qty
-                  </th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
-                    Unit Price
-                  </th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
-                    Total
-                  </th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-16">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Description</TableHead>
+                  <TableHead className="w-24 text-right">Qty</TableHead>
+                  <TableHead className="w-32 text-right">Unit Price</TableHead>
+                  <TableHead className="w-32 text-right">Total</TableHead>
+                  <TableHead className="w-16 text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {Array.isArray(lineItems) && lineItems.map((item, index) => (
-                  <tr key={index}>
-                    <td className="px-4 py-2">
+                  <TableRow key={index}>
+                    <TableCell>
                       <Input
                         placeholder="Description"
                         value={item.description}
@@ -396,8 +406,8 @@ export default function NewInvoicePage() {
                         }
                         required
                       />
-                    </td>
-                    <td className="px-4 py-2">
+                    </TableCell>
+                    <TableCell className="text-right">
                       <Input
                         type="number"
                         min="1"
@@ -409,8 +419,8 @@ export default function NewInvoicePage() {
                         className="text-right"
                         required
                       />
-                    </td>
-                    <td className="px-4 py-2">
+                    </TableCell>
+                    <TableCell className="text-right">
                       <Input
                         type="number"
                         min="0"
@@ -422,11 +432,11 @@ export default function NewInvoicePage() {
                         className="text-right"
                         required
                       />
-                    </td>
-                    <td className="px-4 py-2 text-right font-medium">
+                    </TableCell>
+                    <TableCell className="text-right font-medium">
                       {formatCurrency(item.quantity * item.unitPrice)}
-                    </td>
-                    <td className="px-4 py-2 text-right">
+                    </TableCell>
+                    <TableCell className="text-right">
                       <Button
                         type="button"
                         variant="ghost"
@@ -437,56 +447,44 @@ export default function NewInvoicePage() {
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-              <tfoot>
-                <tr>
-                  <td colSpan={3} className="px-4 py-2 text-right font-medium">
+              </TableBody>
+              <TableFooter>
+                <TableRow>
+                  <TableCell colSpan={3} className="text-right font-medium">
                     Subtotal:
-                  </td>
-                  <td className="px-4 py-2 text-right font-medium">
+                  </TableCell>
+                  <TableCell className="text-right font-medium">
                     {formatCurrency(subtotal)}
-                  </td>
-                  <td></td>
-                </tr>
-                <tr>
-                  <td colSpan={3} className="px-4 py-2 text-right font-medium">
+                  </TableCell>
+                  <TableCell></TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell colSpan={3} className="text-right font-medium">
                     Tax (10%):
-                  </td>
-                  <td className="px-4 py-2 text-right font-medium">
+                  </TableCell>
+                  <TableCell className="text-right font-medium">
                     {formatCurrency(tax)}
-                  </td>
-                  <td></td>
-                </tr>
-                <tr>
-                  <td colSpan={3} className="px-4 py-2 text-right text-lg font-bold">
+                  </TableCell>
+                  <TableCell></TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell colSpan={3} className="text-right text-lg font-bold">
                     Total:
-                  </td>
-                  <td className="px-4 py-2 text-right text-lg font-bold">
+                  </TableCell>
+                  <TableCell className="text-right text-lg font-bold">
                     {formatCurrency(total)}
-                  </td>
-                  <td></td>
-                </tr>
-              </tfoot>
-            </table>
+                  </TableCell>
+                  <TableCell></TableCell>
+                </TableRow>
+              </TableFooter>
+            </Table>
           </div>
-        </div>
-
-        <div className="flex justify-end space-x-4">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => navigate("/invoices")}
-          >
-            Cancel
-          </Button>
-          <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white">
-            <Save className="mr-2 h-4 w-4" /> Save Invoice
-          </Button>
-        </div>
+        </FormSection>
       </form>
-    </div>
+      </FormLayout>
+    </Container>
   );
 }

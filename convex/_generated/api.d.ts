@@ -14,7 +14,9 @@ import type {
   FunctionReference,
 } from "convex/server";
 import type * as accounts from "../accounts.js";
+import type * as adminRole from "../adminRole.js";
 import type * as auth from "../auth.js";
+import type * as communication from "../communication.js";
 import type * as contacts from "../contacts.js";
 import type * as dashboard from "../dashboard.js";
 import type * as email from "../email.js";
@@ -24,6 +26,7 @@ import type * as leads from "../leads.js";
 import type * as migrations from "../migrations.js";
 import type * as quotes from "../quotes.js";
 import type * as settings from "../settings.js";
+import type * as teamChat from "../teamChat.js";
 import type * as users from "../users.js";
 import type * as utils_formatters from "../utils/formatters.js";
 import type * as utils_numberGenerator from "../utils/numberGenerator.js";
@@ -42,7 +45,9 @@ import type * as workOrders from "../workOrders.js";
  */
 declare const fullApi: ApiFromModules<{
   accounts: typeof accounts;
+  adminRole: typeof adminRole;
   auth: typeof auth;
+  communication: typeof communication;
   contacts: typeof contacts;
   dashboard: typeof dashboard;
   email: typeof email;
@@ -52,6 +57,7 @@ declare const fullApi: ApiFromModules<{
   migrations: typeof migrations;
   quotes: typeof quotes;
   settings: typeof settings;
+  teamChat: typeof teamChat;
   users: typeof users;
   "utils/formatters": typeof utils_formatters;
   "utils/numberGenerator": typeof utils_numberGenerator;

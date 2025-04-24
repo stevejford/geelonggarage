@@ -3,6 +3,61 @@ import { v } from "convex/values";
 import { authTables } from "@convex-dev/auth/server";
 
 const applicationTables = {
+  // Chat groups
+  chatGroups: defineTable({
+    name: v.string(),
+    description: v.optional(v.string()),
+    createdBy: v.string(), // Clerk user ID
+    isPrivate: v.boolean(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index("by_createdAt", ["createdAt"]),
+
+  // Group members
+  groupMembers: defineTable({
+    groupId: v.id("chatGroups"),
+    userId: v.string(), // Clerk user ID
+    role: v.union(
+      v.literal("admin"),
+      v.literal("member")
+    ),
+    joinedAt: v.number(),
+  }).index("by_group", ["groupId"])
+    .index("by_user", ["userId"])
+    .index("by_group_user", ["groupId", "userId"]),
+
+  // Chat messages
+  chatMessages: defineTable({
+    groupId: v.optional(v.id("chatGroups")), // Optional for direct messages
+    senderId: v.string(), // Clerk user ID
+    receiverId: v.optional(v.string()), // For direct messages
+    senderName: v.string(),
+    senderAvatar: v.optional(v.string()),
+    content: v.string(),
+    attachments: v.optional(v.array(v.string())), // URLs to attachments
+    isRead: v.boolean(),
+    timestamp: v.number(),
+  }).index("by_timestamp", ["timestamp"])
+    .index("by_group", ["groupId", "timestamp"])
+    .index("by_direct_message", ["senderId", "receiverId", "timestamp"])
+    .index("by_receiver", ["receiverId", "timestamp"]),
+
+  // User chat status
+  userChatStatus: defineTable({
+    userId: v.string(), // Clerk user ID
+    lastSeen: v.number(),
+    isOnline: v.boolean(),
+  }).index("by_userId", ["userId"]),
+
+  // Last read messages
+  lastReadMessages: defineTable({
+    userId: v.string(), // Clerk user ID
+    groupId: v.optional(v.id("chatGroups")),
+    otherUserId: v.optional(v.string()), // For direct messages
+    lastReadTimestamp: v.number(),
+  }).index("by_user_group", ["userId", "groupId"])
+    .index("by_user_direct", ["userId", "otherUserId"]),
+
   // User roles table
   userRoles: defineTable({
     userId: v.string(),
@@ -90,6 +145,7 @@ const applicationTables = {
     businessStatus: v.optional(v.string()),
     isFranchise: v.optional(v.boolean()),
     phoneNumber: v.optional(v.string()),
+    email: v.optional(v.string()),
     website: v.optional(v.string()),
     openingHours: v.optional(v.array(v.string())),
     // Google Maps photo data

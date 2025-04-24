@@ -35,6 +35,14 @@ interface BusinessAutocompleteProps {
     formattedAddress?: string;
     latitude?: number;
     longitude?: number;
+    // Additional business details
+    businessCategory?: string;
+    businessStatus?: string;
+    phoneNumber?: string;
+    email?: string;
+    website?: string;
+    openingHours?: string[];
+    isFranchise?: boolean;
   };
   onChange: (businessData: {
     name: string;
@@ -48,6 +56,14 @@ interface BusinessAutocompleteProps {
     formattedAddress: string;
     latitude: number;
     longitude: number;
+    // Additional business details
+    businessCategory?: string;
+    businessStatus?: string;
+    phoneNumber?: string;
+    email?: string;
+    website?: string;
+    openingHours?: string[];
+    isFranchise?: boolean;
   }) => void;
   onDuplicateCheck?: (placeId: string, formattedAddress: string) => void;
   className?: string;
@@ -89,7 +105,19 @@ export default function BusinessAutocomplete({
     if (!scriptLoaded || !inputRef.current || !window.google || !window.google.maps || !window.google.maps.places) return;
 
     const options = {
-      fields: ['address_components', 'formatted_address', 'geometry', 'place_id', 'name'],
+      fields: [
+        'address_components',
+        'formatted_address',
+        'geometry',
+        'place_id',
+        'name',
+        'business_status',
+        'opening_hours',
+        'types',
+        'website',
+        'formatted_phone_number',
+        'international_phone_number'
+      ],
       types: ['establishment'],
       componentRestrictions: { country: 'au' } // Restrict results to Australia only
     };
@@ -182,6 +210,22 @@ export default function BusinessAutocomplete({
       // Only show the business name in the input field
       setInputValue(businessName);
 
+      // Extract business category from types
+      let businessCategory = '';
+      if (place.types && place.types.length > 0) {
+        // Use the first type that's not generic
+        const nonGenericTypes = place.types.filter((type: string) =>
+          !['establishment', 'point_of_interest', 'premise', 'political', 'geocode'].includes(type)
+        );
+        businessCategory = nonGenericTypes.length > 0 ? nonGenericTypes[0] : place.types[0];
+      }
+
+      // Extract business hours
+      let openingHours: string[] = [];
+      if (place.opening_hours && place.opening_hours.weekday_text) {
+        openingHours = place.opening_hours.weekday_text;
+      }
+
       // Create the business data object with the business name and address
       const businessData = {
         name: businessName,
@@ -195,6 +239,14 @@ export default function BusinessAutocomplete({
         formattedAddress: place.formatted_address || '',
         latitude: place.geometry?.location?.lat() || 0,
         longitude: place.geometry?.location?.lng() || 0,
+        // Additional business details
+        businessCategory,
+        businessStatus: place.business_status || '',
+        phoneNumber: place.formatted_phone_number || place.international_phone_number || '',
+        email: '', // Google Places API doesn't provide email, but we add the field for manual entry
+        website: place.website || '',
+        openingHours,
+        isFranchise: false, // Default value, would need additional API to determine this
       };
 
       // Force update the unit field in the UI
@@ -283,14 +335,15 @@ export default function BusinessAutocomplete({
 
   return (
     <div className={className}>
-      {/* Business name field */}
-      <div className="space-y-2">
-        <Label htmlFor="business-name">{label}{required && ' *'}</Label>
+      {/* Business Name field - full width */}
+      <div className="space-y-2 mb-4">
+        <Label htmlFor="business-name" className="text-base">{label}{required && ' *'}</Label>
         {!scriptLoaded ? (
           <Input
             id="business-name"
             placeholder="Loading business search..."
             disabled
+            className="text-base h-12"
           />
         ) : (
           <div className="space-y-1">
@@ -302,38 +355,40 @@ export default function BusinessAutocomplete({
               onChange={handleInputChange}
               required={required}
               placeholder="Start typing a business name..."
-              className="business-autocomplete"
+              className="business-autocomplete text-base h-12 font-medium"
             />
             <p className="text-xs text-gray-500">Search for Australian businesses only</p>
           </div>
         )}
       </div>
 
-      {/* Unit/Suite/Floor field */}
-      <div className="mt-2">
-        <Label htmlFor="business-unit">Unit/Suite/Floor</Label>
-        <Input
-          id="business-unit"
-          name="business-unit"
-          value={value?.unit || ''}
-          onChange={handleUnitChange}
-          placeholder="Unit 3, Suite 101, Level 5, etc."
-          className="mt-1"
-        />
-      </div>
+      {/* Unit and Address fields */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        {/* Unit/Suite/Floor field */}
+        <div className="space-y-2">
+          <Label htmlFor="business-unit">Unit/Suite/Floor</Label>
+          <Input
+            id="business-unit"
+            name="business-unit"
+            value={value?.unit || ''}
+            onChange={handleUnitChange}
+            placeholder="Unit 3, Suite 101, Level 5, etc."
+            className="text-base"
+          />
+        </div>
 
-      {/* Display the extracted address after selection */}
-      {value?.address && (
-        <div className="mt-2">
+        {/* Display the extracted address after selection */}
+        <div className="space-y-2">
           <Label htmlFor="business-address">Business Address</Label>
           <Input
             id="business-address"
-            value={value.address}
+            value={value?.address || ''}
             readOnly
-            className="mt-1 bg-gray-50"
+            className="bg-gray-50 text-base"
+            placeholder="Address will appear here after selection"
           />
         </div>
-      )}
+      </div>
     </div>
   );
 }

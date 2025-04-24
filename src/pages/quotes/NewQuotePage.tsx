@@ -6,6 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell, TableFooter } from "@/components/ui/table";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { FormLayout, FormSection, FormRow, FormActions } from "@/components/ui/form-layout";
+import { Container } from "@/components/ui/container";
 import {
   ArrowLeft,
   Plus,
@@ -147,231 +152,222 @@ export default function NewQuotePage() {
   };
 
   return (
-    <div className="container mx-auto py-6">
-      <div className="flex items-center mb-6">
-        <Button
-          variant="ghost"
-          className="mr-4"
-          onClick={() => navigate("/quotes")}
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" /> Back
-        </Button>
-        <h1 className="text-2xl font-bold">New Quote</h1>
-      </div>
-
-      <form onSubmit={handleSubmit} className="space-y-8">
-        <div className="bg-white shadow-md rounded-lg p-6">
-          <h2 className="text-lg font-medium mb-4">Quote Information</h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <Label htmlFor="contact">Customer Contact</Label>
-              <select
-                id="contact"
-                className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                value={selectedContactId}
-                onChange={(e) => setSelectedContactId(e.target.value)}
-                required
-              >
-                <option value="">Select a contact</option>
-                {Array.isArray(contacts) && contacts.map((contact) => (
-                  <option key={contact._id.toString()} value={contact._id.toString()}>
-                    {contact.firstName} {contact.lastName}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <Label htmlFor="account">Customer Account</Label>
-              <select
-                id="account"
-                className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                value={selectedAccountId}
-                onChange={(e) => setSelectedAccountId(e.target.value)}
-                required
-              >
-                <option value="">Select an account</option>
-                {Array.isArray(accounts) && accounts.map((account) => (
-                  <option key={account._id.toString()} value={account._id.toString()}>
-                    {account.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <Label htmlFor="issueDate">Issue Date</Label>
-              <Input
-                id="issueDate"
-                type="date"
-                value={issueDate}
-                onChange={(e) => setIssueDate(e.target.value)}
-                required
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="expiryDate">Expiry Date</Label>
-              <Input
-                id="expiryDate"
-                type="date"
-                value={expiryDate}
-                onChange={(e) => setExpiryDate(e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className="mt-4">
-            <Label htmlFor="notes">Notes</Label>
-            <Textarea
-              id="notes"
-              placeholder="Enter any additional notes or terms..."
-              className="mt-1"
-              rows={3}
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-            />
-          </div>
-        </div>
-
-        <div className="bg-white shadow-md rounded-lg p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-medium">Line Items</h2>
+    <Container padding="md">
+      <FormLayout
+        title="New Quote"
+        description="Create a new quote for your customer"
+        backLink="/quotes"
+        backLinkText="Back to Quotes"
+        footer={
+          <>
             <Button
               type="button"
               variant="outline"
-              onClick={addLineItem}
-              className="text-blue-600 border-blue-200 hover:bg-blue-50"
+              onClick={() => navigate("/quotes")}
             >
-              <Plus className="mr-2 h-4 w-4" /> Add Item
+              Cancel
             </Button>
-          </div>
+            <Button type="submit" onClick={handleSubmit}>
+              <Save className="mr-2 h-4 w-4" /> Save Quote
+            </Button>
+          </>
+        }
+      >
+        <form onSubmit={handleSubmit}>
+          <FormSection title="Quote Information">
+            <FormRow>
+              <div className="space-y-2">
+                <Label htmlFor="contact">Customer Contact</Label>
+                <Select
+                  value={selectedContactId}
+                  onValueChange={setSelectedContactId}
+                  required
+                >
+                  <SelectTrigger id="contact">
+                    <SelectValue placeholder="Select a contact" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Array.isArray(contacts) && contacts.map((contact) => (
+                      <SelectItem key={contact._id.toString()} value={contact._id.toString()}>
+                        {contact.firstName} {contact.lastName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead>
-                <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Description
-                  </th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
-                    Qty
-                  </th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
-                    Unit Price
-                  </th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
-                    Total
-                  </th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-16">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {Array.isArray(lineItems) && lineItems.map((item, index) => (
-                  <tr key={index}>
-                    <td className="px-4 py-2">
-                      <Input
-                        placeholder="Description"
-                        value={item.description}
-                        onChange={(e) =>
-                          updateLineItem(index, "description", e.target.value)
-                        }
-                        required
-                      />
-                    </td>
-                    <td className="px-4 py-2">
-                      <Input
-                        type="number"
-                        min="1"
-                        step="1"
-                        value={item.quantity}
-                        onChange={(e) =>
-                          updateLineItem(index, "quantity", e.target.value)
-                        }
-                        className="text-right"
-                        required
-                      />
-                    </td>
-                    <td className="px-4 py-2">
-                      <Input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        value={item.unitPrice}
-                        onChange={(e) =>
-                          updateLineItem(index, "unitPrice", e.target.value)
-                        }
-                        className="text-right"
-                        required
-                      />
-                    </td>
-                    <td className="px-4 py-2 text-right font-medium">
-                      {formatCurrency(item.quantity * item.unitPrice)}
-                    </td>
-                    <td className="px-4 py-2 text-right">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeLineItem(index)}
-                        disabled={lineItems.length === 1}
-                        className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-              <tfoot>
-                <tr>
-                  <td colSpan={3} className="px-4 py-2 text-right font-medium">
-                    Subtotal:
-                  </td>
-                  <td className="px-4 py-2 text-right font-medium">
-                    {formatCurrency(subtotal)}
-                  </td>
-                  <td></td>
-                </tr>
-                <tr>
-                  <td colSpan={3} className="px-4 py-2 text-right font-medium">
-                    Tax (10%):
-                  </td>
-                  <td className="px-4 py-2 text-right font-medium">
-                    {formatCurrency(tax)}
-                  </td>
-                  <td></td>
-                </tr>
-                <tr>
-                  <td colSpan={3} className="px-4 py-2 text-right text-lg font-bold">
-                    Total:
-                  </td>
-                  <td className="px-4 py-2 text-right text-lg font-bold">
-                    {formatCurrency(total)}
-                  </td>
-                  <td></td>
-                </tr>
-              </tfoot>
-            </table>
-          </div>
-        </div>
+              <div className="space-y-2">
+                <Label htmlFor="account">Customer Account</Label>
+                <Select
+                  value={selectedAccountId}
+                  onValueChange={setSelectedAccountId}
+                  required
+                >
+                  <SelectTrigger id="account">
+                    <SelectValue placeholder="Select an account" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Array.isArray(accounts) && accounts.map((account) => (
+                      <SelectItem key={account._id.toString()} value={account._id.toString()}>
+                        {account.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </FormRow>
 
-        <div className="flex justify-end space-x-4">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => navigate("/quotes")}
+            <FormRow>
+              <div className="space-y-2">
+                <Label htmlFor="issueDate">Issue Date</Label>
+                <Input
+                  id="issueDate"
+                  type="date"
+                  value={issueDate}
+                  onChange={(e) => setIssueDate(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="expiryDate">Expiry Date</Label>
+                <Input
+                  id="expiryDate"
+                  type="date"
+                  value={expiryDate}
+                  onChange={(e) => setExpiryDate(e.target.value)}
+                />
+              </div>
+            </FormRow>
+
+            <div className="space-y-2">
+              <Label htmlFor="notes">Notes</Label>
+              <Textarea
+                id="notes"
+                placeholder="Enter any additional notes or terms..."
+                rows={3}
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+              />
+            </div>
+          </FormSection>
+
+          <FormSection
+            title="Line Items"
+            className="mt-8"
           >
-            Cancel
-          </Button>
-          <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white">
-            <Save className="mr-2 h-4 w-4" /> Save Quote
-          </Button>
-        </div>
-      </form>
-    </div>
+            <div className="flex justify-end mb-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={addLineItem}
+              >
+                <Plus className="mr-2 h-4 w-4" /> Add Item
+              </Button>
+            </div>
+
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Description</TableHead>
+                    <TableHead className="w-24 text-right">Qty</TableHead>
+                    <TableHead className="w-32 text-right">Unit Price</TableHead>
+                    <TableHead className="w-32 text-right">Total</TableHead>
+                    <TableHead className="w-16 text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {Array.isArray(lineItems) && lineItems.map((item, index) => (
+                    <TableRow key={index}>
+                      <TableCell>
+                        <Input
+                          placeholder="Description"
+                          value={item.description}
+                          onChange={(e) =>
+                            updateLineItem(index, "description", e.target.value)
+                          }
+                          required
+                        />
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Input
+                          type="number"
+                          min="1"
+                          step="1"
+                          value={item.quantity}
+                          onChange={(e) =>
+                            updateLineItem(index, "quantity", e.target.value)
+                          }
+                          className="text-right"
+                          required
+                        />
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={item.unitPrice}
+                          onChange={(e) =>
+                            updateLineItem(index, "unitPrice", e.target.value)
+                          }
+                          className="text-right"
+                          required
+                        />
+                      </TableCell>
+                      <TableCell className="text-right font-medium">
+                        {formatCurrency(item.quantity * item.unitPrice)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeLineItem(index)}
+                          disabled={lineItems.length === 1}
+                          className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+                <TableFooter>
+                  <TableRow>
+                    <TableCell colSpan={3} className="text-right font-medium">
+                      Subtotal:
+                    </TableCell>
+                    <TableCell className="text-right font-medium">
+                      {formatCurrency(subtotal)}
+                    </TableCell>
+                    <TableCell></TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell colSpan={3} className="text-right font-medium">
+                      Tax (10%):
+                    </TableCell>
+                    <TableCell className="text-right font-medium">
+                      {formatCurrency(tax)}
+                    </TableCell>
+                    <TableCell></TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell colSpan={3} className="text-right text-lg font-bold">
+                      Total:
+                    </TableCell>
+                    <TableCell className="text-right text-lg font-bold">
+                      {formatCurrency(total)}
+                    </TableCell>
+                    <TableCell></TableCell>
+                  </TableRow>
+                </TableFooter>
+              </Table>
+            </div>
+          </FormSection>
+        </form>
+      </FormLayout>
+    </Container>
   );
 }

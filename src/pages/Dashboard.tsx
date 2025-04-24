@@ -1,6 +1,7 @@
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useUser } from "@clerk/clerk-react";
+import { useState, useEffect, useRef } from "react";
 import {
   Users,
   Building2,
@@ -50,8 +51,26 @@ export default function Dashboard() {
     recentActivity: { leads: [], quotes: [], workOrders: [], invoices: [] }
   };
 
-  // Fetch recent activity
-  const recentActivity = useQuery(api.dashboard.getRecentActivity, { limit: 10 }) || [];
+  // State for storing and managing activities
+  const [displayedActivities, setDisplayedActivities] = useState([]);
+  const [activityLimit, setActivityLimit] = useState(10);
+
+  // Fetch recent activity data - this will automatically update when new data is available
+  const recentActivityData = useQuery(api.dashboard.getRecentActivity, {
+    limit: activityLimit
+  }) || [];
+
+  // Update displayed activities whenever the data changes
+  useEffect(() => {
+    if (recentActivityData.length > 0) {
+      // Filter to get activities for work orders, quotes, and invoices (everything except communication)
+      const filteredActivities = recentActivityData
+        .filter(activity => ["invoice", "quote", "workOrder", "workorder"].includes(activity.type))
+        .sort((a, b) => new Date(b.time) - new Date(a.time)); // Sort newest to oldest
+
+      setDisplayedActivities(filteredActivities);
+    }
+  }, [recentActivityData]);
 
   // Stats cards data
   const stats = [
@@ -192,12 +211,131 @@ export default function Dashboard() {
   const performanceLabels = ["Quote Conversion", "Customer Satisfaction", "Team Efficiency", "Payment Rate"];
   const performanceColors = ["#3b82f6", "#10b981", "#f59e0b", "#8b5cf6"];
 
-  // Tasks (placeholder for now)
-  const tasks = [
-    { title: "Follow up with new lead", due: "Today", priority: "High" },
-    { title: "Send quote to customer", due: "Tomorrow", priority: "Medium" },
-    { title: "Schedule technician visit", due: "Next week", priority: "Low" },
-  ];
+  // Tasks (synced with the Tasks page)
+  const [tasks, setTasks] = useState([
+    { id: "task-1", title: "Follow up with new lead", due: "Today", priority: "High" },
+    { id: "task-2", title: "Send quote to customer", due: "Tomorrow", priority: "Medium" },
+    { id: "task-3", title: "Schedule technician visit", due: "Next week", priority: "Low" },
+    { id: "task-5", title: "Call back customer about invoice", due: "Today", priority: "High" },
+  ]);
+
+  // State for lazy loading and sorting
+  const [taskSort, setTaskSort] = useState("newest");
+  const [isLoadingMoreTasks, setIsLoadingMoreTasks] = useState(false);
+  const taskContainerRef = useRef(null);
+
+  // State for activity loading
+  const [isLoadingMoreActivity, setIsLoadingMoreActivity] = useState(false);
+
+  // Effect for scroll-based lazy loading for tasks and activity
+  useEffect(() => {
+    const handleTaskScroll = (e) => {
+      const container = e.target;
+      if (container.scrollHeight - container.scrollTop <= container.clientHeight * 1.2) {
+        if (!isLoadingMoreTasks) {
+          loadMoreTasks();
+        }
+      }
+    };
+
+    const handleActivityScroll = (e) => {
+      const container = e.target;
+      if (container.scrollHeight - container.scrollTop <= container.clientHeight * 1.2) {
+        if (!isLoadingMoreActivity) {
+          loadMoreActivity();
+        }
+      }
+    };
+
+    const taskContainer = document.getElementById('task-container');
+    const activityContainer = document.getElementById('activity-container');
+
+    if (taskContainer) {
+      taskContainer.addEventListener('scroll', handleTaskScroll);
+    }
+
+    if (activityContainer) {
+      activityContainer.addEventListener('scroll', handleActivityScroll);
+    }
+
+    return () => {
+      if (taskContainer) {
+        taskContainer.removeEventListener('scroll', handleTaskScroll);
+      }
+      if (activityContainer) {
+        activityContainer.removeEventListener('scroll', handleActivityScroll);
+      }
+    };
+  }, [isLoadingMoreTasks, isLoadingMoreActivity]);
+
+  // Effect for sorting tasks
+  useEffect(() => {
+    setTasks(prevTasks => {
+      const sortedTasks = [...prevTasks];
+
+      switch (taskSort) {
+        case 'newest':
+          return sortedTasks.sort((a, b) => b.id.localeCompare(a.id));
+        case 'oldest':
+          return sortedTasks.sort((a, b) => a.id.localeCompare(b.id));
+        case 'priority':
+          const priorityOrder = { 'High': 0, 'Medium': 1, 'Low': 2 };
+          return sortedTasks.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
+        case 'due':
+          const dueOrder = { 'Today': 0, 'Tomorrow': 1, 'This week': 2, 'Next week': 3, 'Not set': 4 };
+          return sortedTasks.sort((a, b) => {
+            const aOrder = dueOrder[a.due] !== undefined ? dueOrder[a.due] : 5;
+            const bOrder = dueOrder[b.due] !== undefined ? dueOrder[b.due] : 5;
+            return aOrder - bOrder;
+          });
+        default:
+          return sortedTasks;
+      }
+    });
+  }, [taskSort]);
+
+  // Function to mark a task as done
+  const markTaskAsDone = (taskId) => {
+    setTasks(prevTasks => prevTasks.filter(task => task.id !== taskId));
+  };
+
+  // Function to load more tasks (simulated)
+  const loadMoreTasks = () => {
+    setIsLoadingMoreTasks(true);
+    // Simulate API call delay
+    setTimeout(() => {
+      const newTasks = [
+        { id: `task-${Date.now()}-1`, title: "Review monthly reports", due: "Next week", priority: "Medium" },
+        { id: `task-${Date.now()}-2`, title: "Update customer database", due: "This week", priority: "Low" },
+      ];
+
+      setTasks(prevTasks => [...prevTasks, ...newTasks]);
+      setIsLoadingMoreTasks(false);
+    }, 1000);
+  };
+
+  // Function to load more activity items
+  const loadMoreActivity = () => {
+    if (isLoadingMoreActivity) return;
+
+    setIsLoadingMoreActivity(true);
+
+    try {
+      // Increase the limit to get more activities
+      const newLimit = activityLimit + 10;
+      setActivityLimit(newLimit);
+      console.log("Increasing activity limit to:", newLimit);
+
+      // The useQuery hook will automatically fetch more data with the new limit
+    } catch (error) {
+      console.error("Error loading more activities:", error);
+    } finally {
+      // Set a short timeout to prevent multiple rapid calls
+      setTimeout(() => {
+        setIsLoadingMoreActivity(false);
+      }, 500);
+    }
+  };
 
   return (
     <div className="space-y-8">
@@ -314,33 +452,106 @@ export default function Dashboard() {
 
       {/* Activity and Tasks */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Recent Activity */}
+        {/* Recent Activity - Invoices */}
         <div className="lg:col-span-2">
-          <Card>
+          <Card className="h-full flex flex-col">
             <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
               <CardTitle>Recent Activity</CardTitle>
-              <Link to="/" className="text-sm text-blue-600 hover:text-blue-800 font-medium">View all</Link>
+              <div className="flex items-center space-x-2">
+                <select
+                  className="text-xs border rounded p-1"
+                  onChange={(e) => {
+                    if (e.target.value) {
+                      window.location.href = e.target.value;
+                    }
+                  }}
+                  defaultValue=""
+                >
+                  <option value="" disabled>View all...</option>
+                  <option value="/invoices">Invoices</option>
+                  <option value="/quotes">Quotes</option>
+                  <option value="/work-orders">Work Orders</option>
+                </select>
+              </div>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {recentActivity.length === 0 ? (
-                  <p className="text-gray-500 text-center py-4">No recent activity</p>
+            <CardContent className="flex-1 overflow-hidden">
+              <div className="space-y-4 h-[300px] overflow-y-auto pr-2" id="activity-container">
+                {displayedActivities.length === 0 ? (
+                  <p className="text-gray-500 text-center py-4">No recent business activity</p>
                 ) : (
-                  recentActivity.map((activity, index) => (
-                    <div key={index} className="flex items-start gap-3 pb-4 border-b border-gray-100 last:border-0 last:pb-0">
-                      <div className="p-2 rounded-full bg-gray-100">
-                        {activity.type === "lead" && <Users className="h-5 w-5 text-blue-600" />}
-                        {activity.type === "quote" && <FileText className="h-5 w-5 text-yellow-600" />}
-                        {activity.type === "workorder" && <ClipboardList className="h-5 w-5 text-green-600" />}
-                        {activity.type === "invoice" && <Receipt className="h-5 w-5 text-purple-600" />}
-                      </div>
-                      <div>
-                        <p className="font-medium">{activity.action}</p>
-                        <p className="text-sm text-gray-500">{activity.name}</p>
-                        <p className="text-xs text-gray-400 mt-1">{getRelativeTime(activity.time)}</p>
-                      </div>
-                    </div>
-                  ))
+                  <>
+                    {displayedActivities.map((activity, index) => {
+                      // Determine icon and color based on activity type
+                      let icon = <Receipt className="h-5 w-5 text-purple-600" />;
+                      let bgColor = "bg-gray-100";
+                      let linkPath = `/invoices/${activity.id}`;
+
+                      if (activity.type === "quote") {
+                        icon = <FileText className="h-5 w-5 text-yellow-600" />;
+                        bgColor = "bg-yellow-50";
+                        linkPath = `/quotes/${activity.id}`;
+                      } else if (activity.type === "workOrder") {
+                        icon = <ClipboardList className="h-5 w-5 text-blue-600" />;
+                        bgColor = "bg-blue-50";
+                        linkPath = `/work-orders/${activity.id}`;
+                      } else if (activity.type === "invoice") {
+                        icon = <Receipt className="h-5 w-5 text-purple-600" />;
+                        bgColor = "bg-purple-50";
+                        linkPath = `/invoices/${activity.id}`;
+                      }
+
+                      return (
+                        <Link
+                          to={linkPath}
+                          key={index}
+                          className="flex items-start gap-3 pb-4 border-b border-gray-100 last:border-0 last:pb-0 hover:bg-gray-50 rounded-md p-2 transition-colors"
+                        >
+                          <div className={`p-2 rounded-full ${bgColor}`}>
+                            {icon}
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex justify-between items-start">
+                              <p className="font-medium">{activity.action} {activity.type}</p>
+                              <StatusBadge
+                                variant={activity.status === 'completed' ? 'completed' :
+                                        activity.status === 'pending' ? 'pending' : 'default'}
+                                size="sm"
+                              >
+                                {activity.status || 'New'}
+                              </StatusBadge>
+                            </div>
+                            <p className="text-sm text-gray-700">{activity.number || activity.id}</p>
+                            <p className="text-sm text-gray-600">{activity.customerName || 'Customer'} - {activity.address || 'Address'}</p>
+                            <div className="flex justify-between items-center mt-1">
+                              <p className="text-xs text-gray-500">{activity.description && activity.description.length > 30 ?
+                                `${activity.description.substring(0, 30)}...` :
+                                activity.description || 'No description'}</p>
+                              <p className="text-xs text-gray-400">{getRelativeTime(activity.time)}</p>
+                            </div>
+                          </div>
+                        </Link>
+                      );
+                    })}
+
+                  {/* Load more button */}
+                  <div className="text-center pt-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={loadMoreActivity}
+                      disabled={isLoadingMoreActivity}
+                      className="w-full text-xs"
+                    >
+                      {isLoadingMoreActivity ? (
+                        <>
+                          <span className="animate-spin mr-2">⟳</span> Loading...
+                        </>
+                      ) : (
+                        'Load More Activity'
+                      )}
+                    </Button>
+                  </div>
+                  </>
                 )}
               </div>
             </CardContent>
@@ -349,21 +560,42 @@ export default function Dashboard() {
 
         {/* Tasks */}
         <div>
-          <Card>
+          <Card className="h-full flex flex-col">
             <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
               <CardTitle>Tasks</CardTitle>
-              <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-800 hover:bg-blue-50">
-                <Plus className="h-4 w-4 mr-1" /> Add Task
-              </Button>
+              <div className="flex items-center space-x-2">
+                <Link to="/tasks" className="text-sm text-blue-600 hover:text-blue-800 font-medium">View all</Link>
+                <Link to="/tasks" className="text-sm text-blue-600 hover:text-blue-800 font-medium">
+                  <Plus className="h-4 w-4 inline-block" /> Add Task
+                </Link>
+              </div>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
+            <CardContent className="flex-1 overflow-hidden">
+              {/* Task sorting options */}
+              <div className="mb-3 flex justify-end">
+                <select
+                  value={taskSort}
+                  onChange={(e) => setTaskSort(e.target.value)}
+                  className="text-xs border rounded p-1"
+                >
+                  <option value="newest">Newest First</option>
+                  <option value="oldest">Oldest First</option>
+                  <option value="priority">Priority</option>
+                  <option value="due">Due Date</option>
+                </select>
+              </div>
+
+              <div ref={taskContainerRef} className="space-y-3 h-[300px] overflow-y-auto pr-2" id="task-container">
                 {tasks.length === 0 ? (
                   <p className="text-gray-500 text-center py-4">No tasks</p>
                 ) : (
                   tasks.map((task, index) => (
-                    <div key={index} className="flex items-center gap-3 p-3 rounded-md hover:bg-gray-50 border border-gray-100">
-                      <input type="checkbox" className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+                    <div key={task.id} className="flex items-center gap-3 p-3 rounded-md hover:bg-gray-50 border border-gray-100">
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        onChange={() => markTaskAsDone(task.id)}
+                      />
                       <div className="flex-1">
                         <p className="font-medium">{task.title}</p>
                         <div className="flex items-center gap-2 mt-1">
@@ -381,6 +613,27 @@ export default function Dashboard() {
                       </div>
                     </div>
                   ))
+                )}
+
+                {/* Load more button */}
+                {tasks.length > 0 && (
+                  <div className="text-center pt-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={loadMoreTasks}
+                      disabled={isLoadingMoreTasks}
+                      className="w-full text-xs"
+                    >
+                      {isLoadingMoreTasks ? (
+                        <>
+                          <span className="animate-spin mr-2">⟳</span> Loading...
+                        </>
+                      ) : (
+                        'Load More Tasks'
+                      )}
+                    </Button>
+                  </div>
                 )}
               </div>
             </CardContent>

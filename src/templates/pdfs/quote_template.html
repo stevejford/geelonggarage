@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Platypus Guides Quote</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 0;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            color: #333;
+            box-sizing: border-box;
+        }
+        .container {
+            width: 210mm;
+            min-height: 297mm;
+            margin: 0 auto;
+            padding: 20mm;
+            box-sizing: border-box;
+            position: relative;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10mm;
+        }
+        .company-info {
+            display: flex;
+            flex-direction: column;
+        }
+        .company-name {
+            color: #c03127;
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .company-address {
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        .logo {
+            width: 80px;
+            height: 80px;
+            background-color: #b1b1b1;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-weight: bold;
+        }
+        .divider {
+            border-top: 1px solid #ddd;
+            margin: 10px 0 20px 0;
+        }
+        .quote-sidebar {
+            position: absolute;
+            left: 20mm;
+            top: 60mm;
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            font-size: 32px;
+            font-weight: bold;
+            color: #c03127;
+            height: 100mm;
+        }
+        .addresses {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+        }
+        .bill-to, .ship-to, .quote-details {
+            width: 30%;
+        }
+        .address-title {
+            color: #c03127;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .quote-label {
+            color: #c03127;
+            font-weight: bold;
+            text-align: right;
+        }
+        .quote-value {
+            text-align: right;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 40px;
+        }
+        th {
+            background-color: #c03127;
+            color: white;
+            padding: 8px;
+            text-align: left;
+        }
+        th:last-child, td:last-child {
+            text-align: right;
+        }
+        td {
+            padding: 8px;
+            border: 1px solid #ddd;
+        }
+        .totals {
+            margin-top: 20px;
+            text-align: right;
+        }
+        .totals div {
+            margin-bottom: 5px;
+        }
+        .total-label {
+            display: inline-block;
+            width: 100px;
+            text-align: left;
+        }
+        .total-amount {
+            display: inline-block;
+            width: 80px;
+            text-align: right;
+        }
+        .grand-total {
+            font-weight: bold;
+            font-size: 18px;
+            margin-top: 10px;
+        }
+        .signature {
+            margin-top: 60px;
+            text-align: right;
+        }
+        .signature img {
+            max-width: 150px;
+            height: auto;
+        }
+        .terms {
+            margin-top: 60px;
+            border-top: 1px solid #ddd;
+            padding-top: 20px;
+        }
+        .terms-title {
+            color: #c03127;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .banking {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="company-info">
+                <div class="company-name">Platypus Guides</div>
+                <div class="company-address">
+                    443 Koala Avenue<br>
+                    Sydney, NSW 4357
+                </div>
+            </div>
+            <div class="logo">LOGO</div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="quote-sidebar">Quote AU-001</div>
+
+        <div class="addresses">
+            <div class="bill-to">
+                <div class="address-title">Bill To</div>
+                <div>
+                    Jack Hartigan<br>
+                    5 Barker Street<br>
+                    Perth, WA 6320
+                </div>
+            </div>
+
+            <div class="ship-to">
+                <div class="address-title">Ship To</div>
+                <div>
+                    Jack Hartigan<br>
+                    49 Queen Street<br>
+                    Loganholme, QLD 4129
+                </div>
+            </div>
+
+            <div class="quote-details">
+                <div>
+                    <div class="address-title">Quote Date</div>
+                    <div class="quote-value">29/01/2019</div>
+                </div>
+                <div>
+                    <div class="address-title">P.O.#</div>
+                    <div class="quote-value">1430/2019</div>
+                </div>
+            </div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Qty</th>
+                    <th>Description</th>
+                    <th>Unit Price</th>
+                    <th>Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>1</td>
+                    <td>Long beaked echidna backpack</td>
+                    <td>100.00</td>
+                    <td>100.00</td>
+                </tr>
+                <tr>
+                    <td>2</td>
+                    <td>Termite proof dress pants</td>
+                    <td>25.00</td>
+                    <td>50.00</td>
+                </tr>
+                <tr>
+                    <td>3</td>
+                    <td>Witchetty grub</td>
+                    <td>12.00</td>
+                    <td>36.00</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="totals">
+            <div>
+                <span class="total-label">Subtotal</span>
+                <span class="total-amount">186.00</span>
+            </div>
+            <div>
+                <span class="total-label">GST 10.0%</span>
+                <span class="total-amount">18.60</span>
+            </div>
+            <div class="grand-total">
+                <span class="total-label">Total</span>
+                <span class="total-amount">$204.60</span>
+            </div>
+        </div>
+
+        <div class="signature">
+            <img src="data:image/png;base64,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" alt="Signature">
+        </div>
+
+        <div class="terms">
+            <div class="terms-title">Terms & Conditions</div>
+            <div>Payment is due within 15 days</div>
+
+            <div class="banking">
+                Commonwealth Bank of Australia<br>
+                Account Number: 1234567890<br>
+                BSB Number: 123-456789
+            </div>
+        </div>
+    </div>
+</body>
+</html>

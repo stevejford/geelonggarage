@@ -115,7 +115,7 @@
   - [ ] Chart Visualizations Enhancement
 
 - [ ] **6.4 MVP Deployment & Stabilization**
-  - [ ] Deployment
+  - [x] Deployment
   - [ ] Monitoring
   - [ ] Bug Fixing
   Important: we will deploy to convex I will have to upgrade possibly so just prompt me to do that . if you need more info on deployment then use our context7 mcp
@@ -124,52 +124,120 @@
 
 - [ ] **7.1 PDF Generation**
   - [ ] PDF Templates for quotes, work orders, invoices
+    - [ ] Create responsive HTML templates based on provided designs
+    - [ ] Implement dynamic data binding for customer/business information
+    - [ ] Add support for line items with proper calculations
+    - [ ] Include conditional sections based on document type
+    - [ ] Design header/footer with logo and business details
   - [ ] Server-side Generation
+    - [ ] Implement PDF generation using Puppeteer or similar library
+    - [ ] Create Convex serverless functions for PDF generation
+    - [ ] Add caching mechanism for generated PDFs
+    - [ ] Implement proper error handling for failed generations
   - [ ] Preview Functionality
-  Important: I have html to share with what i want the invoice and quote to look like please ask for it
+    - [ ] Create preview modal with accurate representation
+    - [ ] Add zoom and page navigation controls
+    - [ ] Implement print functionality
+    - [ ] Add download options (PDF, possibly other formats)
+    - [ ] Enable sharing via link or email
+  Important: I have HTML templates to share with what I want the invoice and quote to look like - please ask for these when starting implementation
 
 - [ ] **7.2 Email Integration**
   - [ ] Email Templates
+    - [ ] Design responsive HTML email templates
+    - [ ] Create templates for quotes, invoices, work orders
+    - [ ] Implement dynamic content insertion
+    - [ ] Add support for attachments (PDFs)
+    - [ ] Design professional header/footer with branding
   - [ ] Email Sending UI
+    - [ ] Create intuitive email composition interface
+    - [ ] Implement template selection dropdown
+    - [ ] Add recipient management (To, CC, BCC)
+    - [ ] Create subject line suggestions based on content
+    - [ ] Add email scheduling functionality
   - [ ] Custom Messages
-Important: We will use mailgun for email use context7  mcp to get more info- [ ] **7.3 Testing & Validation**
+    - [ ] Enable custom message editing with rich text
+    - [ ] Create saved message templates for quick use
+    - [ ] Implement personalization tokens
+    - [ ] Add signature management
+    - [ ] Create email tracking functionality
+  Important: We will use Mailgun for email integration - use context7 MCP to get more implementation details when needed
+
+- [ ] **7.3 Testing & Validation**
   - [ ] PDF Generation Testing
+    - [ ] Test template rendering with various data inputs
+    - [ ] Verify calculations and formatting in generated PDFs
+    - [ ] Test PDF generation performance and optimization
+    - [ ] Validate PDF compatibility across different viewers
+    - [ ] Test edge cases (large documents, special characters)
   - [ ] Email Delivery Testing
+    - [ ] Verify email delivery to various email providers
+    - [ ] Test email rendering across different email clients
+    - [ ] Validate attachment functionality
+    - [ ] Test email tracking and analytics
+    - [ ] Verify email scheduling and queuing
   - [ ] UI Testing
+    - [ ] Test preview functionality across browsers
+    - [ ] Validate responsive design for all interfaces
+    - [ ] Test accessibility compliance
+    - [ ] Perform usability testing with real users
+    - [ ] Verify integration with existing workflows
 
-## Phase 8: V1.0 Feature Completion & Refinement (3 weeks)
+## Phase 8: V1.0 Feature Completion & Refinement (Adjusted Timeline Needed)
 
-- [ ] **8.1 Work Order Scheduling**
-  - [ ] Calendar View
-  - [ ] Date Assignment
-  - [ ] Technician View
+- [ ] **8.1 Enhanced Data Tracking**
+  - [ ] Comprehensive Customer Interaction History (Notes, Calls, Emails)
+  - [ ] Detailed Service History per Property/Asset
+  - [ ] Basic Inventory Management
 
-- [ ] **8.2 Technician Experience**
-  - [ ] My Day Dashboard
-  - [ ] Status Updates
-  - [ ] Mobile Optimization
+- [ ] **8.2 Reckon Accounting Integration (Invoice Sync)**
+  - [ ] Develop API for Invoice Export
+  - [ ] Implement Invoice Sync to Reckon
 
-- [ ] **8.3 Basic Notifications**
+- [ ] **8.3 Advanced Scheduling & Real-time Map Dispatch**
+  - [ ] Web-based Dispatch Dashboard with Map View
+  - [ ] Display Jobs on Map (Status Color-coding)
+  - [ ] Display Technician Locations on Map (Real-time)
+  - [ ] Drag-and-Drop Scheduling/Assignment
+  - [ ] Nearest Technician Identification for Emergencies
+  - [ ] Clickable Map Icons for Details (Job/Technician)
+  - [ ] Filtering Options (Status, Technician, Date)
+
+- [ ] **8.4 Enhanced Mobile Technician Application (Expo) with Location Sharing**
+  - [ ] Develop Expo Mobile App (Basic structure with navigation setup)
+  - [ ] Implement Real-time Location Sharing
+  - [ ] View Assigned Jobs on In-App Map
+  - [ ] Update Statuses from Mobile App (Reflects on Dispatch Map)
+  - [ ] Record Parts/Materials Used
+  - [ ] Capture Signatures
+  - [ ] Add Notes and Upload Photos (Linked to Job)
+  - [ ] Access Customer Service History
+  - [ ] Offline Capabilities
+  - [ ] Mobile-Optimized UI/UX
+
+- [ ] **8.5 Basic Notifications**
   - [ ] Notification System
   - [ ] Email/SMS Integration
   - [ ] Appointment Reminders
 
-- [ ] **8.4 Testing & Validation**
-  - [ ] Scheduling Testing
+- [ ] **8.6 Testing & Validation**
+  - [ ] Data Tracking Testing
+  - [ ] Integration Testing (Reckon)
+  - [ ] Scheduling & Dispatch Testing (Map Features)
+  - [ ] Mobile App Testing (Location, Status, Data Entry)
   - [ ] Notification Testing
-  - [ ] Mobile Testing
 
 ## Phase 9: V1.0 Dashboards & Reporting (2 weeks)
 
-- [ ] **9.1 Role-Specific Dashboards**
-  - [ ] CSR Dashboard
-  - [ ] Technician Dashboard
-  - [ ] Admin Dashboard
+- [x] **9.1 Role-Specific Dashboards**
+  - [x] CSR Dashboard
+  - [x] Technician Dashboard
+  - [x] Admin Dashboard
 
-- [ ] **9.2 Basic Reporting**
-  - [ ] Report Framework
-  - [ ] Sales Performance Report
-  - [ ] Accounts Receivable Aging Report
+- [x] **9.2 Basic Reporting**
+  - [x] Report Framework
+  - [x] Sales Performance Report
+  - [x] Accounts Receivable Aging Report
 
 - [ ] **9.3 Testing & Validation**
   - [ ] Dashboard Testing
@@ -198,8 +266,8 @@ Important: We will use mailgun for email use context7  mcp to get more info- [ ]
 ## Timeline Summary
 
 - **MVP Development**: Phases 1-6 (12 weeks)
-- **V1.0 Development**: Phases 7-10 (10 weeks)
-- **Total Timeline**: 22 weeks (approximately 5.5 months)
+- **V1.0 Development**: Phases 7-10 (Adjusted Timeline Needed)
+- **Total Timeline**: To be determined after scoping new features
 
 ## Verification Strategy
 

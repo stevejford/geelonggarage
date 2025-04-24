@@ -2,10 +2,13 @@ import { Outlet, useNavigate } from "react-router-dom";
 import { useUser, useClerk } from "@clerk/clerk-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
-import { Menu, Bell, Search, DoorOpen, User, Settings } from "lucide-react";
+import { Container } from "./ui/container";
+import { Menu, Bell, DoorOpen, User, Settings } from "lucide-react";
+import NavbarSearch from "./NavbarSearch";
 import Sidebar from "./Sidebar";
+import TeamChat from "./TeamChat";
 import { useState, useEffect } from "react";
-import FloatingSignOutButton from "./FloatingSignOutButton";
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -54,8 +57,8 @@ export default function Layout() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* Top Navigation Bar - Full Width */}
-      <header className="bg-white shadow-sm z-10 w-full">
+      {/* Top Navigation Bar - Fixed to top */}
+      <header className="bg-white shadow-sm z-50 w-full fixed top-0 left-0">
         <div className="flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-4">
             {/* Hamburger menu button - visible on all screen sizes */}
@@ -77,17 +80,15 @@ export default function Layout() {
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
-            {/* Search */}
-            <div className="relative w-64 hidden md:block">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
-              <input
-                type="search"
-                placeholder="Search..."
-                className="w-full pl-8 pr-4 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
+          {/* Enhanced Search - Centered */}
+          <div className="flex-1 flex justify-center">
+            <div className="w-full max-w-3xl hidden md:block">
+              <NavbarSearch />
             </div>
+          </div>
 
+          {/* Right side items */}
+          <div className="flex items-center gap-4">
             {/* Notifications */}
             <Button variant="ghost" size="icon" className="text-gray-500 hover:text-gray-700">
               <Bell size={20} />
@@ -134,14 +135,14 @@ export default function Layout() {
         </div>
       </header>
 
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden pt-16">
         {/* Sidebar with improved transition */}
         <div
-          className={`fixed md:relative inset-0 z-50 md:z-0 transition-all duration-500 ease-in-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:-translate-x-full'}`}
+          className={`fixed md:relative inset-0 top-16 z-40 md:z-0 transition-all duration-500 ease-in-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:-translate-x-full'}`}
         >
           {/* Overlay for mobile only */}
           <div
-            className={`fixed inset-0 bg-black/50 md:hidden transition-opacity duration-500 ${sidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+            className={`fixed inset-0 top-16 bg-black/50 md:hidden transition-opacity duration-500 ${sidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
             onClick={() => setSidebarOpen(false)}
           />
           <div className="relative z-10 h-full w-64 max-w-[80vw]">
@@ -151,14 +152,15 @@ export default function Layout() {
         </div>
 
         {/* Main Content */}
-        <main className="flex-1 overflow-auto bg-gray-50 p-4 md:p-6 transition-all duration-300">
-          <div className="mx-auto max-w-7xl">
+        <main className="flex-1 overflow-auto bg-gray-50 transition-all duration-300">
+          <Container size="xl" padding="md">
             <Outlet />
-          </div>
+          </Container>
         </main>
 
-        {/* Floating Sign Out Button */}
-        <FloatingSignOutButton />
+
+        {/* Team Chat */}
+        <TeamChat />
       </div>
     </div>
   );

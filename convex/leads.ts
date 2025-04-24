@@ -166,6 +166,69 @@ export const createLeadFromInquiry = internalMutation({
   },
 });
 
+// Search leads for global search
+export const searchLeads = query({
+  args: {
+    search: v.string(),
+    type: v.optional(v.string()),
+    field: v.optional(v.string()),
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const { search, type, field, limit } = args;
+
+    if (!search || search.trim().length < 2) {
+      return [];
+    }
+
+    const searchTerm = search.trim().toLowerCase();
+    const maxResults = limit || 10;
+
+    // Get all leads
+    const leads = await ctx.db.query("leads").collect();
+
+    // Filter based on search term and field
+    const filteredLeads = leads.filter(lead => {
+      // If field is specified, only search in that field
+      if (field && field !== 'any') {
+        switch (field) {
+          case 'name':
+            return lead.name?.toLowerCase().includes(searchTerm);
+          case 'email':
+            return lead.email?.toLowerCase().includes(searchTerm);
+          case 'phone':
+            return lead.phone?.toLowerCase().includes(searchTerm);
+          case 'status':
+            return lead.status?.toLowerCase().includes(searchTerm);
+          case 'source':
+            return lead.source?.toLowerCase().includes(searchTerm);
+          default:
+            return false;
+        }
+      }
+
+      // Search across all relevant fields
+      return (
+        lead.name?.toLowerCase().includes(searchTerm) ||
+        lead.email?.toLowerCase().includes(searchTerm) ||
+        lead.phone?.toLowerCase().includes(searchTerm) ||
+        lead.status?.toLowerCase().includes(searchTerm) ||
+        lead.source?.toLowerCase().includes(searchTerm) ||
+        lead.notes?.toLowerCase().includes(searchTerm)
+      );
+    });
+
+    // Limit results
+    const limitedResults = filteredLeads.slice(0, maxResults);
+
+    return limitedResults.map(lead => ({
+      ...lead,
+      matchField: 'lead',
+      matchContext: lead.name,
+    }));
+  },
+});
+
 // Convert a lead to a contact
 export const convertLeadToContact = mutation({
   args: {

@@ -1,12 +1,18 @@
 import LeadForm from "@/components/leads/LeadForm";
+import { Container } from "@/components/ui/container";
+import { FormLayout } from "@/components/ui/form-layout";
 
 export default function NewLeadPage() {
   return (
-    <div className="container mx-auto py-6">
-      <h1 className="text-2xl font-bold mb-6">Create New Lead</h1>
-      <div className="bg-white shadow-md rounded-lg p-6">
+    <Container padding="md">
+      <FormLayout
+        title="Create New Lead"
+        description="Enter the details for the new lead"
+        backLink="/leads"
+        backLinkText="Back to Leads"
+      >
         <LeadForm />
-      </div>
-    </div>
+      </FormLayout>
+    </Container>
   );
 }

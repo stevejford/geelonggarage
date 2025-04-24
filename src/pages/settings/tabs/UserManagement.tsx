@@ -35,13 +35,19 @@ import {
   Trash2,
   Mail,
   User,
-  Shield
+  Shield,
+  UserCog
 } from "lucide-react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { toast } from "sonner";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import UserRoleManagement from "./UserRoleManagement";
 
 export default function UserManagement() {
+  // State for tabs
+  const [activeTab, setActiveTab] = useState("users");
+
   // State for dialogs
   const [isAddUserOpen, setIsAddUserOpen] = useState(false);
   const [isEditUserOpen, setIsEditUserOpen] = useState(false);
@@ -165,181 +171,203 @@ export default function UserManagement() {
                 Manage users and their access to the system
               </CardDescription>
             </div>
-            <div className="flex gap-2">
-              <div className="relative flex-1">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
-                <Input
-                  type="search"
-                  placeholder="Search users..."
-                  className="pl-8"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-              <Dialog open={isAddUserOpen} onOpenChange={setIsAddUserOpen}>
-                <DialogTrigger asChild>
-                  <Button className="bg-blue-600 hover:bg-blue-700">
-                    <Plus className="mr-2 h-4 w-4" /> Add User
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Invite New User</DialogTitle>
-                    <DialogDescription>
-                      Send an invitation to a new user to join your organization.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="space-y-4 py-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="firstName">First Name</Label>
-                        <Input
-                          id="firstName"
-                          value={newUser.firstName}
-                          onChange={(e) => setNewUser({ ...newUser, firstName: e.target.value })}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="lastName">Last Name</Label>
-                        <Input
-                          id="lastName"
-                          value={newUser.lastName}
-                          onChange={(e) => setNewUser({ ...newUser, lastName: e.target.value })}
-                        />
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="email">Email</Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        value={newUser.email}
-                        onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="role">Role</Label>
-                      <Select
-                        value={newUser.role}
-                        onValueChange={(value) => setNewUser({ ...newUser, role: value })}
-                      >
-                        <SelectTrigger id="role">
-                          <SelectValue placeholder="Select role" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="admin">Administrator</SelectItem>
-                          <SelectItem value="manager">Manager</SelectItem>
-                          <SelectItem value="technician">Technician</SelectItem>
-                          <SelectItem value="user">Regular User</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  <DialogFooter>
-                    <Button variant="outline" onClick={() => setIsAddUserOpen(false)}>
-                      Cancel
-                    </Button>
-                    <Button onClick={handleAddUser}>
-                      <Mail className="mr-2 h-4 w-4" /> Send Invitation
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-            </div>
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredUsers.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8 text-gray-500">
-                    No users found
-                  </TableCell>
-                </TableRow>
-              ) : (
-                filteredUsers.map((user) => (
-                  <TableRow key={user._id.toString()}>
-                    <TableCell className="font-medium">
-                      <div className="flex items-center gap-2">
-                        <div className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center">
-                          <User className="h-4 w-4 text-gray-600" />
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="mb-4">
+              <TabsTrigger value="users" className="flex items-center gap-2">
+                <User className="h-4 w-4" />
+                Users
+              </TabsTrigger>
+              <TabsTrigger value="roles" className="flex items-center gap-2">
+                <UserCog className="h-4 w-4" />
+                Role Management
+              </TabsTrigger>
+            </TabsList>
+
+            {/* Users Tab */}
+            <TabsContent value="users">
+              <div className="flex justify-between items-center mb-4">
+                <div className="relative flex-1 max-w-md">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
+                  <Input
+                    type="search"
+                    placeholder="Search users..."
+                    className="pl-8"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
+                <Dialog open={isAddUserOpen} onOpenChange={setIsAddUserOpen}>
+                  <DialogTrigger asChild>
+                    <Button className="bg-blue-600 hover:bg-blue-700">
+                      <Plus className="mr-2 h-4 w-4" /> Add User
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Invite New User</DialogTitle>
+                      <DialogDescription>
+                        Send an invitation to a new user to join your organization.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="firstName">First Name</Label>
+                          <Input
+                            id="firstName"
+                            value={newUser.firstName}
+                            onChange={(e) => setNewUser({ ...newUser, firstName: e.target.value })}
+                          />
                         </div>
-                        <div>
-                          {user.firstName} {user.lastName}
+                        <div className="space-y-2">
+                          <Label htmlFor="lastName">Last Name</Label>
+                          <Input
+                            id="lastName"
+                            value={newUser.lastName}
+                            onChange={(e) => setNewUser({ ...newUser, lastName: e.target.value })}
+                          />
                         </div>
                       </div>
-                    </TableCell>
-                    <TableCell>{user.email}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1">
-                        {user.role === "admin" && (
-                          <Shield className="h-3.5 w-3.5 text-red-600" />
-                        )}
-                        {user.role === "manager" && (
-                          <Shield className="h-3.5 w-3.5 text-blue-600" />
-                        )}
-                        {user.role === "technician" && (
-                          <User className="h-3.5 w-3.5 text-green-600" />
-                        )}
-                        <span className="capitalize">{user.role}</span>
+                      <div className="space-y-2">
+                        <Label htmlFor="email">Email</Label>
+                        <Input
+                          id="email"
+                          type="email"
+                          value={newUser.email}
+                          onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+                        />
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      <span className={`px-2 py-1 rounded-full text-xs ${
-                        user.status === "active"
-                          ? "bg-green-100 text-green-800"
-                          : user.status === "pending"
-                          ? "bg-yellow-100 text-yellow-800"
-                          : "bg-gray-100 text-gray-800"
-                      }`}>
-                        {user.status || "Active"}
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem
-                            onClick={() => {
-                              setSelectedUserId(user._id.toString());
-                              setIsEditUserOpen(true);
-                            }}
-                          >
-                            <Edit className="mr-2 h-4 w-4" />
-                            Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => {
-                              setSelectedUserId(user._id.toString());
-                              setIsDeleteUserOpen(true);
-                            }}
-                            className="text-red-600"
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Remove
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
+                      <div className="space-y-2">
+                        <Label htmlFor="role">Role</Label>
+                        <Select
+                          value={newUser.role}
+                          onValueChange={(value) => setNewUser({ ...newUser, role: value })}
+                        >
+                          <SelectTrigger id="role">
+                            <SelectValue placeholder="Select role" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="admin">Administrator</SelectItem>
+                            <SelectItem value="manager">Manager</SelectItem>
+                            <SelectItem value="technician">Technician</SelectItem>
+                            <SelectItem value="user">Regular User</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    <DialogFooter>
+                      <Button variant="outline" onClick={() => setIsAddUserOpen(false)}>
+                        Cancel
+                      </Button>
+                      <Button onClick={handleAddUser}>
+                        <Mail className="mr-2 h-4 w-4" /> Send Invitation
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              </div>
+
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Role</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                </TableHeader>
+                <TableBody>
+                  {filteredUsers.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center py-8 text-gray-500">
+                        No users found
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredUsers.map((user) => (
+                      <TableRow key={user._id.toString()}>
+                        <TableCell className="font-medium">
+                          <div className="flex items-center gap-2">
+                            <div className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center">
+                              <User className="h-4 w-4 text-gray-600" />
+                            </div>
+                            <div>
+                              {user.firstName} {user.lastName}
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>{user.email}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1">
+                            {user.role === "admin" && (
+                              <Shield className="h-3.5 w-3.5 text-red-600" />
+                            )}
+                            {user.role === "manager" && (
+                              <Shield className="h-3.5 w-3.5 text-blue-600" />
+                            )}
+                            {user.role === "technician" && (
+                              <User className="h-3.5 w-3.5 text-green-600" />
+                            )}
+                            <span className="capitalize">{user.role}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <span className={`px-2 py-1 rounded-full text-xs ${
+                            user.status === "active"
+                              ? "bg-green-100 text-green-800"
+                              : user.status === "pending"
+                              ? "bg-yellow-100 text-yellow-800"
+                              : "bg-gray-100 text-gray-800"
+                          }`}>
+                            {user.status || "Active"}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" className="h-8 w-8 p-0">
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  setSelectedUserId(user._id.toString());
+                                  setIsEditUserOpen(true);
+                                }}
+                              >
+                                <Edit className="mr-2 h-4 w-4" />
+                                Edit
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  setSelectedUserId(user._id.toString());
+                                  setIsDeleteUserOpen(true);
+                                }}
+                                className="text-red-600"
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Remove
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </TabsContent>
+
+            {/* Role Management Tab */}
+            <TabsContent value="roles">
+              <UserRoleManagement />
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
 

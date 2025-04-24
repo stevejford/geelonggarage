@@ -3,10 +3,11 @@ import { useSignIn } from "@clerk/clerk-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
-import { Eye, EyeOff, Mail, Lock, ArrowRight, Loader2 } from "lucide-react";
+import { Mail, ArrowRight, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { FormField } from "@/components/ui/form-field";
+import { PasswordField } from "@/components/ui/password-field";
 
 export default function CustomSignIn() {
   const { isLoaded, signIn, setActive } = useSignIn();
@@ -181,30 +182,21 @@ export default function CustomSignIn() {
 
           {!pendingVerification ? (
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm font-medium text-gray-700">
-                  Email Address
-                </Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <Input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Enter your email"
-                    className="pl-10"
-                    required
-                    disabled={isLoading}
-                  />
-                </div>
-              </div>
+              <FormField
+                id="email"
+                label="Email Address"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter your email"
+                required
+                disabled={isLoading}
+                icon={<Mail className="h-4 w-4" />}
+              />
 
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
-                  <Label htmlFor="password" className="text-sm font-medium text-gray-700">
-                    Password
-                  </Label>
+                  <span className="text-sm font-medium text-gray-700">Password</span>
                   <Button
                     type="button"
                     variant="link"
@@ -214,31 +206,17 @@ export default function CustomSignIn() {
                     Forgot password?
                   </Button>
                 </div>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Enter your password"
-                    className="pl-10 pr-10"
-                    required
-                    disabled={isLoading}
-                  />
-                  <button
-                    type="button"
-                    className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
-                    onClick={() => setShowPassword(!showPassword)}
-                    tabIndex={-1}
-                  >
-                    {showPassword ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
-                  </button>
-                </div>
+                <PasswordField
+                  id="password"
+                  label=""
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter your password"
+                  required
+                  disabled={isLoading}
+                  containerClassName="space-y-0"
+                  labelClassName="sr-only"
+                />
               </div>
 
               <Button
@@ -311,21 +289,17 @@ export default function CustomSignIn() {
             </form>
           ) : (
             <form onSubmit={handleVerification} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="verificationCode" className="text-sm font-medium text-gray-700">
-                  Verification Code
-                </Label>
-                <Input
-                  id="verificationCode"
-                  type="text"
-                  value={verificationCode}
-                  onChange={(e) => setVerificationCode(e.target.value)}
-                  placeholder="Enter verification code"
-                  required
-                  disabled={verifying}
-                  autoFocus
-                />
-              </div>
+              <FormField
+                id="verificationCode"
+                label="Verification Code"
+                type="text"
+                value={verificationCode}
+                onChange={(e) => setVerificationCode(e.target.value)}
+                placeholder="Enter verification code"
+                required
+                disabled={verifying}
+                autoFocus
+              />
 
               <Button
                 type="submit"

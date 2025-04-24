@@ -8,6 +8,9 @@ import { useNavigate } from "react-router-dom";
 import { formatCurrency } from "@/lib/utils";
 import { AnimatedNumber } from "@/components/ui/animated-number";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "@/components/ui/table";
+import { PageHeader } from "@/components/ui/page-header";
+import { Container } from "@/components/ui/container";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -144,57 +147,45 @@ export default function QuotesPage() {
     return new Date(timestamp).toLocaleDateString();
   };
 
-  // Get status badge color
+  // Get status badge with icon
   const getStatusBadge = (status: string) => {
+    let icon;
     switch (status) {
       case "Draft":
-        return (
-          <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium">
-            <Clipboard className="inline-block w-3 h-3 mr-1" />
-            {status}
-          </span>
-        );
+        icon = <Clipboard className="h-3 w-3 mr-1" />;
+        break;
       case "Presented":
-        return (
-          <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
-            <Eye className="inline-block w-3 h-3 mr-1" />
-            {status}
-          </span>
-        );
+        icon = <Eye className="h-3 w-3 mr-1" />;
+        break;
       case "Accepted":
-        return (
-          <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
-            <Check className="inline-block w-3 h-3 mr-1" />
-            {status}
-          </span>
-        );
+        icon = <Check className="h-3 w-3 mr-1" />;
+        break;
       case "Declined":
-        return (
-          <span className="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-medium">
-            <X className="inline-block w-3 h-3 mr-1" />
-            {status}
-          </span>
-        );
+        icon = <X className="h-3 w-3 mr-1" />;
+        break;
       default:
-        return (
-          <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium">
-            {status}
-          </span>
-        );
+        icon = null;
+        break;
     }
+
+    return (
+      <StatusBadge status={status} className="inline-flex items-center">
+        {icon}
+        {status}
+      </StatusBadge>
+    );
   };
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold">Quotes</h1>
-          <p className="text-gray-500 mt-1">Manage customer quotes and estimates</p>
-        </div>
+    <Container size="xl" padding="md" className="space-y-6">
+      <PageHeader
+        heading="Quotes"
+        description="Manage customer quotes and estimates"
+      >
         <Button onClick={handleCreateQuote}>
           <Plus className="mr-2 h-4 w-4" /> New Quote
         </Button>
-      </div>
+      </PageHeader>
 
       {/* Dashboard Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -351,54 +342,57 @@ export default function QuotesPage() {
             </Button>
           </div>
         ) : (
-          <div className="rounded-md border">
-            <table className="w-full caption-bottom text-sm">
-              <thead className="border-b bg-gray-50">
-                <tr>
-                  <th className="h-12 px-4 text-left align-middle font-medium text-gray-700 whitespace-nowrap">
+          <>
+            <CardHeader className="pb-0">
+              <CardTitle>All Quotes</CardTitle>
+              <CardDescription>View and manage all your quotes</CardDescription>
+            </CardHeader>
+            <CardContent className="pt-4">
+              <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>
                     <div className="flex items-center space-x-1">
                       <span>Quote #</span>
                       <ArrowUpDown className="h-4 w-4" />
                     </div>
-                  </th>
-                  <th className="h-12 px-4 text-left align-middle font-medium text-gray-700 whitespace-nowrap">
+                  </TableHead>
+                  <TableHead>
                     <div className="flex items-center space-x-1">
                       <span>Customer</span>
                     </div>
-                  </th>
-                  <th className="h-12 px-4 text-left align-middle font-medium text-gray-700 whitespace-nowrap">
+                  </TableHead>
+                  <TableHead>
                     <div className="flex items-center space-x-1">
                       <span>Date</span>
                       <ArrowUpDown className="h-4 w-4" />
                     </div>
-                  </th>
-                  <th className="h-12 px-4 text-left align-middle font-medium text-gray-700 whitespace-nowrap">
+                  </TableHead>
+                  <TableHead>
                     <div className="flex items-center space-x-1">
                       <span>Amount</span>
                       <ArrowUpDown className="h-4 w-4" />
                     </div>
-                  </th>
-                  <th className="h-12 px-4 text-left align-middle font-medium text-gray-700 whitespace-nowrap">
+                  </TableHead>
+                  <TableHead>
                     <div className="flex items-center space-x-1">
                       <span>Status</span>
                     </div>
-                  </th>
-                  <th className="h-12 px-4 text-right align-middle font-medium text-gray-700 whitespace-nowrap">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200 bg-white">
+                  </TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {quotes.map((quote) => (
-                  <tr
+                  <TableRow
                     key={quote._id.toString()}
-                    className="border-b transition-colors hover:bg-gray-50 data-[state=selected]:bg-blue-50 cursor-pointer"
+                    className="cursor-pointer"
                     onClick={() => handleViewQuote(quote._id.toString())}
                   >
-                    <td className="p-4 align-middle">
+                    <TableCell>
                       <div className="font-medium">{quote.quoteNumber}</div>
-                    </td>
-                    <td className="p-4 align-middle">
+                    </TableCell>
+                    <TableCell>
                       <div className="font-medium">
                         {quote.contact ? `${quote.contact.firstName} ${quote.contact.lastName}` : 'Unknown'}
                       </div>
@@ -407,17 +401,17 @@ export default function QuotesPage() {
                           {quote.account.name}
                         </div>
                       )}
-                    </td>
-                    <td className="p-4 align-middle">
+                    </TableCell>
+                    <TableCell>
                       <div className="text-gray-700">{formatDate(quote.issueDate)}</div>
-                    </td>
-                    <td className="p-4 align-middle">
+                    </TableCell>
+                    <TableCell>
                       <div className="font-medium">{formatCurrency(quote.total)}</div>
-                    </td>
-                    <td className="p-4 align-middle">
+                    </TableCell>
+                    <TableCell>
                       <StatusBadge status={quote.status} />
-                    </td>
-                    <td className="p-4 align-middle text-right">
+                    </TableCell>
+                    <TableCell className="text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="icon" onClick={(e) => e.stopPropagation()}>
@@ -437,15 +431,16 @@ export default function QuotesPage() {
                           <DropdownMenuItem className="text-red-600">Delete Quote</DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
-          </div>
+              </TableBody>
+            </Table>
+          </CardContent>
+          </>
         )}
       </Card>
-    </div>
+    </Container>
   );
 }
 

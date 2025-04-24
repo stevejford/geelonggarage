@@ -8,6 +8,9 @@ import { Input } from "@/components/ui/input";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { AnimatedNumber } from "@/components/ui/animated-number";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "@/components/ui/table";
+import { PageHeader } from "@/components/ui/page-header";
+import { Container } from "@/components/ui/container";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -205,67 +208,50 @@ export default function InvoicesPage() {
 
 
 
-  // Get status badge color
+  // Get status badge with icon
   const getStatusBadge = (invoice: any) => {
-    // Check for overdue first
-    if (isOverdue(invoice)) {
-      return (
-        <span className="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-medium">
-          <AlertTriangle className="inline-block w-3 h-3 mr-1" />
-          Overdue
-        </span>
-      );
+    let icon;
+    let status = isOverdue(invoice) ? "Overdue" : invoice.status;
+
+    switch (status) {
+      case "Draft":
+        icon = <FileText className="h-3 w-3 mr-1" />;
+        break;
+      case "Sent":
+        icon = <Send className="h-3 w-3 mr-1" />;
+        break;
+      case "Paid":
+        icon = <CheckCircle className="h-3 w-3 mr-1" />;
+        break;
+      case "Void":
+        icon = <XCircle className="h-3 w-3 mr-1" />;
+        break;
+      case "Overdue":
+        icon = <AlertTriangle className="h-3 w-3 mr-1" />;
+        break;
+      default:
+        icon = null;
+        break;
     }
 
-    switch (invoice.status) {
-      case "Draft":
-        return (
-          <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium">
-            <FileText className="inline-block w-3 h-3 mr-1" />
-            {invoice.status}
-          </span>
-        );
-      case "Sent":
-        return (
-          <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
-            <Send className="inline-block w-3 h-3 mr-1" />
-            {invoice.status}
-          </span>
-        );
-      case "Paid":
-        return (
-          <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
-            <CheckCircle className="inline-block w-3 h-3 mr-1" />
-            {invoice.status}
-          </span>
-        );
-      case "Void":
-        return (
-          <span className="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-medium">
-            <XCircle className="inline-block w-3 h-3 mr-1" />
-            {invoice.status}
-          </span>
-        );
-      default:
-        return (
-          <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium">
-            {invoice.status}
-          </span>
-        );
-    }
+    return (
+      <StatusBadge status={status} className="inline-flex items-center">
+        {icon}
+        {status}
+      </StatusBadge>
+    );
   };
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold">Invoices</h1>
-          <p className="text-gray-500 mt-1">Manage customer billing and payments</p>
-        </div>
+    <Container size="xl" padding="md" className="space-y-6">
+      <PageHeader
+        heading="Invoices"
+        description="Manage customer billing and payments"
+      >
         <Button onClick={handleCreateInvoice}>
           <Plus className="mr-2 h-4 w-4" /> New Invoice
         </Button>
-      </div>
+      </PageHeader>
 
       {/* Dashboard Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -440,60 +426,63 @@ export default function InvoicesPage() {
             </Button>
           </div>
         ) : (
-          <div className="rounded-md border">
-            <table className="w-full caption-bottom text-sm">
-              <thead className="border-b bg-gray-50">
-                <tr>
-                  <th className="h-12 px-4 text-left align-middle font-medium text-gray-700 whitespace-nowrap">
+          <>
+            <CardHeader className="pb-0">
+              <CardTitle>All Invoices</CardTitle>
+              <CardDescription>View and manage all your invoices</CardDescription>
+            </CardHeader>
+            <CardContent className="pt-4">
+              <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>
                     <div className="flex items-center space-x-1">
                       <span>Invoice #</span>
                       <ArrowUpDown className="h-4 w-4" />
                     </div>
-                  </th>
-                  <th className="h-12 px-4 text-left align-middle font-medium text-gray-700 whitespace-nowrap">
+                  </TableHead>
+                  <TableHead>
                     <div className="flex items-center space-x-1">
                       <span>Customer</span>
                     </div>
-                  </th>
-                  <th className="h-12 px-4 text-left align-middle font-medium text-gray-700 whitespace-nowrap">
+                  </TableHead>
+                  <TableHead>
                     <div className="flex items-center space-x-1">
                       <span>Date</span>
                       <ArrowUpDown className="h-4 w-4" />
                     </div>
-                  </th>
-                  <th className="h-12 px-4 text-left align-middle font-medium text-gray-700 whitespace-nowrap">
+                  </TableHead>
+                  <TableHead>
                     <div className="flex items-center space-x-1">
                       <span>Due Date</span>
                       <ArrowUpDown className="h-4 w-4" />
                     </div>
-                  </th>
-                  <th className="h-12 px-4 text-left align-middle font-medium text-gray-700 whitespace-nowrap">
+                  </TableHead>
+                  <TableHead>
                     <div className="flex items-center space-x-1">
                       <span>Amount</span>
                       <ArrowUpDown className="h-4 w-4" />
                     </div>
-                  </th>
-                  <th className="h-12 px-4 text-left align-middle font-medium text-gray-700 whitespace-nowrap">
+                  </TableHead>
+                  <TableHead>
                     <div className="flex items-center space-x-1">
                       <span>Status</span>
                     </div>
-                  </th>
-                  <th className="h-12 px-4 text-right align-middle font-medium text-gray-700 whitespace-nowrap">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200 bg-white">
+                  </TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {invoices.map((invoice) => (
-                  <tr
+                  <TableRow
                     key={invoice._id.toString()}
-                    className="border-b transition-colors hover:bg-gray-50 data-[state=selected]:bg-blue-50 cursor-pointer"
+                    className="cursor-pointer"
                     onClick={() => handleViewInvoice(invoice._id.toString())}
                   >
-                    <td className="p-4 align-middle">
+                    <TableCell>
                       <div className="font-medium">{invoice.invoiceNumber}</div>
-                    </td>
-                    <td className="p-4 align-middle">
+                    </TableCell>
+                    <TableCell>
                       <div className="font-medium">
                         {invoice.contact ? `${invoice.contact.firstName} ${invoice.contact.lastName}` : 'Unknown'}
                       </div>
@@ -502,22 +491,22 @@ export default function InvoicesPage() {
                           {invoice.account.name}
                         </div>
                       )}
-                    </td>
-                    <td className="p-4 align-middle">
+                    </TableCell>
+                    <TableCell>
                       <div className="text-gray-700">{formatDate(invoice.issueDate)}</div>
-                    </td>
-                    <td className="p-4 align-middle">
+                    </TableCell>
+                    <TableCell>
                       <div className={isOverdue(invoice) ? 'text-red-600 font-medium' : 'text-gray-700'}>
                         {formatDate(invoice.dueDate)}
                       </div>
-                    </td>
-                    <td className="p-4 align-middle">
+                    </TableCell>
+                    <TableCell>
                       <div className="font-medium">{formatCurrency(invoice.total)}</div>
-                    </td>
-                    <td className="p-4 align-middle">
+                    </TableCell>
+                    <TableCell>
                       <StatusBadge status={isOverdue(invoice) ? "Overdue" : invoice.status} />
-                    </td>
-                    <td className="p-4 align-middle text-right">
+                    </TableCell>
+                    <TableCell className="text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="icon" onClick={(e) => e.stopPropagation()}>
@@ -538,15 +527,16 @@ export default function InvoicesPage() {
                           <DropdownMenuItem className="text-red-600">Void Invoice</DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
-          </div>
+              </TableBody>
+            </Table>
+          </CardContent>
+          </>
         )}
       </Card>
-    </div>
+    </Container>
   );
 }
 

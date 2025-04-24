@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { Search, Loader2 } from 'lucide-react';
 import Select from 'react-select';
 import { useSearch } from '../contexts/SearchContext';
-import { Input } from './ui/input';
+import { SearchField } from './ui/search-field';
+import { Button } from './ui/button';
 
 // Options for entity type dropdown
 const entityTypeOptions = [
@@ -242,7 +243,7 @@ export default function NavbarSearch() {
       {/* Search Bar - matches content width */}
       <div
         ref={searchBarRef}
-        className="flex items-center w-full bg-white border rounded-md overflow-hidden"
+        className="flex items-center w-full bg-white border rounded-md overflow-hidden shadow-sm"
       >
         {/* Entity Type Dropdown */}
         <Select
@@ -300,18 +301,14 @@ export default function NavbarSearch() {
 
         {/* Search Input */}
         <div className="relative flex-grow">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
-          <Input
-            type="search"
+          <SearchField
             value={globalSearch}
             onChange={handleInputChange}
             onKeyDown={handleKeyPress}
             placeholder="Search... (Ctrl+K)"
-            className="navbar-search-input border-0 pl-8 h-9 focus-visible:ring-0 focus-visible:ring-offset-0"
+            className="navbar-search-input border-0 h-9 focus-visible:ring-0 focus-visible:ring-offset-0"
+            isLoading={isLoading}
           />
-          {isLoading && (
-            <Loader2 className="absolute right-2.5 top-2.5 h-4 w-4 text-gray-500 animate-spin" />
-          )}
         </div>
       </div>
 
@@ -319,7 +316,7 @@ export default function NavbarSearch() {
       {showResults && (
         <div
           ref={resultsRef}
-          className="absolute z-50 mt-1 bg-white border rounded-md shadow-lg max-h-[400px] overflow-hidden"
+          className="absolute z-50 mt-1 bg-white border rounded-md shadow-lg max-h-[400px] overflow-hidden left-0 right-0"
           style={{ width: searchBarRef.current ? searchBarRef.current.offsetWidth : '100%' }}
         >
           <div className="p-2 border-b flex justify-between items-center bg-gray-50">
@@ -327,15 +324,17 @@ export default function NavbarSearch() {
               Results (showing {Math.min(results.length, 5)} of {results.length})
             </span>
             {results.length > 5 && (
-              <button
+              <Button
+                variant="link"
+                size="sm"
+                className="p-0 h-auto"
                 onClick={() => {
                   setShowResults(false);
                   navigate(`/search?q=${encodeURIComponent(globalSearch)}&type=${entityType.value}&field=${fieldFilter.value}`);
                 }}
-                className="text-sm text-blue-600 hover:text-blue-800"
               >
                 View all results &gt;
-              </button>
+              </Button>
             )}
           </div>
 

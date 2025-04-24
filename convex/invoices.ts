@@ -445,6 +445,78 @@ export const createInvoiceFromWorkOrder = mutation({
   },
 });
 
+// Search invoices for global search
+export const searchInvoices = query({
+  args: {
+    search: v.string(),
+    type: v.optional(v.string()),
+    field: v.optional(v.string()),
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const { search, type, field, limit } = args;
+
+    if (!search || search.trim().length < 2) {
+      return [];
+    }
+
+    const searchTerm = search.trim().toLowerCase();
+    const maxResults = limit || 10;
+
+    // Get all invoices
+    const invoices = await ctx.db.query("invoices").collect();
+
+    // Filter based on search term and field
+    const filteredInvoices = invoices.filter(invoice => {
+      // If field is specified, only search in that field
+      if (field && field !== 'any') {
+        switch (field) {
+          case 'number':
+            return invoice.invoiceNumber?.toLowerCase().includes(searchTerm);
+          case 'amount':
+            return invoice.total?.toString().includes(searchTerm);
+          case 'status':
+            return invoice.status?.toLowerCase().includes(searchTerm);
+          case 'date':
+            // Try to match against formatted dates
+            const issueDate = new Date(invoice.issueDate).toLocaleDateString();
+            const dueDate = new Date(invoice.dueDate).toLocaleDateString();
+            return issueDate.includes(searchTerm) || dueDate.includes(searchTerm);
+          default:
+            return false;
+        }
+      }
+
+      // Search across all relevant fields
+      return (
+        invoice.invoiceNumber?.toLowerCase().includes(searchTerm) ||
+        invoice.status?.toLowerCase().includes(searchTerm) ||
+        invoice.notes?.toLowerCase().includes(searchTerm) ||
+        invoice.total?.toString().includes(searchTerm)
+      );
+    });
+
+    // Limit results
+    const limitedResults = filteredInvoices.slice(0, maxResults);
+
+    // Fetch contact and account details for each invoice
+    const resultsWithDetails = await Promise.all(
+      limitedResults.map(async (invoice) => {
+        const contact = invoice.contactId ? await ctx.db.get(invoice.contactId) : null;
+
+        return {
+          ...invoice,
+          contactName: contact ? `${contact.firstName} ${contact.lastName}` : '',
+          matchField: 'invoice',
+          matchContext: `Invoice #${invoice.invoiceNumber}`,
+        };
+      })
+    );
+
+    return resultsWithDetails;
+  },
+});
+
 // Create an invoice from a quote
 export const createInvoiceFromQuote = mutation({
   args: {

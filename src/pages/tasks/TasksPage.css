@@ -1,0 +1,93 @@
+/* Kanban board styles */
+.kanban-board-container {
+  overflow-x: auto;
+  padding-bottom: 1rem;
+}
+
+.kanban-column {
+  transition: background-color 0.2s ease;
+}
+
+.task-card {
+  transition: all 0.2s ease;
+  cursor: pointer;
+  user-select: none;
+}
+
+.task-card:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Custom scrollbar for the kanban board */
+.kanban-board-container::-webkit-scrollbar {
+  height: 8px;
+}
+
+.kanban-board-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.kanban-board-container::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.kanban-board-container::-webkit-scrollbar-thumb:hover {
+  background: #a1a1a1;
+}
+
+/* Smooth animations for drag and drop */
+.task-card {
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0.7;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Trello-like styling */
+.kanban-column {
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.kanban-tasks {
+  transition: background-color 0.2s ease;
+}
+
+/* Add some depth to the cards when dragging */
+.task-card.is-dragging {
+  transform: rotate(1deg);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Styles for the add column form */
+.add-column-form {
+  transition: all 0.2s ease;
+}
+
+.add-column-form input:focus {
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+}
+
+/* Styles for the add task form */
+.add-task-form {
+  transition: all 0.2s ease;
+}
+
+.add-task-form textarea {
+  resize: none;
+  overflow-y: auto;
+}
+
+.add-task-form textarea:focus {
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+}

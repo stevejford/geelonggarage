@@ -375,7 +375,34 @@ export default function AddressAutocomplete({
 
   return (
     <div className={className}>
-      {/* Unit, Address, City fields side by side */}
+      {/* Address field first - full width */}
+      <div className="space-y-2 mb-4">
+        <Label htmlFor="address" className="text-base">{label}{required && ' *'}</Label>
+        {!placesLib ? (
+          <Input
+            id="address"
+            placeholder="Loading address search..."
+            disabled
+            className="text-base h-12"
+          />
+        ) : (
+          <div className="space-y-1">
+            <Input
+              ref={inputRef}
+              id="address"
+              name="address"
+              value={inputValue}
+              onChange={handleInputChange}
+              required={required}
+              placeholder="Start typing an address..."
+              className="address-autocomplete text-base h-12 font-medium"
+            />
+            <p className="text-xs text-gray-500">Search for Australian addresses only</p>
+          </div>
+        )}
+      </div>
+
+      {/* Unit, City, State fields side by side */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
         {/* Unit/Suite/Floor field */}
         <div className="space-y-2">
@@ -386,33 +413,8 @@ export default function AddressAutocomplete({
             value={value?.unit || ''}
             onChange={handleUnitChange}
             placeholder="Unit 3, Suite 101, etc."
+            className="text-base"
           />
-        </div>
-
-        {/* Street address field */}
-        <div className="space-y-2">
-          <Label htmlFor="address">{label}{required && ' *'}</Label>
-          {!placesLib ? (
-            <Input
-              id="address"
-              placeholder="Loading address search..."
-              disabled
-            />
-          ) : (
-            <div className="space-y-1">
-              <Input
-                ref={inputRef}
-                id="address"
-                name="address"
-                value={inputValue}
-                onChange={handleInputChange}
-                required={required}
-                placeholder="Start typing an address..."
-                className="address-autocomplete"
-              />
-              <p className="text-xs text-gray-500">Search for Australian addresses only</p>
-            </div>
-          )}
         </div>
 
         {/* City field */}
@@ -424,16 +426,11 @@ export default function AddressAutocomplete({
             value={value?.city || ''}
             onChange={handleCityChange}
             placeholder="Melbourne"
+            className="text-base"
           />
         </div>
-      </div>
 
-      <p className="text-xs text-gray-500 -mt-2 mb-4">
-        Search for an address or enter manually. Format: Street number + street name (e.g., "10 Main Street")
-      </p>
-
-      {/* State, Postcode, Country fields */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* State field */}
         <div className="space-y-2">
           <Label htmlFor="state">State</Label>
           <Input
@@ -442,9 +439,17 @@ export default function AddressAutocomplete({
             value={value?.state || ''}
             onChange={handleStateChange}
             placeholder="VIC"
+            className="text-base"
           />
         </div>
+      </div>
 
+      <p className="text-xs text-gray-500 -mt-2 mb-4">
+        Search for an address or enter manually. Format: Street number + street name (e.g., "10 Main Street")
+      </p>
+
+      {/* Postcode, Country fields */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="postcode">Postcode</Label>
           <Input
@@ -453,6 +458,7 @@ export default function AddressAutocomplete({
             value={value?.postcode || ''}
             onChange={handlePostcodeChange}
             placeholder="3000"
+            className="text-base"
           />
         </div>
 
@@ -464,6 +470,7 @@ export default function AddressAutocomplete({
             value={value?.country || ''}
             onChange={handleCountryChange}
             placeholder="Australia"
+            className="text-base"
           />
         </div>
       </div>

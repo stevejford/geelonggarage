@@ -74,12 +74,6 @@ export default function AccountDetailPage() {
         <div className="flex space-x-2">
           <Button
             variant="outline"
-            onClick={() => navigate(`/contacts/new?accountId=${account._id}`)}
-          >
-            <UserPlus className="mr-2 h-4 w-4" /> Add Contact
-          </Button>
-          <Button
-            variant="outline"
             onClick={() => setIsEditing(true)}
           >
             <Edit className="mr-2 h-4 w-4" /> Edit
@@ -140,6 +134,17 @@ export default function AccountDetailPage() {
                       <div className="text-sm">
                         <a href={`tel:${account.phoneNumber}`} className="text-blue-600 hover:underline">
                           {account.phoneNumber}
+                        </a>
+                      </div>
+                    </div>
+                  )}
+
+                  {account.email && (
+                    <div className="mb-2">
+                      <span className="text-xs text-gray-500">Email:</span>
+                      <div className="text-sm">
+                        <a href={`mailto:${account.email}`} className="text-blue-600 hover:underline">
+                          {account.email}
                         </a>
                       </div>
                     </div>
@@ -236,9 +241,19 @@ export default function AccountDetailPage() {
           )}
 
           {/* Linked Contacts */}
-          {account.contacts && account.contacts.length > 0 && (
-            <div className="mt-6">
-              <h3 className="text-sm font-medium text-gray-500 mb-2">Linked Contacts</h3>
+          <div className="mt-6">
+            <div className="flex justify-between items-center mb-2">
+              <h3 className="text-sm font-medium text-gray-500">Linked Contacts</h3>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate(`/contacts/new?accountId=${account._id}`)}
+              >
+                <UserPlus className="mr-1 h-3 w-3" /> Add Contact
+              </Button>
+            </div>
+
+            {account.contacts && account.contacts.length > 0 ? (
               <div className="bg-gray-50 rounded-md overflow-hidden">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-100">
@@ -299,8 +314,13 @@ export default function AccountDetailPage() {
                   </tbody>
                 </table>
               </div>
-            </div>
-          )}
+            ) : (
+              <div className="bg-gray-50 rounded-md p-6 text-center">
+                <p className="text-gray-500 mb-2">No contacts linked to this account yet</p>
+                <p className="text-sm text-gray-400 mb-4">Add contacts to manage relationships with this account</p>
+              </div>
+            )}
+          </div>
 
           {account.notes && (
             <div className="mt-6">

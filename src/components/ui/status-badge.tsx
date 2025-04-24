@@ -3,29 +3,42 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const statusBadgeVariants = cva(
-  "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold transition-colors",
+  "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2",
   {
     variants: {
       variant: {
-        new: "bg-blue-100 text-blue-800 border border-blue-200",
-        pending: "bg-yellow-100 text-yellow-800 border border-yellow-200",
-        active: "bg-green-100 text-green-800 border border-green-200",
-        inactive: "bg-gray-100 text-gray-800 border border-gray-200",
-        completed: "bg-green-100 text-green-800 border border-green-200",
-        cancelled: "bg-red-100 text-red-800 border border-red-200",
-        scheduled: "bg-purple-100 text-purple-800 border border-purple-200",
-        inProgress: "bg-blue-100 text-blue-800 border border-blue-200",
-        paid: "bg-green-100 text-green-800 border border-green-200",
-        unpaid: "bg-red-100 text-red-800 border border-red-200",
-        overdue: "bg-orange-100 text-orange-800 border border-orange-200",
-        draft: "bg-gray-100 text-gray-800 border border-gray-200",
-        sent: "bg-blue-100 text-blue-800 border border-blue-200",
-        accepted: "bg-green-100 text-green-800 border border-green-200",
-        rejected: "bg-red-100 text-red-800 border border-red-200",
-        qualified: "bg-green-100 text-green-800 border border-green-200",
-        unqualified: "bg-red-100 text-red-800 border border-red-200",
-        contacted: "bg-blue-100 text-blue-800 border border-blue-200",
-        converted: "bg-purple-100 text-purple-800 border border-purple-200",
+        // Blue variants
+        new: "bg-blue-100 text-blue-900 border border-blue-200",
+        sent: "bg-blue-100 text-blue-900 border border-blue-200",
+        contacted: "bg-blue-100 text-blue-900 border border-blue-200",
+        inProgress: "bg-blue-100 text-blue-900 border border-blue-200",
+
+        // Yellow variants
+        pending: "bg-yellow-100 text-yellow-900 border border-yellow-200",
+
+        // Green variants
+        active: "bg-green-100 text-green-900 border border-green-200",
+        completed: "bg-green-100 text-green-900 border border-green-200",
+        paid: "bg-green-100 text-green-900 border border-green-200",
+        accepted: "bg-green-100 text-green-900 border border-green-200",
+        qualified: "bg-green-100 text-green-900 border border-green-200",
+
+        // Red variants
+        cancelled: "bg-red-100 text-red-900 border border-red-200",
+        unpaid: "bg-red-100 text-red-900 border border-red-200",
+        rejected: "bg-red-100 text-red-900 border border-red-200",
+        unqualified: "bg-red-100 text-red-900 border border-red-200",
+
+        // Purple variants
+        scheduled: "bg-purple-100 text-purple-900 border border-purple-200",
+        converted: "bg-purple-100 text-purple-900 border border-purple-200",
+
+        // Orange variants
+        overdue: "bg-orange-100 text-orange-900 border border-orange-200",
+
+        // Gray variants
+        inactive: "bg-gray-100 text-gray-900 border border-gray-200",
+        draft: "bg-gray-100 text-gray-900 border border-gray-200",
       },
       size: {
         default: "text-xs",
@@ -52,7 +65,7 @@ const StatusBadge = React.forwardRef<HTMLSpanElement, StatusBadgeProps>(
     let resolvedVariant = variant;
     if (status && !variant) {
       const normalizedStatus = status.toLowerCase().replace(/\s+/g, '');
-      
+
       // Map common status terms to variants
       const statusMap: Record<string, typeof variant> = {
         'new': 'new',
@@ -78,10 +91,10 @@ const StatusBadge = React.forwardRef<HTMLSpanElement, StatusBadgeProps>(
         'contacted': 'contacted',
         'converted': 'converted',
       };
-      
+
       resolvedVariant = statusMap[normalizedStatus] || variant;
     }
-    
+
     return (
       <span
         ref={ref}

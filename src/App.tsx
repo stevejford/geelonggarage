@@ -17,8 +17,12 @@ import CustomResetPassword from "./components/auth/CustomResetPassword";
 import SSOCallback from "./pages/auth/SSOCallback";
 
 // Lazy-loaded pages
+const DashboardSelector = lazy(() => import("./components/dashboard/DashboardSelector"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
+const RoleDebugger = lazy(() => import("./pages/RoleDebugger"));
 const Settings = lazy(() => import("./pages/settings/SettingsPage"));
+const TasksPage = lazy(() => import("./pages/tasks/TasksPage"));
+const CommunicationHub = lazy(() => import("./pages/communication/CommunicationHub"));
 
 // Lead pages
 const LeadsPage = lazy(() => import("./pages/leads/LeadsPage"));
@@ -52,6 +56,11 @@ const InvoiceDetailPage = lazy(() => import("./pages/invoices/InvoiceDetailPage"
 
 // WordPress integration
 const TestInquiryPage = lazy(() => import("./pages/wordpress/TestInquiryPage"));
+
+// Reports
+const ReportsPage = lazy(() => import("./pages/reports/ReportsPage"));
+const SalesPerformanceReport = lazy(() => import("./pages/reports/SalesPerformanceReport"));
+const AccountsReceivableReport = lazy(() => import("./pages/reports/AccountsReceivableReport"));
 
 // Testing
 const WorkflowTestPage = lazy(() => import("./pages/testing/WorkflowTestPage"));
@@ -104,12 +113,27 @@ export default function App() {
                   <Route index element={<Navigate to="/dashboard" replace />} />
                   <Route path="dashboard" element={
                     <Suspense fallback={<PageLoader />}>
-                      <Dashboard />
+                      <DashboardSelector />
                     </Suspense>
                   } />
                   <Route path="settings" element={
                     <Suspense fallback={<PageLoader />}>
                       <Settings />
+                    </Suspense>
+                  } />
+                  <Route path="role-debugger" element={
+                    <Suspense fallback={<PageLoader />}>
+                      <RoleDebugger />
+                    </Suspense>
+                  } />
+                  <Route path="tasks" element={
+                    <Suspense fallback={<PageLoader />}>
+                      <TasksPage />
+                    </Suspense>
+                  } />
+                  <Route path="communication" element={
+                    <Suspense fallback={<PageLoader />}>
+                      <CommunicationHub />
                     </Suspense>
                   } />
 
@@ -219,6 +243,23 @@ export default function App() {
                   <Route path="test-inquiry" element={
                     <Suspense fallback={<PageLoader />}>
                       <TestInquiryPage />
+                    </Suspense>
+                  } />
+
+                  {/* Reports */}
+                  <Route path="reports" element={
+                    <Suspense fallback={<PageLoader />}>
+                      <ReportsPage />
+                    </Suspense>
+                  } />
+                  <Route path="reports/sales-performance" element={
+                    <Suspense fallback={<PageLoader />}>
+                      <SalesPerformanceReport />
+                    </Suspense>
+                  } />
+                  <Route path="reports/accounts-receivable" element={
+                    <Suspense fallback={<PageLoader />}>
+                      <AccountsReceivableReport />
                     </Suspense>
                   } />
 

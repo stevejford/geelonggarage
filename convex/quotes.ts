@@ -384,6 +384,78 @@ export const deleteQuote = mutation({
   },
 });
 
+// Search quotes for global search
+export const searchQuotes = query({
+  args: {
+    search: v.string(),
+    type: v.optional(v.string()),
+    field: v.optional(v.string()),
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const { search, type, field, limit } = args;
+
+    if (!search || search.trim().length < 2) {
+      return [];
+    }
+
+    const searchTerm = search.trim().toLowerCase();
+    const maxResults = limit || 10;
+
+    // Get all quotes
+    const quotes = await ctx.db.query("quotes").collect();
+
+    // Filter based on search term and field
+    const filteredQuotes = quotes.filter(quote => {
+      // If field is specified, only search in that field
+      if (field && field !== 'any') {
+        switch (field) {
+          case 'number':
+            return quote.quoteNumber?.toLowerCase().includes(searchTerm);
+          case 'amount':
+            return quote.total?.toString().includes(searchTerm);
+          case 'status':
+            return quote.status?.toLowerCase().includes(searchTerm);
+          case 'date':
+            // Try to match against formatted dates
+            const issueDate = new Date(quote.issueDate).toLocaleDateString();
+            const expiryDate = quote.expiryDate ? new Date(quote.expiryDate).toLocaleDateString() : '';
+            return issueDate.includes(searchTerm) || expiryDate.includes(searchTerm);
+          default:
+            return false;
+        }
+      }
+
+      // Search across all relevant fields
+      return (
+        quote.quoteNumber?.toLowerCase().includes(searchTerm) ||
+        quote.status?.toLowerCase().includes(searchTerm) ||
+        quote.notes?.toLowerCase().includes(searchTerm) ||
+        quote.total?.toString().includes(searchTerm)
+      );
+    });
+
+    // Limit results
+    const limitedResults = filteredQuotes.slice(0, maxResults);
+
+    // Fetch contact and account details for each quote
+    const resultsWithDetails = await Promise.all(
+      limitedResults.map(async (quote) => {
+        const contact = quote.contactId ? await ctx.db.get(quote.contactId) : null;
+
+        return {
+          ...quote,
+          contactName: contact ? `${contact.firstName} ${contact.lastName}` : '',
+          matchField: 'quote',
+          matchContext: `Quote #${quote.quoteNumber}`,
+        };
+      })
+    );
+
+    return resultsWithDetails;
+  },
+});
+
 // Change quote status
 export const changeQuoteStatus = mutation({
   args: {

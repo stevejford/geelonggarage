@@ -6,6 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Container } from "@/components/ui/container";
+import { FormLayout, FormSection, FormRow, FormActions } from "@/components/ui/form-layout";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   ArrowLeft,
   Plus,
@@ -79,134 +83,130 @@ export default function NewWorkOrderPage() {
   };
 
   return (
-    <div className="container mx-auto py-6">
-      <div className="flex items-center mb-6">
-        <Button
-          variant="ghost"
-          className="mr-4"
-          onClick={() => navigate("/work-orders")}
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" /> Back
-        </Button>
-        <h1 className="text-2xl font-bold">New Work Order</h1>
-      </div>
-
-      <form onSubmit={handleSubmit} className="space-y-8">
-        <div className="bg-white shadow-md rounded-lg p-6">
-          <h2 className="text-lg font-medium mb-4">Work Order Information</h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
+    <Container padding="md">
+      <FormLayout
+        title="New Work Order"
+        description="Create a new work order for your customer"
+        backLink="/work-orders"
+        backLinkText="Back to Work Orders"
+        footer={
+          <>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => navigate("/work-orders")}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" onClick={handleSubmit}>
+              <Save className="mr-2 h-4 w-4" /> Create Work Order
+            </Button>
+          </>
+        }
+      >
+        <form onSubmit={handleSubmit}>
+        <FormSection title="Work Order Information">
+          <FormRow>
+            <div className="space-y-2">
               <Label htmlFor="contact">Customer Contact</Label>
-              <select
-                id="contact"
-                className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              <Select
                 value={selectedContactId}
-                onChange={(e) => setSelectedContactId(e.target.value)}
+                onValueChange={setSelectedContactId}
                 required
               >
-                <option value="">Select a contact</option>
-                {Array.isArray(contacts) && contacts.map((contact) => (
-                  <option key={contact._id.toString()} value={contact._id.toString()}>
-                    {contact.firstName} {contact.lastName}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger id="contact">
+                  <SelectValue placeholder="Select a contact" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Array.isArray(contacts) && contacts.map((contact) => (
+                    <SelectItem key={contact._id.toString()} value={contact._id.toString()}>
+                      {contact.firstName} {contact.lastName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="account">Customer Account</Label>
-              <select
-                id="account"
-                className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              <Select
                 value={selectedAccountId}
-                onChange={(e) => setSelectedAccountId(e.target.value)}
+                onValueChange={setSelectedAccountId}
                 required
               >
-                <option value="">Select an account</option>
-                {Array.isArray(accounts) && accounts.map((account) => (
-                  <option key={account._id.toString()} value={account._id.toString()}>
-                    {account.name}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger id="account">
+                  <SelectValue placeholder="Select an account" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Array.isArray(accounts) && accounts.map((account) => (
+                    <SelectItem key={account._id.toString()} value={account._id.toString()}>
+                      {account.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
+          </FormRow>
 
-            <div>
-              <Label htmlFor="scheduledDate">Scheduled Date</Label>
-              <Input
-                id="scheduledDate"
-                type="datetime-local"
-                value={scheduledDate}
-                onChange={(e) => setScheduledDate(e.target.value)}
-              />
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="scheduledDate">Scheduled Date</Label>
+            <Input
+              id="scheduledDate"
+              type="datetime-local"
+              value={scheduledDate}
+              onChange={(e) => setScheduledDate(e.target.value)}
+            />
           </div>
 
-          <div className="mt-4">
+          <div className="space-y-2">
             <Label htmlFor="notes">Notes</Label>
             <Textarea
               id="notes"
               placeholder="Enter any additional notes or instructions..."
-              className="mt-1"
               rows={3}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
             />
           </div>
-        </div>
+        </FormSection>
 
-        <div className="bg-white shadow-md rounded-lg p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-medium">Assign Technicians</h2>
-          </div>
-
+        <FormSection title="Assign Technicians" className="mt-8">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {Array.isArray(technicians) && technicians.map((technician) => (
-              <div
+              <Card
                 key={technician.id}
-                className={`border rounded-md p-4 cursor-pointer transition-colors ${
+                className={`cursor-pointer transition-colors ${
                   selectedTechnicianIds.includes(technician.id)
-                    ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-200 hover:border-blue-300'
+                    ? 'border-primary bg-primary/5'
+                    : 'border-border hover:border-primary/50'
                 }`}
                 onClick={() => handleTechnicianToggle(technician.id)}
               >
-                <div className="flex items-center">
-                  <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mr-3">
-                    <User size={20} />
+                <CardContent className="p-4">
+                  <div className="flex items-center">
+                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary mr-3">
+                      <User size={20} />
+                    </div>
+                    <div>
+                      <p className="font-medium">{technician.name}</p>
+                      <p className="text-xs text-muted-foreground">Technician</p>
+                    </div>
+                    <div className="ml-auto">
+                      <input
+                        type="checkbox"
+                        checked={selectedTechnicianIds.includes(technician.id)}
+                        onChange={() => {}} // Handled by the div click
+                        className="h-5 w-5 text-primary rounded border-input focus:ring-primary"
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-medium">{technician.name}</p>
-                    <p className="text-xs text-gray-500">Technician</p>
-                  </div>
-                  <div className="ml-auto">
-                    <input
-                      type="checkbox"
-                      checked={selectedTechnicianIds.includes(technician.id)}
-                      onChange={() => {}} // Handled by the div click
-                      className="h-5 w-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
-                    />
-                  </div>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
             ))}
           </div>
-        </div>
-
-        <div className="flex justify-end space-x-4">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => navigate("/work-orders")}
-          >
-            Cancel
-          </Button>
-          <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white">
-            <Save className="mr-2 h-4 w-4" /> Create Work Order
-          </Button>
-        </div>
+        </FormSection>
       </form>
-    </div>
+      </FormLayout>
+    </Container>
   );
 }

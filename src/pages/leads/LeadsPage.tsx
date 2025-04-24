@@ -7,6 +7,9 @@ import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "@/components/ui/table";
+import { PageHeader } from "@/components/ui/page-header";
+import { Container } from "@/components/ui/container";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -92,16 +95,15 @@ export default function LeadsPage() {
   ];
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold">Leads</h1>
-          <p className="text-gray-500 mt-1">Manage your sales pipeline</p>
-        </div>
+    <Container size="xl" padding="md" className="space-y-6">
+      <PageHeader
+        heading="Leads"
+        description="Manage your sales pipeline"
+      >
         <Button onClick={handleCreateLead}>
           <Plus className="mr-2 h-4 w-4" /> New Lead
         </Button>
-      </div>
+      </PageHeader>
 
       {/* Dashboard Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -217,46 +219,48 @@ export default function LeadsPage() {
 
       {/* Leads Table */}
       <Card>
-        <div className="rounded-md border">
-          <table className="w-full caption-bottom text-sm">
-            <thead className="border-b bg-gray-50">
-              <tr>
-                <th className="h-12 px-4 text-left align-middle font-medium text-gray-700 whitespace-nowrap">
+        <CardHeader className="pb-0">
+          <CardTitle>All Leads</CardTitle>
+          <CardDescription>View and manage all your leads</CardDescription>
+        </CardHeader>
+        <CardContent className="pt-4">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>
                   <div className="flex items-center space-x-1">
                     <span>Name</span>
                     <ArrowUpDown className="h-4 w-4" />
                   </div>
-                </th>
-                <th className="h-12 px-4 text-left align-middle font-medium text-gray-700 whitespace-nowrap">
+                </TableHead>
+                <TableHead>
                   <div className="flex items-center space-x-1">
                     <span>Contact Info</span>
                   </div>
-                </th>
-                <th className="h-12 px-4 text-left align-middle font-medium text-gray-700 whitespace-nowrap">
+                </TableHead>
+                <TableHead>
                   <div className="flex items-center space-x-1">
                     <span>Source</span>
                   </div>
-                </th>
-                <th className="h-12 px-4 text-left align-middle font-medium text-gray-700 whitespace-nowrap">
+                </TableHead>
+                <TableHead>
                   <div className="flex items-center space-x-1">
                     <span>Status</span>
                   </div>
-                </th>
-                <th className="h-12 px-4 text-left align-middle font-medium text-gray-700 whitespace-nowrap">
+                </TableHead>
+                <TableHead>
                   <div className="flex items-center space-x-1">
                     <span>Created</span>
                     <ArrowUpDown className="h-4 w-4" />
                   </div>
-                </th>
-                <th className="h-12 px-4 text-right align-middle font-medium text-gray-700 whitespace-nowrap">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200 bg-white">
+                </TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {leads.length === 0 && (
-                <tr>
-                  <td colSpan={6} className="p-8 text-center">
+                <TableRow>
+                  <TableCell colSpan={6} className="p-8 text-center">
                     <div className="flex flex-col items-center">
                       <Users className="h-12 w-12 text-gray-300 mb-2" />
                       <p className="text-gray-500 mb-1">No leads found</p>
@@ -268,20 +272,20 @@ export default function LeadsPage() {
                         <Plus className="mr-2 h-4 w-4" /> New Lead
                       </Button>
                     </div>
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               )}
 
               {leads.map((lead) => (
-                <tr
+                <TableRow
                   key={lead._id.toString()}
-                  className="border-b transition-colors hover:bg-gray-50 data-[state=selected]:bg-blue-50 cursor-pointer"
+                  className="cursor-pointer"
                   onClick={() => handleViewLead(lead._id.toString())}
                 >
-                  <td className="p-4 align-middle">
+                  <TableCell>
                     <div className="font-medium">{lead.name}</div>
-                  </td>
-                  <td className="p-4 align-middle">
+                  </TableCell>
+                  <TableCell>
                     <div className="text-gray-500 space-y-1">
                       {lead.email && (
                         <div className="flex items-center text-sm">
@@ -294,8 +298,8 @@ export default function LeadsPage() {
                         </div>
                       )}
                     </div>
-                  </td>
-                  <td className="p-4 align-middle">
+                  </TableCell>
+                  <TableCell>
                     {lead.source ? (
                       <Badge variant="secondary" className="font-normal">
                         {lead.source}
@@ -303,16 +307,16 @@ export default function LeadsPage() {
                     ) : (
                       <span className="text-gray-400">—</span>
                     )}
-                  </td>
-                  <td className="p-4 align-middle">
+                  </TableCell>
+                  <TableCell>
                     <StatusBadge status={lead.status} />
-                  </td>
-                  <td className="p-4 align-middle">
+                  </TableCell>
+                  <TableCell>
                     <div className="text-gray-500">
                       {new Date(lead.createdAt).toLocaleDateString()}
                     </div>
-                  </td>
-                  <td className="p-4 align-middle text-right">
+                  </TableCell>
+                  <TableCell className="text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon" onClick={(e) => e.stopPropagation()}>
@@ -331,13 +335,13 @@ export default function LeadsPage() {
                         <DropdownMenuItem className="text-red-600">Delete Lead</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
-        </div>
+            </TableBody>
+          </Table>
+        </CardContent>
       </Card>
-    </div>
+    </Container>
   );
 }

@@ -3,20 +3,23 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { Button } from "@/components/ui/button";
-import { 
-  ArrowLeft, 
-  Edit, 
-  Trash2, 
-  Calendar, 
-  CheckCircle, 
-  Clock, 
-  AlertCircle, 
+import { StatusBadge } from "@/components/ui/status-badge";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { PageHeader } from "@/components/ui/page-header";
+import {
+  ArrowLeft,
+  Edit,
+  Trash2,
+  Calendar,
+  CheckCircle,
+  Clock,
+  AlertCircle,
   XCircle,
   User,
   Receipt
 } from "lucide-react";
 import { formatDate } from "@/lib/utils";
-import { 
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -30,15 +33,15 @@ import {
 export default function WorkOrderDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  
+
   // State for confirmation dialogs
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showStatusDialog, setShowStatusDialog] = useState(false);
   const [newStatus, setNewStatus] = useState<string>("");
 
   // Fetch work order details
-  const workOrder = useQuery(api.workOrders.getWorkOrder, { 
-    id: id as any 
+  const workOrder = useQuery(api.workOrders.getWorkOrder, {
+    id: id as any
   });
 
   // Mutations
@@ -48,7 +51,7 @@ export default function WorkOrderDetailPage() {
   // Handle work order deletion
   const handleDelete = async () => {
     if (!id) return;
-    
+
     try {
       await deleteWorkOrder({ id: id as any });
       navigate("/work-orders");
@@ -61,11 +64,11 @@ export default function WorkOrderDetailPage() {
   // Handle status change
   const handleStatusChange = async () => {
     if (!id || !newStatus) return;
-    
+
     try {
-      await changeWorkOrderStatus({ 
-        id: id as any, 
-        status: newStatus 
+      await changeWorkOrderStatus({
+        id: id as any,
+        status: newStatus
       });
       setShowStatusDialog(false);
     } catch (error) {
@@ -109,140 +112,117 @@ export default function WorkOrderDetailPage() {
     );
   }
 
-  // Get status badge
+  // Get status badge with icon
   const getStatusBadge = (status: string) => {
+    let icon;
     switch (status) {
       case "Pending":
-        return (
-          <span className="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm font-medium">
-            <Clock className="inline-block w-4 h-4 mr-1" />
-            {status}
-          </span>
-        );
+        icon = <Clock className="inline-block w-4 h-4 mr-1" />;
+        break;
       case "Scheduled":
-        return (
-          <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
-            <Calendar className="inline-block w-4 h-4 mr-1" />
-            {status}
-          </span>
-        );
+        icon = <Calendar className="inline-block w-4 h-4 mr-1" />;
+        break;
       case "In Progress":
-        return (
-          <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-medium">
-            <Clock className="inline-block w-4 h-4 mr-1" />
-            {status}
-          </span>
-        );
+        icon = <Clock className="inline-block w-4 h-4 mr-1" />;
+        break;
       case "Completed":
-        return (
-          <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
-            <CheckCircle className="inline-block w-4 h-4 mr-1" />
-            {status}
-          </span>
-        );
+        icon = <CheckCircle className="inline-block w-4 h-4 mr-1" />;
+        break;
       case "On Hold":
-        return (
-          <span className="px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-sm font-medium">
-            <AlertCircle className="inline-block w-4 h-4 mr-1" />
-            {status}
-          </span>
-        );
+        icon = <AlertCircle className="inline-block w-4 h-4 mr-1" />;
+        break;
       case "Cancelled":
-        return (
-          <span className="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-medium">
-            <XCircle className="inline-block w-4 h-4 mr-1" />
-            {status}
-          </span>
-        );
+        icon = <XCircle className="inline-block w-4 h-4 mr-1" />;
+        break;
       default:
-        return (
-          <span className="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm font-medium">
-            {status}
-          </span>
-        );
+        icon = null;
+        break;
     }
+
+    // Import StatusBadge at the top of the file
+    return (
+      <StatusBadge status={status} size="lg" className="inline-flex items-center">
+        {icon}
+        {status}
+      </StatusBadge>
+    );
   };
 
   return (
     <div className="container mx-auto py-6">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-        <div className="flex items-center">
-          <Button
-            variant="ghost"
-            className="mr-4"
-            onClick={() => navigate("/work-orders")}
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" /> Back
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold">{workOrder.workOrderNumber}</h1>
-            <p className="text-gray-500">
-              {workOrder.contact ? `${workOrder.contact.firstName} ${workOrder.contact.lastName}` : 'Unknown'} • 
-              {workOrder.account ? ` ${workOrder.account.name}` : ''}
-            </p>
-          </div>
-        </div>
-        
-        <div className="flex flex-wrap gap-2">
-          {workOrder.status === "Pending" && (
-            <Button 
-              className="bg-blue-600 hover:bg-blue-700 text-white"
-              onClick={() => openStatusDialog("Scheduled")}
-            >
-              <Calendar className="mr-2 h-4 w-4" /> Schedule
-            </Button>
-          )}
-          
-          {workOrder.status === "Scheduled" && (
-            <Button 
-              className="bg-yellow-600 hover:bg-yellow-700 text-white"
-              onClick={() => openStatusDialog("In Progress")}
-            >
-              <Clock className="mr-2 h-4 w-4" /> Start Work
-            </Button>
-          )}
-          
-          {workOrder.status === "In Progress" && (
-            <Button 
-              className="bg-green-600 hover:bg-green-700 text-white"
-              onClick={() => openStatusDialog("Completed")}
-            >
-              <CheckCircle className="mr-2 h-4 w-4" /> Complete
-            </Button>
-          )}
-          
-          {workOrder.status === "Completed" && (
-            <Button 
-              className="bg-blue-600 hover:bg-blue-700 text-white"
-              onClick={createInvoice}
-            >
-              <Receipt className="mr-2 h-4 w-4" /> Create Invoice
-            </Button>
-          )}
-          
-          {(workOrder.status === "Pending" || workOrder.status === "Scheduled") && (
-            <Button 
-              variant="outline"
-              onClick={() => navigate(`/work-orders/edit/${id}`)}
-            >
-              <Edit className="mr-2 h-4 w-4" /> Edit
-            </Button>
-          )}
-          
-          <Button 
-            variant="outline" 
-            className="text-red-600 border-red-200 hover:bg-red-50"
-            onClick={() => setShowDeleteDialog(true)}
-          >
-            <Trash2 className="mr-2 h-4 w-4" /> Delete
-          </Button>
-        </div>
+      <div className="flex items-center mb-4">
+        <Button
+          variant="ghost"
+          className="mr-4"
+          onClick={() => navigate("/work-orders")}
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" /> Back
+        </Button>
       </div>
 
+      <PageHeader
+        heading={workOrder.workOrderNumber}
+        description={
+          `${workOrder.contact ? `${workOrder.contact.firstName} ${workOrder.contact.lastName}` : 'Unknown'} • ${workOrder.account ? workOrder.account.name : ''}`
+        }
+      >
+        {workOrder.status === "Pending" && (
+          <Button
+            onClick={() => openStatusDialog("Scheduled")}
+          >
+            <Calendar className="mr-2 h-4 w-4" /> Schedule
+          </Button>
+        )}
+
+        {workOrder.status === "Scheduled" && (
+          <Button
+            variant="warning"
+            onClick={() => openStatusDialog("In Progress")}
+          >
+            <Clock className="mr-2 h-4 w-4" /> Start Work
+          </Button>
+        )}
+
+        {workOrder.status === "In Progress" && (
+          <Button
+            variant="success"
+            onClick={() => openStatusDialog("Completed")}
+          >
+            <CheckCircle className="mr-2 h-4 w-4" /> Complete
+          </Button>
+        )}
+
+        {workOrder.status === "Completed" && (
+          <Button
+            onClick={createInvoice}
+          >
+            <Receipt className="mr-2 h-4 w-4" /> Create Invoice
+          </Button>
+        )}
+
+        {(workOrder.status === "Pending" || workOrder.status === "Scheduled") && (
+          <Button
+            variant="outline"
+            onClick={() => navigate(`/work-orders/edit/${id}`)}
+          >
+            <Edit className="mr-2 h-4 w-4" /> Edit
+          </Button>
+        )}
+
+        <Button
+          variant="destructive"
+          onClick={() => setShowDeleteDialog(true)}
+        >
+          <Trash2 className="mr-2 h-4 w-4" /> Delete
+        </Button>
+      </PageHeader>
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-        <div className="bg-white shadow-md rounded-lg p-6">
-          <h2 className="text-lg font-medium mb-4">Work Order Details</h2>
-          <div className="space-y-3">
+        <Card>
+          <CardHeader>
+            <CardTitle>Work Order Details</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
             <div>
               <p className="text-sm text-gray-500">Status</p>
               <div className="mt-1">
@@ -265,92 +245,108 @@ export default function WorkOrderDetailPage() {
               <p className="text-sm text-gray-500">Created</p>
               <p className="font-medium">{formatDate(workOrder.createdAt)}</p>
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
-        <div className="bg-white shadow-md rounded-lg p-6">
-          <h2 className="text-lg font-medium mb-4">Customer</h2>
-          {workOrder.contact && (
-            <div className="space-y-3">
-              <div>
-                <p className="text-sm text-gray-500">Contact</p>
-                <p className="font-medium">
-                  {workOrder.contact.firstName} {workOrder.contact.lastName}
-                </p>
-                {workOrder.contact.email && (
-                  <p className="text-sm">{workOrder.contact.email}</p>
-                )}
-                {workOrder.contact.phone && (
-                  <p className="text-sm">{workOrder.contact.phone}</p>
-                )}
-              </div>
-              {workOrder.account && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Customer</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {workOrder.contact && (
+              <div className="space-y-3">
                 <div>
-                  <p className="text-sm text-gray-500">Account</p>
-                  <p className="font-medium">{workOrder.account.name}</p>
-                  {workOrder.account.address && (
-                    <p className="text-sm">
-                      {workOrder.account.address}
-                      {workOrder.account.city && `, ${workOrder.account.city}`}
-                      {workOrder.account.state && `, ${workOrder.account.state}`}
-                      {workOrder.account.zip && ` ${workOrder.account.zip}`}
-                    </p>
+                  <p className="text-sm text-gray-500">Contact</p>
+                  <p className="font-medium">
+                    {workOrder.contact.firstName} {workOrder.contact.lastName}
+                  </p>
+                  {workOrder.contact.email && (
+                    <p className="text-sm">{workOrder.contact.email}</p>
+                  )}
+                  {workOrder.contact.phone && (
+                    <p className="text-sm">{workOrder.contact.phone}</p>
                   )}
                 </div>
-              )}
-            </div>
-          )}
-        </div>
-
-        <div className="bg-white shadow-md rounded-lg p-6">
-          <h2 className="text-lg font-medium mb-4">Assigned Technicians</h2>
-          {workOrder.assignments && workOrder.assignments.length > 0 ? (
-            <div className="space-y-3">
-              {workOrder.assignments.map((assignment, index) => (
-                <div key={index} className="flex items-center p-2 border rounded-md">
-                  <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mr-3">
-                    <User size={20} />
-                  </div>
+                {workOrder.account && (
                   <div>
-                    <p className="font-medium">Technician {assignment.technicianId}</p>
-                    <p className="text-xs text-gray-500">
-                      Assigned {formatDate(assignment.assignedAt)}
-                    </p>
+                    <p className="text-sm text-gray-500">Account</p>
+                    <p className="font-medium">{workOrder.account.name}</p>
+                    {workOrder.account.address && (
+                      <p className="text-sm">
+                        {workOrder.account.address}
+                        {workOrder.account.city && `, ${workOrder.account.city}`}
+                        {workOrder.account.state && `, ${workOrder.account.state}`}
+                        {workOrder.account.zip && ` ${workOrder.account.zip}`}
+                      </p>
+                    )}
                   </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-gray-500">No technicians assigned</p>
-          )}
-        </div>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Assigned Technicians</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {workOrder.assignments && workOrder.assignments.length > 0 ? (
+              <div className="space-y-3">
+                {workOrder.assignments.map((assignment, index) => (
+                  <div key={index} className="flex items-center p-2 border rounded-md">
+                    <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mr-3">
+                      <User size={20} />
+                    </div>
+                    <div>
+                      <p className="font-medium">Technician {assignment.technicianId}</p>
+                      <p className="text-xs text-gray-500">
+                        Assigned {formatDate(assignment.assignedAt)}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-500">No technicians assigned</p>
+            )}
+          </CardContent>
+        </Card>
       </div>
 
       {workOrder.notes && (
-        <div className="bg-white shadow-md rounded-lg p-6 mb-6">
-          <h2 className="text-lg font-medium mb-4">Notes</h2>
-          <p className="text-gray-700 whitespace-pre-line">{workOrder.notes}</p>
-        </div>
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Notes</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-gray-700 whitespace-pre-line">{workOrder.notes}</p>
+          </CardContent>
+        </Card>
       )}
 
       {workOrder.quote && (
-        <div className="bg-white shadow-md rounded-lg p-6">
-          <h2 className="text-lg font-medium mb-4">Related Quote</h2>
-          <div className="flex justify-between items-center">
-            <div>
-              <p className="font-medium">{workOrder.quote.quoteNumber}</p>
-              <p className="text-sm text-gray-500">
-                Issued on {formatDate(workOrder.quote.issueDate)}
-              </p>
+        <Card>
+          <CardHeader>
+            <CardTitle>Related Quote</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex justify-between items-center">
+              <div>
+                <p className="font-medium">{workOrder.quote.quoteNumber}</p>
+                <p className="text-sm text-gray-500">
+                  Issued on {formatDate(workOrder.quote.issueDate)}
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                onClick={() => navigate(`/quotes/${workOrder.quote._id}`)}
+              >
+                View Quote
+              </Button>
             </div>
-            <Button
-              variant="outline"
-              onClick={() => navigate(`/quotes/${workOrder.quote._id}`)}
-            >
-              View Quote
-            </Button>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* Delete Confirmation Dialog */}
@@ -364,9 +360,9 @@ export default function WorkOrderDetailPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={handleDelete}
-              className="bg-red-600 text-white hover:bg-red-700"
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Delete
             </AlertDialogAction>
@@ -386,28 +382,28 @@ export default function WorkOrderDetailPage() {
               {newStatus === "Cancelled" && "Cancel Work Order"}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              {newStatus === "Scheduled" && 
+              {newStatus === "Scheduled" &&
                 "This will mark the work order as scheduled."}
-              {newStatus === "In Progress" && 
+              {newStatus === "In Progress" &&
                 "This will mark the work order as in progress."}
-              {newStatus === "Completed" && 
+              {newStatus === "Completed" &&
                 "This will mark the work order as completed."}
-              {newStatus === "On Hold" && 
+              {newStatus === "On Hold" &&
                 "This will put the work order on hold."}
-              {newStatus === "Cancelled" && 
+              {newStatus === "Cancelled" &&
                 "This will cancel the work order."}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={handleStatusChange}
               className={
-                newStatus === "Completed" 
-                  ? "bg-green-600 text-white hover:bg-green-700" 
+                newStatus === "Completed"
+                  ? "bg-green-600 text-white hover:bg-green-700"
                   : newStatus === "Cancelled"
-                  ? "bg-red-600 text-white hover:bg-red-700"
-                  : "bg-blue-600 text-white hover:bg-blue-700"
+                  ? "bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  : "bg-primary text-primary-foreground hover:bg-primary/90"
               }
             >
               Confirm

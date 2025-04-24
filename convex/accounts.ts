@@ -115,10 +115,24 @@ export const createAccount = mutation({
     name: v.string(),
     type: v.string(),
     address: v.string(),
+    unit: v.optional(v.string()),
     city: v.optional(v.string()),
     state: v.optional(v.string()),
     zip: v.optional(v.string()),
+    country: v.optional(v.string()),
     notes: v.optional(v.string()),
+    // Google Places fields
+    placeId: v.optional(v.string()),
+    formattedAddress: v.optional(v.string()),
+    latitude: v.optional(v.number()),
+    longitude: v.optional(v.number()),
+    businessCategory: v.optional(v.string()),
+    businessStatus: v.optional(v.string()),
+    isFranchise: v.optional(v.boolean()),
+    phoneNumber: v.optional(v.string()),
+    email: v.optional(v.string()),
+    website: v.optional(v.string()),
+    openingHours: v.optional(v.array(v.string())),
   },
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
@@ -143,10 +157,24 @@ export const updateAccount = mutation({
     name: v.optional(v.string()),
     type: v.optional(v.string()),
     address: v.optional(v.string()),
+    unit: v.optional(v.string()),
     city: v.optional(v.string()),
     state: v.optional(v.string()),
     zip: v.optional(v.string()),
+    country: v.optional(v.string()),
     notes: v.optional(v.string()),
+    // Google Places fields
+    placeId: v.optional(v.string()),
+    formattedAddress: v.optional(v.string()),
+    latitude: v.optional(v.number()),
+    longitude: v.optional(v.number()),
+    businessCategory: v.optional(v.string()),
+    businessStatus: v.optional(v.string()),
+    isFranchise: v.optional(v.boolean()),
+    phoneNumber: v.optional(v.string()),
+    email: v.optional(v.string()),
+    website: v.optional(v.string()),
+    openingHours: v.optional(v.array(v.string())),
   },
   handler: async (ctx, args) => {
     const { id, ...updates } = args;
@@ -336,5 +364,126 @@ export const unlinkContactFromAccount = mutation({
     await ctx.db.delete(existingLink._id);
 
     return existingLink._id;
+  },
+});
+
+// Search accounts for global search
+export const searchAccounts = query({
+  args: {
+    search: v.string(),
+    type: v.optional(v.string()),
+    field: v.optional(v.string()),
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const { search, type, field, limit } = args;
+
+    if (!search || search.trim().length < 2) {
+      return [];
+    }
+
+    const searchTerm = search.trim().toLowerCase();
+    const maxResults = limit || 10;
+
+    // Get all accounts
+    const accounts = await ctx.db.query("accounts").collect();
+
+    // Filter based on search term and field
+    const filteredAccounts = accounts.filter(account => {
+      // If field is specified, only search in that field
+      if (field && field !== 'any') {
+        switch (field) {
+          case 'name':
+            return account.name?.toLowerCase().includes(searchTerm);
+          case 'address':
+            return (
+              account.address?.toLowerCase().includes(searchTerm) ||
+              account.city?.toLowerCase().includes(searchTerm) ||
+              account.state?.toLowerCase().includes(searchTerm) ||
+              account.zip?.toLowerCase().includes(searchTerm)
+            );
+          case 'type':
+            return account.type?.toLowerCase().includes(searchTerm);
+          default:
+            return false;
+        }
+      }
+
+      // Search across all relevant fields
+      return (
+        account.name?.toLowerCase().includes(searchTerm) ||
+        account.type?.toLowerCase().includes(searchTerm) ||
+        account.address?.toLowerCase().includes(searchTerm) ||
+        account.city?.toLowerCase().includes(searchTerm) ||
+        account.state?.toLowerCase().includes(searchTerm) ||
+        account.zip?.toLowerCase().includes(searchTerm) ||
+        account.notes?.toLowerCase().includes(searchTerm) ||
+        account.businessCategory?.toLowerCase().includes(searchTerm) ||
+        account.phoneNumber?.toLowerCase().includes(searchTerm) ||
+        account.email?.toLowerCase().includes(searchTerm) ||
+        account.website?.toLowerCase().includes(searchTerm)
+      );
+    });
+
+    // Limit results
+    const limitedResults = filteredAccounts.slice(0, maxResults);
+
+    return limitedResults.map(account => ({
+      ...account,
+      matchField: 'account',
+      matchContext: account.name,
+    }));
+  },
+});
+
+// Check if an account with the same place ID or address already exists
+export const checkDuplicateAccount = query({
+  args: {
+    placeId: v.optional(v.string()),
+    formattedAddress: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const { placeId, formattedAddress } = args;
+
+    // If we have a place ID, check for duplicates by place ID first
+    if (placeId) {
+      const existingByPlaceId = await ctx.db
+        .query("accounts")
+        .withIndex("by_placeId", (q) => q.eq("placeId", placeId))
+        .first();
+
+      if (existingByPlaceId) {
+        return {
+          isDuplicate: true,
+          account: existingByPlaceId,
+          matchType: "placeId"
+        };
+      }
+    }
+
+    // If we have a formatted address, check for duplicates by address
+    if (formattedAddress) {
+      // Since we can't query directly by formatted address (no index),
+      // we'll need to get all accounts and filter
+      const allAccounts = await ctx.db.query("accounts").collect();
+
+      // Find accounts with matching formatted address
+      const matchingAccounts = allAccounts.filter(account =>
+        account.formattedAddress === formattedAddress
+      );
+
+      if (matchingAccounts.length > 0) {
+        return {
+          isDuplicate: true,
+          account: matchingAccounts[0],
+          matchType: "address"
+        };
+      }
+    }
+
+    // No duplicates found
+    return {
+      isDuplicate: false
+    };
   },
 });

@@ -461,6 +461,75 @@ export const deleteWorkOrder = mutation({
   },
 });
 
+// Search work orders for global search
+export const searchWorkOrders = query({
+  args: {
+    search: v.string(),
+    type: v.optional(v.string()),
+    field: v.optional(v.string()),
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const { search, type, field, limit } = args;
+
+    if (!search || search.trim().length < 2) {
+      return [];
+    }
+
+    const searchTerm = search.trim().toLowerCase();
+    const maxResults = limit || 10;
+
+    // Get all work orders
+    const workOrders = await ctx.db.query("workOrders").collect();
+
+    // Filter based on search term and field
+    const filteredWorkOrders = workOrders.filter(workOrder => {
+      // If field is specified, only search in that field
+      if (field && field !== 'any') {
+        switch (field) {
+          case 'number':
+            return workOrder.workOrderNumber?.toLowerCase().includes(searchTerm);
+          case 'status':
+            return workOrder.status?.toLowerCase().includes(searchTerm);
+          case 'date':
+            // Try to match against formatted dates
+            const scheduledDate = workOrder.scheduledDate ? new Date(workOrder.scheduledDate).toLocaleDateString() : '';
+            const completedDate = workOrder.completedDate ? new Date(workOrder.completedDate).toLocaleDateString() : '';
+            return scheduledDate.includes(searchTerm) || completedDate.includes(searchTerm);
+          default:
+            return false;
+        }
+      }
+
+      // Search across all relevant fields
+      return (
+        workOrder.workOrderNumber?.toLowerCase().includes(searchTerm) ||
+        workOrder.status?.toLowerCase().includes(searchTerm) ||
+        workOrder.notes?.toLowerCase().includes(searchTerm)
+      );
+    });
+
+    // Limit results
+    const limitedResults = filteredWorkOrders.slice(0, maxResults);
+
+    // Fetch contact and account details for each work order
+    const resultsWithDetails = await Promise.all(
+      limitedResults.map(async (workOrder) => {
+        const contact = workOrder.contactId ? await ctx.db.get(workOrder.contactId) : null;
+
+        return {
+          ...workOrder,
+          contactName: contact ? `${contact.firstName} ${contact.lastName}` : '',
+          matchField: 'work order',
+          matchContext: `Work Order #${workOrder.workOrderNumber}`,
+        };
+      })
+    );
+
+    return resultsWithDetails;
+  },
+});
+
 // Change work order status
 export const changeWorkOrderStatus = mutation({
   args: {
