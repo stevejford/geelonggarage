@@ -385,7 +385,7 @@ export default function CommunicationHub() {
 
 
   return (
-    <div className="communication-hub-container flex flex-col h-[calc(100vh-64px)] overflow-hidden">
+    <div className="communication-hub-container flex flex-col h-[calc(100vh-64px)] overflow-hidden pl-0">
       <div className="flex justify-between items-center mb-4 flex-shrink-0">
         <h1 className="text-2xl font-bold">Communication Hub</h1>
         <Button variant="outline" size="sm" onClick={() => setIsSettingsOpen(true)}>

@@ -14,13 +14,9 @@
   /* Set background color */
   background-color: #f9fafb;
 
-  /* Fix the container to the viewport */
-  position: fixed;
-  top: 64px; /* Height of the navbar */
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 10;
+  /* Position relative to allow normal document flow */
+  position: relative;
+  z-index: 1;
 }
 
 /* Make the tabs container take up the full height */
