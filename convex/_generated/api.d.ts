@@ -25,7 +25,6 @@ import type * as invoices from "../invoices.js";
 import type * as leads from "../leads.js";
 import type * as migrations from "../migrations.js";
 import type * as pdf_dataFetchers from "../pdf/dataFetchers.js";
-import type * as pdf_index from "../pdf/index.js";
 import type * as pdf_service from "../pdf/service.js";
 import type * as pdf_types from "../pdf/types.js";
 import type * as pdf_utils from "../pdf/utils.js";
@@ -61,7 +60,6 @@ declare const fullApi: ApiFromModules<{
   leads: typeof leads;
   migrations: typeof migrations;
   "pdf/dataFetchers": typeof pdf_dataFetchers;
-  "pdf/index": typeof pdf_index;
   "pdf/service": typeof pdf_service;
   "pdf/types": typeof pdf_types;
   "pdf/utils": typeof pdf_utils;
