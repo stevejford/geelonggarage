@@ -103,6 +103,11 @@ async function generatePDF(templateName, data, options = {}) {
   // Create a browser instance using our fallback mechanism
   const browser = await createBrowser();
 
+  // If browser creation failed, return an error
+  if (!browser) {
+    throw new Error('Failed to create browser instance. Please try again later.');
+  }
+
   try {
     // Create a new page
     const page = await browser.newPage();
@@ -140,8 +145,14 @@ async function generatePDF(templateName, data, options = {}) {
 
     return pdfBuffer;
   } finally {
-    // Close the browser
-    await browser.close();
+    // Close the browser if it exists
+    if (browser) {
+      try {
+        await browser.close();
+      } catch (error) {
+        console.error('Error closing browser:', error);
+      }
+    }
   }
 }
 

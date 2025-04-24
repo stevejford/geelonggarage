@@ -2,7 +2,15 @@ services:
   - type: web
     name: geelong-garage-pdf-service
     env: node
-    buildCommand: npm install
+    plan: starter
+    buildCommand: |
+      apt-get update
+      apt-get install -y wget gnupg
+      wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -
+      echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list
+      apt-get update
+      apt-get install -y google-chrome-stable
+      npm install --no-optional
     startCommand: npm start
     envVars:
       - key: PORT
@@ -11,5 +19,7 @@ services:
         sync: false
       - key: ALLOWED_ORIGINS
         value: https://patient-tern-95.convex.site,https://grandiose-swordfish-144.convex.site,http://localhost:5173
+      - key: CHROME_BIN
+        value: /usr/bin/google-chrome-stable
       - key: PUPPETEER_SKIP_CHROMIUM_DOWNLOAD
-        value: false
+        value: true
