@@ -417,7 +417,7 @@ export default function CommunicationHub() {
 
         <TabsContent value="chat" className="tab-content flex-1 flex space-x-4 mt-0 p-0 overflow-hidden">
           {/* Sidebar - Groups & Direct Messages */}
-          <div className="w-64 border-r pr-4 flex flex-col h-full overflow-y-auto">
+          <div className="chat-sidebar w-64 border-r pr-4 flex flex-col h-full overflow-y-auto">
             <div className="mb-4 mt-4">
               <div className="flex justify-between items-center mb-2">
                 <h3 className="font-medium text-sm text-gray-500">GROUPS</h3>
