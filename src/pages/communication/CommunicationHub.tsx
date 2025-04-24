@@ -19,7 +19,7 @@ import { toast } from "sonner";
 import ChatSettings from "./ChatSettings";
 import { BasicEmojiPicker } from "@/components/ui/basic-emoji-picker";
 import { FileUpload } from "@/components/ui/file-upload";
-import { StaticGifPicker } from "@/components/ui/static-gif-picker";
+import { DynamicGifPicker } from "@/components/ui/dynamic-gif-picker";
 
 // Lazy load the TasksPage component
 const TasksPage = lazy(() => import("@/pages/tasks/TasksPage"));
@@ -726,7 +726,7 @@ export default function CommunicationHub() {
                       </Button>
                     </FileUpload>
 
-                    <StaticGifPicker onGifSelect={handleGifSelect}>
+                    <DynamicGifPicker onGifSelect={handleGifSelect}>
                       <Button
                         variant="outline"
                         size="sm"
@@ -736,7 +736,7 @@ export default function CommunicationHub() {
                         <Gift className="h-3 w-3" />
                         <span className="text-xs">GIFs</span>
                       </Button>
-                    </StaticGifPicker>
+                    </DynamicGifPicker>
 
                     <BasicEmojiPicker onEmojiSelect={handleEmojiSelect}>
                       <Button
