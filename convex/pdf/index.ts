@@ -25,77 +25,27 @@ export const generatePdf = action({
       let documentData: TemplateData | null = null;
       let templateName: string;
 
-      // For now, we'll simulate a successful PDF generation
-      // In the real implementation, we would get document data from the database
-
-      // Simulate document data
-      documentData = {
-        company_name: "Geelong Garage",
-        company_address_line1: "123 Main Street",
-        company_address_line2: "Geelong, VIC 3220",
-        company_phone: "(03) 5222 1234",
-        company_email: "info@geelonggarage.com",
-        company_bank_name: "Commonwealth Bank of Australia",
-        company_account_name: "Geelong Garage Pty Ltd",
-        company_bsb: "063-000",
-        company_account_number: "12345678",
-        logo_url: "https://via.placeholder.com/150",
-
-        // Quote-specific fields (will be ignored for other document types)
-        quote_number: "Q-12345",
-        quote_date: "Jan 1, 2023",
-        expiry_date: "Jan 31, 2023",
-
-        // Customer info
-        customer_name: "John Doe",
-        customer_address_line1: "456 Customer St",
-        customer_address_line2: "Melbourne, VIC 3000",
-        customer_phone: "(03) 9876 5432",
-        customer_email: "john@example.com",
-
-        // Status
-        status: "Draft",
-        status_class: "draft",
-
-        // Line items
-        line_items: [
-          {
-            quantity: 1,
-            description: "Sample Item",
-            unit_price: "100.00",
-            total: "100.00"
-          }
-        ],
-
-        // Totals
-        subtotal: "100.00",
-        tax: "10.00",
-        total: "110.00",
-
-        // Notes
-        notes: "This is a sample document.",
-        generated_date: "Jan 1, 2023"
-      } as TemplateData;
-
-      templateName = `${args.type}_template`;
+      // Get document data based on type
+      switch (args.type as DocumentType) {
+        case "quote":
+          documentData = await getQuoteData(ctx.db, args.id as Id<"quotes">);
+          templateName = "quote_template";
+          break;
+        case "invoice":
+          documentData = await getInvoiceData(ctx.db, args.id as Id<"invoices">);
+          templateName = "invoice_template";
+          break;
+        case "workOrder":
+          documentData = await getWorkOrderData(ctx.db, args.id as Id<"workOrders">);
+          templateName = "work_order_template";
+          break;
+        default:
+          throw new ConvexError(`Unsupported document type: ${args.type}`);
+      }
 
       if (!documentData) {
         throw new ConvexError(`Document not found: ${args.id}`);
       }
-
-      // For now, we'll simulate a successful PDF generation
-      // In the real implementation, this will call the PDF service
-
-      // Simulate a delay for PDF generation
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      // In the real implementation, we would:
-      // 1. Call the PDF service
-      // 2. Store the PDF in Convex storage
-      // 3. Update the document with the PDF storage ID
-
-      /*
-      // Uncomment this code when the PDF service is ready
 
       // Call the PDF service to generate the PDF
       const pdfBlob = await callPdfService(templateName, documentData);
@@ -117,12 +67,6 @@ export const generatePdf = action({
         message: "PDF generated successfully",
         storageId,
         url: pdfUrl
-      };
-      */
-
-      return {
-        success: true,
-        message: "PDF generation simulated. See docs/pdf.md for implementation plan.",
       };
     } catch (error) {
       console.error("PDF generation error:", error);
@@ -206,8 +150,8 @@ export const downloadPdf = query({
       return null;
     }
 
-    // For now, we'll return a placeholder
-    // In the real implementation, we would get the PDF data from storage
-    return new ArrayBuffer(0);
+    // Get the PDF data from storage
+    const pdfData = await ctx.storage.get(document.pdfStorageId as Id<"_storage">);
+    return pdfData;
   },
 });
