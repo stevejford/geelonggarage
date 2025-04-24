@@ -1,21 +1,22 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useMutation, useQuery } from "convex/react";
+import { useMutation, useQuery, useAction } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { Button } from "@/components/ui/button";
-import { 
-  ArrowLeft, 
-  Edit, 
-  Trash2, 
-  Send, 
-  Download, 
-  Check, 
-  X, 
+import {
+  ArrowLeft,
+  Edit,
+  Trash2,
+  Send,
+  Download,
+  Check,
+  X,
   FileText,
-  ClipboardList
+  ClipboardList,
+  Loader2
 } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
-import { 
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -25,29 +26,34 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useToast } from "@/components/ui/use-toast";
 
 export default function QuoteDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  
+  const { toast } = useToast();
+
   // State for confirmation dialogs
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showStatusDialog, setShowStatusDialog] = useState(false);
+  const [showPdfPreview, setShowPdfPreview] = useState(false);
   const [newStatus, setNewStatus] = useState<string>("");
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
   // Fetch quote details
-  const quote = useQuery(api.quotes.getQuote, { 
-    id: id as any 
+  const quote = useQuery(api.quotes.getQuote, {
+    id: id as any
   });
 
-  // Mutations
+  // Mutations and actions
   const deleteQuote = useMutation(api.quotes.deleteQuote);
   const changeQuoteStatus = useMutation(api.quotes.changeQuoteStatus);
+  const generatePdf = useAction(api.pdf.generatePdf);
 
   // Handle quote deletion
   const handleDelete = async () => {
     if (!id) return;
-    
+
     try {
       await deleteQuote({ id: id as any });
       navigate("/quotes");
@@ -60,11 +66,11 @@ export default function QuoteDetailPage() {
   // Handle status change
   const handleStatusChange = async () => {
     if (!id || !newStatus) return;
-    
+
     try {
-      await changeQuoteStatus({ 
-        id: id as any, 
-        status: newStatus 
+      await changeQuoteStatus({
+        id: id as any,
+        status: newStatus
       });
       setShowStatusDialog(false);
     } catch (error) {
@@ -79,10 +85,48 @@ export default function QuoteDetailPage() {
     setShowStatusDialog(true);
   };
 
-  // Generate PDF (placeholder for now)
-  const generatePDF = () => {
-    alert("PDF generation will be implemented in a future update.");
+  // Generate PDF
+  const handleGeneratePDF = async () => {
+    if (!id) return;
+
+    try {
+      setIsGeneratingPdf(true);
+
+      // Generate the PDF
+      const result = await generatePdf({
+        type: "quote",
+        id: id as any,
+      });
+
+      if (!result.success) {
+        throw new Error(result.error || "Failed to generate PDF");
+      }
+
+      // Show success message
+      toast({
+        title: "Success",
+        description: result.message || "PDF generated successfully.",
+      });
+
+      // Show the PDF preview
+      setShowPdfPreview(true);
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      toast({
+        title: "Error",
+        description: "Failed to generate PDF. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingPdf(false);
+    }
   };
+
+  // Get PDF URL from our Convex query
+  const pdfUrl = useQuery(api.pdf.getPdfUrl, {
+    type: "quote",
+    id: id as any,
+  });
 
   // Create work order from quote
   const createWorkOrder = () => {
@@ -127,24 +171,24 @@ export default function QuoteDetailPage() {
           <div>
             <h1 className="text-2xl font-bold">{quote.quoteNumber}</h1>
             <p className="text-gray-500">
-              {quote.contact ? `${quote.contact.firstName} ${quote.contact.lastName}` : 'Unknown'} • 
-              {quote.account ? ` ${quote.account.name}` : ''} • 
+              {quote.contact ? `${quote.contact.firstName} ${quote.contact.lastName}` : 'Unknown'} •
+              {quote.account ? ` ${quote.account.name}` : ''} •
               {formatDate(quote.issueDate)}
             </p>
           </div>
         </div>
-        
+
         <div className="flex flex-wrap gap-2">
           {quote.status === "Draft" && (
             <>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="text-blue-600 border-blue-200 hover:bg-blue-50"
                 onClick={() => openStatusDialog("Presented")}
               >
                 <Send className="mr-2 h-4 w-4" /> Present
               </Button>
-              <Button 
+              <Button
                 variant="outline"
                 onClick={() => navigate(`/quotes/edit/${id}`)}
               >
@@ -152,16 +196,16 @@ export default function QuoteDetailPage() {
               </Button>
             </>
           )}
-          
+
           {quote.status === "Presented" && (
             <>
-              <Button 
+              <Button
                 className="bg-green-600 hover:bg-green-700 text-white"
                 onClick={() => openStatusDialog("Accepted")}
               >
                 <Check className="mr-2 h-4 w-4" /> Accept
               </Button>
-              <Button 
+              <Button
                 className="bg-red-600 hover:bg-red-700 text-white"
                 onClick={() => openStatusDialog("Declined")}
               >
@@ -169,25 +213,34 @@ export default function QuoteDetailPage() {
               </Button>
             </>
           )}
-          
+
           {quote.status === "Accepted" && (
-            <Button 
+            <Button
               className="bg-blue-600 hover:bg-blue-700 text-white"
               onClick={createWorkOrder}
             >
               <ClipboardList className="mr-2 h-4 w-4" /> Create Work Order
             </Button>
           )}
-          
-          <Button 
+
+          <Button
             variant="outline"
-            onClick={generatePDF}
+            onClick={handleGeneratePDF}
+            disabled={isGeneratingPdf}
           >
-            <Download className="mr-2 h-4 w-4" /> Download PDF
+            {isGeneratingPdf ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Generating...
+              </>
+            ) : (
+              <>
+                <Download className="mr-2 h-4 w-4" /> {quote.pdfStorageId ? "View PDF" : "Generate PDF"}
+              </>
+            )}
           </Button>
-          
-          <Button 
-            variant="outline" 
+
+          <Button
+            variant="outline"
             className="text-red-600 border-red-200 hover:bg-red-50"
             onClick={() => setShowDeleteDialog(true)}
           >
@@ -381,7 +434,7 @@ export default function QuoteDetailPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={handleDelete}
               className="bg-red-600 text-white hover:bg-red-700"
             >
@@ -401,21 +454,21 @@ export default function QuoteDetailPage() {
               {newStatus === "Declined" && "Decline Quote"}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              {newStatus === "Presented" && 
+              {newStatus === "Presented" &&
                 "This will mark the quote as presented to the customer. You won't be able to edit it after this action."}
-              {newStatus === "Accepted" && 
+              {newStatus === "Accepted" &&
                 "This will mark the quote as accepted by the customer."}
-              {newStatus === "Declined" && 
+              {newStatus === "Declined" &&
                 "This will mark the quote as declined by the customer."}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={handleStatusChange}
               className={
-                newStatus === "Accepted" 
-                  ? "bg-green-600 text-white hover:bg-green-700" 
+                newStatus === "Accepted"
+                  ? "bg-green-600 text-white hover:bg-green-700"
                   : newStatus === "Declined"
                   ? "bg-red-600 text-white hover:bg-red-700"
                   : "bg-blue-600 text-white hover:bg-blue-700"
@@ -426,6 +479,24 @@ export default function QuoteDetailPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* PDF Preview Dialog */}
+      {showPdfPreview && (
+        <PDFPreview
+          open={showPdfPreview}
+          onOpenChange={setShowPdfPreview}
+          pdfUrl={pdfUrl || ""}
+          title={`Quote ${quote?.quoteNumber || ""}`}
+          documentType="quote"
+          documentId={id || ""}
+          onSend={() => {
+            toast({
+              title: "Feature Coming Soon",
+              description: "Sending quotes via email will be available in a future update.",
+            });
+          }}
+        />
+      )}
     </div>
   );
 }

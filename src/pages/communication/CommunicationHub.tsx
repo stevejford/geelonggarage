@@ -178,7 +178,7 @@ export default function CommunicationHub() {
   const groupMessages = useQuery(
     api.communication.getGroupMessages,
     selectedChatType === "group" && selectedChatId
-      ? { groupId: selectedChatId, limit: 50 }
+      ? { groupId: selectedChatId as any, limit: 50 } // Cast to any to fix type error
       : "skip"
   ) || [];
 
@@ -207,20 +207,39 @@ export default function CommunicationHub() {
     }
   }, [user, updateUserStatus]);
 
+  // Add style to hide scrollbar in WebKit browsers
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = `
+      .chat-sidebar::-webkit-scrollbar {
+        display: none !important;
+        width: 0 !important;
+        height: 0 !important;
+      }
+    `;
+    document.head.appendChild(style);
+
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
+
+
+
   // Set initial selected chat
   useEffect(() => {
-    if (groups.length > 0 && !selectedChatId) {
+    if (groups.length > 0 && !selectedChatId && groups[0]) {
       setSelectedChatType("group");
       setSelectedChatId(groups[0]._id);
-    } else if (directMessages.length > 0 && !selectedChatId) {
+    } else if (directMessages.length > 0 && !selectedChatId && directMessages[0]) {
       setSelectedChatType("direct");
       setSelectedChatId(directMessages[0].userId);
     }
   }, [groups, directMessages, selectedChatId]);
 
   // Get the selected chat object
-  const selectedGroup = groups.find(group => group._id === selectedChatId);
-  const selectedDirectMessage = directMessages.find(dm => dm.userId === selectedChatId);
+  const selectedGroup = groups.find(group => group && group._id === selectedChatId);
+  const selectedDirectMessage = directMessages.find(dm => dm && dm.userId === selectedChatId);
 
   // Get messages for the current chat
   const currentMessages = selectedChatType === "group" ? groupMessages : directChatMessages;
@@ -243,9 +262,11 @@ export default function CommunicationHub() {
     const timestamp = Date.now();
 
     if (selectedChatType === "group") {
+      // Cast the selectedChatId to Id<"chatGroups"> type
+      // This is necessary because the markMessagesAsRead mutation expects this specific type
       markMessagesAsRead({
         userId: user.id,
-        groupId: selectedChatId,
+        groupId: selectedChatId as any, // Using 'as any' as a temporary fix
         timestamp
       });
     } else if (selectedChatType === "direct") {
@@ -340,7 +361,7 @@ export default function CommunicationHub() {
 
       if (selectedChatType === "group") {
         await sendGroupMessage({
-          groupId: selectedChatId,
+          groupId: selectedChatId as any, // Cast to any to fix type error
           senderId: user.id,
           senderName: user.fullName || user.username || "Unknown User",
           senderAvatar: user.imageUrl,
@@ -417,7 +438,12 @@ export default function CommunicationHub() {
 
         <TabsContent value="chat" className="tab-content flex-1 flex space-x-4 mt-0 p-0 overflow-hidden">
           {/* Sidebar - Groups & Direct Messages */}
-          <div className="chat-sidebar w-64 border-r pr-4 flex flex-col h-full overflow-y-auto">
+          <div className="chat-sidebar w-64 border-r pr-4 flex flex-col h-full" style={{
+            overflowY: 'auto',
+            msOverflowStyle: 'none',
+            scrollbarWidth: 'none',
+            WebkitOverflowScrolling: 'touch'
+          }}>
             <div className="mb-4 mt-4">
               <div className="flex justify-between items-center mb-2">
                 <h3 className="font-medium text-sm text-gray-500">GROUPS</h3>
@@ -437,7 +463,7 @@ export default function CommunicationHub() {
                     No groups yet
                   </div>
                 ) : (
-                  groups.map(group => (
+                  groups.map(group => group && (
                     <Button
                       key={group._id}
                       variant={selectedChatType === "group" && selectedChatId === group._id ? "secondary" : "ghost"}

@@ -10,12 +10,9 @@ import {
   Receipt,
   Settings,
   LogOut,
-  TestTube,
-  Paintbrush,
   BarChart3,
   CheckSquare,
   PieChart,
-  Wrench,
   DollarSign,
   MessageSquare
 } from "lucide-react";
@@ -47,17 +44,14 @@ export default function Sidebar({ collapsed = false }: SidebarProps) {
     { href: "/reports/sales-performance", label: "Sales Performance", icon: <DollarSign size={18} /> },
     { href: "/reports/accounts-receivable", label: "AR Aging", icon: <PieChart size={18} /> },
 
-    // Settings and Testing
+    // Settings
     { href: "/settings", label: "Settings", icon: <Settings size={18} /> },
-    { href: "/testing/workflow2", label: "Workflow Test", icon: <TestTube size={18} /> },
-    { href: "/testing/chart-data", label: "Chart Data Test", icon: <BarChart3 size={18} /> },
-    { href: "/testing/ui-consistency", label: "UI Consistency", icon: <Paintbrush size={18} /> },
   ];
 
   // Group links by category
   const mainLinks = links.slice(0, 9);
   const reportLinks = links.slice(9, 12);
-  const settingsAndTestingLinks = links.slice(12);
+  const settingsLinks = links.slice(12);
 
   // Function to render a group of links
   const renderLinkGroup = (groupLinks: typeof links) => {
@@ -93,12 +87,24 @@ export default function Sidebar({ collapsed = false }: SidebarProps) {
           {renderLinkGroup(reportLinks)}
         </div>
 
-        {/* Settings & Testing Section */}
-        {!collapsed && <div className="px-4 py-2 text-xs font-semibold text-blue-300 uppercase tracking-wider">Settings & Testing</div>}
+        {/* Settings Section */}
+        {!collapsed && <div className="px-4 py-2 text-xs font-semibold text-blue-300 uppercase tracking-wider">Settings</div>}
         <div className="space-y-1">
-          {renderLinkGroup(settingsAndTestingLinks)}
+          {renderLinkGroup(settingsLinks)}
         </div>
       </nav>
+
+      {/* Logout button at bottom */}
+      <div className="p-2 border-t border-blue-700 mt-auto">
+        <button
+          onClick={() => signOut()}
+          className={`w-full flex items-center ${collapsed ? 'justify-center' : 'px-4'} py-3 rounded-md transition-colors text-white text-blue-100 hover:bg-blue-700/50`}
+          title={collapsed ? "Logout" : undefined}
+        >
+          <span className={collapsed ? '' : 'mr-3'}><LogOut size={18} /></span>
+          {!collapsed && <span>Logout</span>}
+        </button>
+      </div>
     </aside>
   );
 }

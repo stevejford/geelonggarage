@@ -79,6 +79,7 @@ const applicationTables = {
     phone: v.optional(v.string()),
     clerkId: v.optional(v.string()),
     status: v.optional(v.string()), // active, pending, inactive
+    imageUrl: v.optional(v.string()), // Profile image URL from Clerk
     createdAt: v.optional(v.number()),
     updatedAt: v.optional(v.number()),
   }).index("by_email", ["email"]).index("by_clerkId", ["clerkId"]),
@@ -193,6 +194,8 @@ const applicationTables = {
     tax: v.number(),
     total: v.number(),
     notes: v.optional(v.string()),
+    pdfStorageId: v.optional(v.id("_storage")), // Storage ID for generated PDF
+    pdfGeneratedAt: v.optional(v.number()), // When the PDF was last generated
     createdAt: v.number(),
     updatedAt: v.number(),
     createdBy: v.optional(v.string()), // userId
@@ -224,6 +227,8 @@ const applicationTables = {
     scheduledDate: v.optional(v.number()),
     completedDate: v.optional(v.number()),
     notes: v.optional(v.string()),
+    pdfStorageId: v.optional(v.id("_storage")), // Storage ID for generated PDF
+    pdfGeneratedAt: v.optional(v.number()), // When the PDF was last generated
     createdAt: v.number(),
     updatedAt: v.number(),
     createdBy: v.optional(v.string()), // userId
@@ -261,6 +266,8 @@ const applicationTables = {
     tax: v.number(),
     total: v.number(),
     notes: v.optional(v.string()),
+    pdfStorageId: v.optional(v.id("_storage")), // Storage ID for generated PDF
+    pdfGeneratedAt: v.optional(v.number()), // When the PDF was last generated
     createdAt: v.number(),
     updatedAt: v.number(),
     createdBy: v.optional(v.string()), // userId

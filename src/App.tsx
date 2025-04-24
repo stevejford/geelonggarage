@@ -1,5 +1,5 @@
-import { ConvexProvider } from "convex/react";
 import { ConvexReactClient } from "convex/react";
+import { ConvexProviderWithClerk } from "convex/react-clerk";
 import { ClerkProvider, useAuth } from "@clerk/clerk-react";
 import { BrowserRouter as Router, Route, Routes, Navigate, useNavigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
@@ -8,6 +8,7 @@ import GoogleMapsProvider from "@/components/common/GoogleMapsProvider";
 import { lazy, Suspense } from 'react';
 import { PageLoader } from "@/components/ui/loading";
 import Layout from "./components/Layout";
+import ClerkConvexSync from "./components/ClerkConvexSync";
 
 // Custom auth components
 import CustomSignIn from "./components/auth/CustomSignIn";
@@ -92,7 +93,8 @@ console.log("Environment:", {
 export default function App() {
   return (
     <ClerkProvider publishableKey={clerkPubKey}>
-      <ConvexProvider client={convex}>
+      <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
+        <ClerkConvexSync />
         <SearchProvider>
           <GoogleMapsProvider>
             <Router>
@@ -289,7 +291,7 @@ export default function App() {
             </Router>
           </GoogleMapsProvider>
         </SearchProvider>
-      </ConvexProvider>
+      </ConvexProviderWithClerk>
       <Toaster />
     </ClerkProvider>
   );

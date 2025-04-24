@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Geelong Garage Work Order</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 0;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            color: #333;
+            box-sizing: border-box;
+        }
+        .container {
+            width: 210mm;
+            min-height: 297mm;
+            margin: 0 auto;
+            padding: 20mm;
+            box-sizing: border-box;
+            position: relative;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10mm;
+        }
+        .company-info {
+            display: flex;
+            flex-direction: column;
+        }
+        .company-name {
+            color: #0f172a;
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .company-address {
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        .logo {
+            width: 80px;
+            height: 80px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .logo img {
+            max-width: 100%;
+            max-height: 100%;
+        }
+        .divider {
+            border-top: 1px solid #ddd;
+            margin: 10px 0 20px 0;
+        }
+        .work-order-sidebar {
+            position: absolute;
+            left: 20mm;
+            top: 60mm;
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            font-size: 32px;
+            font-weight: bold;
+            color: #0f172a;
+            height: 100mm;
+        }
+        .addresses {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+        }
+        .customer-info, .work-order-details {
+            width: 45%;
+        }
+        .section-title {
+            color: #0f172a;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .work-order-label {
+            color: #0f172a;
+            font-weight: bold;
+            text-align: right;
+        }
+        .work-order-value {
+            text-align: right;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 14px;
+            text-align: center;
+        }
+        .status-pending {
+            background-color: #f3f4f6;
+            color: #6b7280;
+        }
+        .status-scheduled {
+            background-color: #dbeafe;
+            color: #2563eb;
+        }
+        .status-in-progress {
+            background-color: #fef3c7;
+            color: #d97706;
+        }
+        .status-completed {
+            background-color: #d1fae5;
+            color: #059669;
+        }
+        .status-cancelled {
+            background-color: #fee2e2;
+            color: #dc2626;
+        }
+        .technicians {
+            margin-top: 30px;
+        }
+        .technician {
+            display: inline-block;
+            margin-right: 20px;
+            margin-bottom: 10px;
+        }
+        .notes {
+            margin-top: 30px;
+            padding: 15px;
+            background-color: #f9fafb;
+            border-radius: 5px;
+            border: 1px solid #e5e7eb;
+        }
+        .notes-content {
+            white-space: pre-line;
+        }
+        .signature-section {
+            margin-top: 60px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .signature-box {
+            width: 45%;
+        }
+        .signature-line {
+            margin-top: 50px;
+            border-top: 1px solid #000;
+        }
+        .signature-name {
+            margin-top: 10px;
+        }
+        .footer {
+            margin-top: 60px;
+            border-top: 1px solid #ddd;
+            padding-top: 20px;
+            font-size: 12px;
+            text-align: center;
+            color: #6b7280;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="company-info">
+                <div class="company-name">Geelong Garage</div>
+                <div class="company-address">
+                    {{company_address_line1}}<br>
+                    {{company_address_line2}}<br>
+                    {{company_phone}}<br>
+                    {{company_email}}
+                </div>
+            </div>
+            <div class="logo">
+                <img src="{{logo_url}}" alt="Geelong Garage Logo">
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="work-order-sidebar">Work Order {{work_order_number}}</div>
+
+        <div class="addresses">
+            <div class="customer-info">
+                <div class="section-title">Customer Information</div>
+                <div>
+                    <strong>Name:</strong> {{customer_name}}<br>
+                    <strong>Phone:</strong> {{customer_phone}}<br>
+                    <strong>Email:</strong> {{customer_email}}<br>
+                    <strong>Address:</strong><br>
+                    {{customer_address_line1}}<br>
+                    {{customer_address_line2}}
+                </div>
+            </div>
+
+            <div class="work-order-details">
+                <div>
+                    <div class="section-title">Work Order Details</div>
+                    <div>
+                        <strong>Work Order #:</strong> {{work_order_number}}<br>
+                        <strong>Created Date:</strong> {{created_date}}<br>
+                        <strong>Scheduled Date:</strong> {{scheduled_date}}<br>
+                        <strong>Status:</strong> 
+                        <span class="status-badge status-{{status_class}}">{{status}}</span>
+                        {{#if completed_date}}
+                        <br><strong>Completed Date:</strong> {{completed_date}}
+                        {{/if}}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="technicians">
+            <div class="section-title">Assigned Technicians</div>
+            {{#each technicians}}
+            <div class="technician">
+                <strong>{{name}}</strong>
+            </div>
+            {{/each}}
+        </div>
+
+        <div class="notes">
+            <div class="section-title">Work Order Notes</div>
+            <div class="notes-content">{{notes}}</div>
+        </div>
+
+        <div class="signature-section">
+            <div class="signature-box">
+                <div class="section-title">Technician Signature</div>
+                <div class="signature-line"></div>
+                <div class="signature-name">Name / Date</div>
+            </div>
+            <div class="signature-box">
+                <div class="section-title">Customer Signature</div>
+                <div class="signature-line"></div>
+                <div class="signature-name">Name / Date</div>
+            </div>
+        </div>
+
+        <div class="footer">
+            This work order was generated by Geelong Garage Management System on {{generated_date}}.
+        </div>
+    </div>
+</body>
+</html>

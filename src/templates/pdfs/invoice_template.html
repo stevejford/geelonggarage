@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Geelong Garage Invoice</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 0;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            color: #333;
+            box-sizing: border-box;
+        }
+        .container {
+            width: 210mm;
+            min-height: 297mm;
+            margin: 0 auto;
+            padding: 20mm;
+            box-sizing: border-box;
+            position: relative;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10mm;
+        }
+        .company-info {
+            display: flex;
+            flex-direction: column;
+        }
+        .company-name {
+            color: #0f172a;
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .company-address {
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        .logo {
+            width: 80px;
+            height: 80px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .logo img {
+            max-width: 100%;
+            max-height: 100%;
+        }
+        .divider {
+            border-top: 1px solid #ddd;
+            margin: 10px 0 20px 0;
+        }
+        .invoice-sidebar {
+            position: absolute;
+            left: 20mm;
+            top: 60mm;
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            font-size: 32px;
+            font-weight: bold;
+            color: #0f172a;
+            height: 100mm;
+        }
+        .addresses {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+        }
+        .bill-to, .invoice-details {
+            width: 45%;
+        }
+        .address-title {
+            color: #0f172a;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .invoice-label {
+            color: #0f172a;
+            font-weight: bold;
+            text-align: right;
+        }
+        .invoice-value {
+            text-align: right;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 40px;
+        }
+        th {
+            background-color: #0f172a;
+            color: white;
+            padding: 8px;
+            text-align: left;
+        }
+        th:last-child, td:last-child {
+            text-align: right;
+        }
+        td {
+            padding: 8px;
+            border: 1px solid #ddd;
+        }
+        .totals {
+            margin-top: 20px;
+            text-align: right;
+        }
+        .totals div {
+            margin-bottom: 5px;
+        }
+        .total-label {
+            display: inline-block;
+            width: 100px;
+            text-align: left;
+        }
+        .total-amount {
+            display: inline-block;
+            width: 80px;
+            text-align: right;
+        }
+        .grand-total {
+            font-weight: bold;
+            font-size: 18px;
+            margin-top: 10px;
+        }
+        .payment-status {
+            margin-top: 20px;
+            padding: 10px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 18px;
+            border: 2px solid;
+            border-radius: 5px;
+            width: 200px;
+            margin-left: auto;
+        }
+        .status-paid {
+            color: #16a34a;
+            border-color: #16a34a;
+            background-color: rgba(22, 163, 74, 0.1);
+        }
+        .status-unpaid {
+            color: #dc2626;
+            border-color: #dc2626;
+            background-color: rgba(220, 38, 38, 0.1);
+        }
+        .status-overdue {
+            color: #dc2626;
+            border-color: #dc2626;
+            background-color: rgba(220, 38, 38, 0.1);
+        }
+        .terms {
+            margin-top: 60px;
+            border-top: 1px solid #ddd;
+            padding-top: 20px;
+        }
+        .terms-title {
+            color: #0f172a;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .banking {
+            margin-top: 20px;
+        }
+        .work-order-reference {
+            margin-top: 30px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9fafb;
+        }
+        .work-order-title {
+            font-weight: bold;
+            color: #0f172a;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="company-info">
+                <div class="company-name">Geelong Garage</div>
+                <div class="company-address">
+                    {{company_address_line1}}<br>
+                    {{company_address_line2}}<br>
+                    {{company_phone}}<br>
+                    {{company_email}}
+                </div>
+            </div>
+            <div class="logo">
+                <img src="{{logo_url}}" alt="Geelong Garage Logo">
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="invoice-sidebar">Invoice {{invoice_number}}</div>
+
+        <div class="addresses">
+            <div class="bill-to">
+                <div class="address-title">Bill To</div>
+                <div>
+                    {{customer_name}}<br>
+                    {{customer_address_line1}}<br>
+                    {{customer_address_line2}}<br>
+                    {{customer_phone}}<br>
+                    {{customer_email}}
+                </div>
+            </div>
+
+            <div class="invoice-details">
+                <div>
+                    <div class="address-title">Invoice Date</div>
+                    <div class="invoice-value">{{invoice_date}}</div>
+                </div>
+                <div>
+                    <div class="address-title">Due Date</div>
+                    <div class="invoice-value">{{due_date}}</div>
+                </div>
+                <div>
+                    <div class="address-title">Invoice #</div>
+                    <div class="invoice-value">{{invoice_number}}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="payment-status status-{{status_class}}">
+            {{status}}
+        </div>
+
+        {{#if work_order_number}}
+        <div class="work-order-reference">
+            <div class="work-order-title">Work Order Reference</div>
+            <div>Work Order #: {{work_order_number}}</div>
+            <div>Completed Date: {{work_order_completed_date}}</div>
+        </div>
+        {{/if}}
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Qty</th>
+                    <th>Description</th>
+                    <th>Unit Price</th>
+                    <th>Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#each line_items}}
+                <tr>
+                    <td>{{quantity}}</td>
+                    <td>{{description}}</td>
+                    <td>${{unit_price}}</td>
+                    <td>${{total}}</td>
+                </tr>
+                {{/each}}
+            </tbody>
+        </table>
+
+        <div class="totals">
+            <div>
+                <span class="total-label">Subtotal</span>
+                <span class="total-amount">${{subtotal}}</span>
+            </div>
+            <div>
+                <span class="total-label">GST 10.0%</span>
+                <span class="total-amount">${{tax}}</span>
+            </div>
+            <div class="grand-total">
+                <span class="total-label">Total</span>
+                <span class="total-amount">${{total}}</span>
+            </div>
+        </div>
+
+        <div class="terms">
+            <div class="terms-title">Terms & Conditions</div>
+            <div>Payment is due within 15 days. Late payments may incur additional fees.</div>
+
+            <div class="banking">
+                <div class="terms-title">Payment Details</div>
+                {{company_bank_name}}<br>
+                Account Name: {{company_account_name}}<br>
+                BSB: {{company_bsb}}<br>
+                Account Number: {{company_account_number}}
+            </div>
+        </div>
+    </div>
+</body>
+</html>

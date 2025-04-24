@@ -69,7 +69,7 @@ export default function ChatSettings({ isOpen, onClose, selectedGroupId }: ChatS
       // Add each selected user to the group
       for (const userId of selectedUsers) {
         await addGroupMember({
-          groupId: selectedGroupId,
+          groupId: selectedGroupId as any, // Cast to any to fix type error
           userId,
           role: "member",
           addedBy: user.id

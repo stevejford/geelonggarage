@@ -1,4 +1,4 @@
-import { Outlet, useNavigate } from "react-router-dom";
+import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useUser, useClerk } from "@clerk/clerk-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
@@ -22,8 +22,12 @@ export default function Layout() {
   const { user } = useUser();
   const { signOut } = useClerk();
   const navigate = useNavigate();
+  const location = useLocation();
   const firstName = user?.firstName || "User";
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Check if current page is Communication Hub
+  const isCommunicationHub = location.pathname === "/communication";
 
   // Handle sign out with proper session cleanup
   const handleSignOut = async () => {
@@ -173,8 +177,8 @@ export default function Layout() {
         </main>
 
 
-        {/* Team Chat */}
-        <TeamChat />
+        {/* Team Chat - Hidden on Communication Hub page */}
+        {!isCommunicationHub && <TeamChat />}
       </div>
     </div>
   );

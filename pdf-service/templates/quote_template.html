@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Geelong Garage Quote</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 0;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            color: #333;
+            box-sizing: border-box;
+        }
+        .container {
+            width: 210mm;
+            min-height: 297mm;
+            margin: 0 auto;
+            padding: 20mm;
+            box-sizing: border-box;
+            position: relative;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10mm;
+        }
+        .company-info {
+            display: flex;
+            flex-direction: column;
+        }
+        .company-name {
+            color: #0f172a;
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .company-address {
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        .logo {
+            width: 80px;
+            height: 80px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .logo img {
+            max-width: 100%;
+            max-height: 100%;
+        }
+        .divider {
+            border-top: 1px solid #ddd;
+            margin: 10px 0 20px 0;
+        }
+        .quote-sidebar {
+            position: absolute;
+            left: 20mm;
+            top: 60mm;
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            font-size: 32px;
+            font-weight: bold;
+            color: #0f172a;
+            height: 100mm;
+        }
+        .addresses {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+        }
+        .bill-to, .quote-details {
+            width: 45%;
+        }
+        .address-title {
+            color: #0f172a;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .quote-label {
+            color: #0f172a;
+            font-weight: bold;
+            text-align: right;
+        }
+        .quote-value {
+            text-align: right;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 14px;
+            text-align: center;
+        }
+        .status-draft {
+            background-color: #f3f4f6;
+            color: #6b7280;
+        }
+        .status-presented {
+            background-color: #dbeafe;
+            color: #2563eb;
+        }
+        .status-accepted {
+            background-color: #d1fae5;
+            color: #059669;
+        }
+        .status-declined {
+            background-color: #fee2e2;
+            color: #dc2626;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 40px;
+        }
+        th {
+            background-color: #0f172a;
+            color: white;
+            padding: 8px;
+            text-align: left;
+        }
+        th:last-child, td:last-child {
+            text-align: right;
+        }
+        td {
+            padding: 8px;
+            border: 1px solid #ddd;
+        }
+        .totals {
+            margin-top: 20px;
+            text-align: right;
+        }
+        .totals div {
+            margin-bottom: 5px;
+        }
+        .total-label {
+            display: inline-block;
+            width: 100px;
+            text-align: left;
+        }
+        .total-amount {
+            display: inline-block;
+            width: 80px;
+            text-align: right;
+        }
+        .grand-total {
+            font-weight: bold;
+            font-size: 18px;
+            margin-top: 10px;
+        }
+        .notes {
+            margin-top: 40px;
+            padding: 15px;
+            background-color: #f9fafb;
+            border-radius: 5px;
+            border: 1px solid #e5e7eb;
+        }
+        .notes-title {
+            color: #0f172a;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .notes-content {
+            white-space: pre-line;
+        }
+        .terms {
+            margin-top: 60px;
+            border-top: 1px solid #ddd;
+            padding-top: 20px;
+        }
+        .terms-title {
+            color: #0f172a;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="company-info">
+                <div class="company-name">{{company_name}}</div>
+                <div class="company-address">
+                    {{company_address_line1}}<br>
+                    {{company_address_line2}}<br>
+                    {{company_phone}}<br>
+                    {{company_email}}
+                </div>
+            </div>
+            <div class="logo">
+                <img src="{{logo_url}}" alt="Geelong Garage Logo">
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="quote-sidebar">Quote {{quote_number}}</div>
+
+        <div class="addresses">
+            <div class="bill-to">
+                <div class="address-title">Bill To</div>
+                <div>
+                    {{customer_name}}<br>
+                    {{customer_address_line1}}<br>
+                    {{customer_address_line2}}<br>
+                    {{customer_phone}}<br>
+                    {{customer_email}}
+                </div>
+            </div>
+
+            <div class="quote-details">
+                <div>
+                    <div class="address-title">Quote Date</div>
+                    <div class="quote-value">{{quote_date}}</div>
+                </div>
+                <div>
+                    <div class="address-title">Expiry Date</div>
+                    <div class="quote-value">{{expiry_date}}</div>
+                </div>
+                <div>
+                    <div class="address-title">Quote #</div>
+                    <div class="quote-value">{{quote_number}}</div>
+                </div>
+                <div>
+                    <div class="address-title">Status</div>
+                    <div class="quote-value">
+                        <span class="status-badge status-{{status_class}}">{{status}}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Qty</th>
+                    <th>Description</th>
+                    <th>Unit Price</th>
+                    <th>Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#each line_items}}
+                <tr>
+                    <td>{{quantity}}</td>
+                    <td>{{description}}</td>
+                    <td>${{unit_price}}</td>
+                    <td>${{total}}</td>
+                </tr>
+                {{/each}}
+            </tbody>
+        </table>
+
+        <div class="totals">
+            <div>
+                <span class="total-label">Subtotal</span>
+                <span class="total-amount">${{subtotal}}</span>
+            </div>
+            <div>
+                <span class="total-label">GST 10.0%</span>
+                <span class="total-amount">${{tax}}</span>
+            </div>
+            <div class="grand-total">
+                <span class="total-label">Total</span>
+                <span class="total-amount">${{total}}</span>
+            </div>
+        </div>
+
+        {{#if notes}}
+        <div class="notes">
+            <div class="notes-title">Notes</div>
+            <div class="notes-content">{{notes}}</div>
+        </div>
+        {{/if}}
+
+        <div class="terms">
+            <div class="terms-title">Terms & Conditions</div>
+            <div>This quote is valid for 30 days from the date of issue. Please contact us if you have any questions.</div>
+        </div>
+    </div>
+</body>
+</html>

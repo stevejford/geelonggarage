@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: geelong-garage-pdf-service
+    env: node
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: PORT
+        value: 3001
+      - key: API_KEY
+        sync: false
+      - key: ALLOWED_ORIGINS
+        value: https://grandiose-swordfish-144.convex.site,http://localhost:5173

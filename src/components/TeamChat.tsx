@@ -1,7 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 import { useUser } from "@clerk/clerk-react";
 import { useNavigate } from "react-router-dom";
-import { MessageSquare, Send, X, ExternalLink, Users, Paperclip, Smile, Settings } from "lucide-react";
+import {
+  MessageSquare, Send, X, ExternalLink, Users, Paperclip,
+  Smile, Settings, Image as ImageIcon, Gift, Loader2, File
+} from "lucide-react";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import { Button } from "./ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
@@ -10,6 +13,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
+import { toast } from "sonner";
+import { BasicEmojiPicker } from "@/components/ui/basic-emoji-picker";
+import { FileUpload } from "@/components/ui/file-upload";
+import { DynamicGifPicker } from "@/components/ui/dynamic-gif-picker";
 
 // Mock data for initial development
 // Using let instead of const so we can modify it
@@ -60,6 +67,9 @@ export default function TeamChat() {
   const [showSettings, setShowSettings] = useState(false);
   const [notificationSound, setNotificationSound] = useLocalStorage('chatNotificationSound', 'notification1');
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedGif, setSelectedGif] = useState<{url: string, id: string} | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   // Get groups and direct messages
   const groups = useQuery(api.communication.getUserGroups,
@@ -76,10 +86,10 @@ export default function TeamChat() {
 
   // Set initial selected chat
   useEffect(() => {
-    if (groups.length > 0 && !selectedChatId) {
+    if (groups.length > 0 && !selectedChatId && groups[0]) {
       setSelectedChatType("group");
       setSelectedChatId(groups[0]._id);
-    } else if (directMessages.length > 0 && !selectedChatId) {
+    } else if (directMessages.length > 0 && !selectedChatId && directMessages[0]) {
       setSelectedChatType("direct");
       setSelectedChatId(directMessages[0].userId);
     }
@@ -89,7 +99,7 @@ export default function TeamChat() {
   const groupMessages = useQuery(
     api.communication.getGroupMessages,
     selectedChatType === "group" && selectedChatId
-      ? { groupId: selectedChatId, limit: 20 }
+      ? { groupId: selectedChatId as any, limit: 20 } // Cast to any to fix type error
       : "skip"
   ) || [];
 
@@ -163,8 +173,8 @@ export default function TeamChat() {
   // Update unread count when new messages arrive
   useEffect(() => {
     // Calculate total unread count from all groups and direct messages
-    const groupUnread = groups.reduce((total, group) => total + (group.unreadCount || 0), 0);
-    const dmUnread = directMessages.reduce((total, dm) => total + (dm.unreadCount || 0), 0);
+    const groupUnread = groups.reduce((total, group) => total + (group?.unreadCount || 0), 0);
+    const dmUnread = directMessages.reduce((total, dm) => total + (dm?.unreadCount || 0), 0);
     const totalUnread = groupUnread + dmUnread;
 
     // Check if there are new messages
@@ -183,7 +193,7 @@ export default function TeamChat() {
       if (selectedChatType === "group") {
         markMessagesAsRead({
           userId: user.id,
-          groupId: selectedChatId,
+          groupId: selectedChatId as any, // Cast to any to fix type error
           timestamp
         });
       } else if (selectedChatType === "direct") {
@@ -239,16 +249,32 @@ export default function TeamChat() {
   }, []);
 
   const handleSendMessage = async () => {
-    if (message.trim() === "" || !user || !selectedChatId) return;
+    if (!user || !selectedChatId || (message.trim() === "" && !selectedFile && !selectedGif)) return;
 
     try {
+      let attachments: string[] = [];
+
+      // Upload file if selected
+      if (selectedFile) {
+        const fileUrl = await uploadFile(selectedFile);
+        attachments.push(fileUrl);
+        setSelectedFile(null);
+      }
+
+      // Add GIF if selected
+      if (selectedGif) {
+        attachments.push(selectedGif.url);
+        setSelectedGif(null);
+      }
+
       if (selectedChatType === "group") {
         await sendGroupMessage({
-          groupId: selectedChatId,
+          groupId: selectedChatId as any, // Cast to any to fix type error
           senderId: user.id,
           senderName: user.fullName || user.username || "Unknown User",
           senderAvatar: user.imageUrl,
-          content: message.trim()
+          content: message.trim(),
+          attachments: attachments.length > 0 ? attachments : undefined
         });
       } else {
         await sendDirectMessage({
@@ -256,13 +282,15 @@ export default function TeamChat() {
           senderName: user.fullName || user.username || "Unknown User",
           senderAvatar: user.imageUrl,
           receiverId: selectedChatId,
-          content: message.trim()
+          content: message.trim(),
+          attachments: attachments.length > 0 ? attachments : undefined
         });
       }
 
       setMessage("");
     } catch (error) {
       console.error("Error sending message:", error);
+      toast.error("Failed to send message");
     }
   };
 
@@ -277,6 +305,51 @@ export default function TeamChat() {
       .map(n => n[0])
       .join('')
       .toUpperCase();
+  };
+
+  // Handle emoji selection
+  const handleEmojiSelect = (emoji: string) => {
+    setMessage(prev => prev + emoji);
+  };
+
+  // Handle file selection
+  const handleFileSelect = (file: File) => {
+    setSelectedFile(file);
+    setSelectedGif(null); // Clear any selected GIF
+    toast.success(`File selected: ${file.name}`);
+  };
+
+  // Handle GIF selection
+  const handleGifSelect = (gifUrl: string) => {
+    setSelectedGif({ url: gifUrl, id: 'gif-' + Date.now() });
+    setSelectedFile(null); // Clear any selected file
+    toast.success('GIF selected');
+  };
+
+  // Upload file to get URL
+  const uploadFile = async (file: File): Promise<string> => {
+    setIsUploading(true);
+
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+
+      reader.onload = () => {
+        setIsUploading(false);
+        // Return the data URL as the "uploaded" file URL
+        // In a real app, you would upload to a server and get a URL back
+        resolve(reader.result as string);
+      };
+
+      reader.onerror = () => {
+        setIsUploading(false);
+        // Fallback to object URL if FileReader fails
+        const objectUrl = URL.createObjectURL(file);
+        resolve(objectUrl);
+      };
+
+      // Read the file as a data URL (base64 encoded string)
+      reader.readAsDataURL(file);
+    });
   };
 
   return (
@@ -314,7 +387,7 @@ export default function TeamChat() {
                       <Users className="h-3 w-3 text-blue-600" />
                     </div>
                     <CardTitle className="text-sm font-medium truncate">
-                      {groups.find(g => g._id === selectedChatId)?.name || "Team Chat"}
+                      {groups.find(g => g && g._id === selectedChatId)?.name || "Team Chat"}
                     </CardTitle>
                   </div>
                 ) : (
@@ -400,7 +473,7 @@ export default function TeamChat() {
 
             {/* Group/Chat Selector */}
             <div className="border-b p-2 flex items-center gap-1 overflow-x-auto flex-shrink-0 scrollbar-hide">
-              {groups.slice(0, 5).map(group => (
+              {groups.slice(0, 5).map(group => group && (
                 <Button
                   key={group._id}
                   variant={selectedChatType === "group" && selectedChatId === group._id ? "secondary" : "ghost"}
@@ -505,48 +578,79 @@ export default function TeamChat() {
             <div className="p-2 border-t">
               <div className="flex items-center gap-1 mb-1">
                 <div className="flex gap-1">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6 rounded-full"
-                    title="Add Smile Emoji"
-                    onClick={() => setMessage(prev => prev + '😊')}
+                  <FileUpload
+                    onFileSelect={handleFileSelect}
+                    accept="application/pdf,video/*,audio/*,text/*"
+                    maxSize={10}
                   >
-                    <span className="text-xs">😊</span>
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6 rounded-full"
-                    title="Add Thumbs Up"
-                    onClick={() => setMessage(prev => prev + '👍')}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex items-center gap-1 px-2 py-1 h-6"
+                      title="Attach Document, Video or Audio"
+                    >
+                      <Paperclip className="h-3 w-3" />
+                      <span className="text-xs">Files</span>
+                    </Button>
+                  </FileUpload>
+
+                  <FileUpload
+                    onFileSelect={handleFileSelect}
+                    accept="image/*"
+                    maxSize={5}
                   >
-                    <span className="text-xs">👍</span>
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6 rounded-full"
-                    title="Add Heart"
-                    onClick={() => setMessage(prev => prev + '❤️')}
-                  >
-                    <span className="text-xs">❤️</span>
-                  </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex items-center gap-1 px-2 py-1 h-6"
+                      title="Upload Images"
+                    >
+                      <ImageIcon className="h-3 w-3" />
+                      <span className="text-xs">Images</span>
+                    </Button>
+                  </FileUpload>
+
+                  <DynamicGifPicker onGifSelect={handleGifSelect}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex items-center gap-1 px-2 py-1 h-6"
+                      title="Add GIF"
+                    >
+                      <Gift className="h-3 w-3" />
+                      <span className="text-xs">GIFs</span>
+                    </Button>
+                  </DynamicGifPicker>
+
+                  <BasicEmojiPicker onEmojiSelect={handleEmojiSelect}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex items-center gap-1 px-2 py-1 h-6"
+                      title="Add Emoji"
+                    >
+                      <Smile className="h-3 w-3" />
+                      <span className="text-xs">Emoji</span>
+                    </Button>
+                  </BasicEmojiPicker>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-6 w-6 rounded-full"
-                  title="Attach File"
-                  onClick={() => {
-                    // File upload functionality would go here
-                    // For now, just show a message
-                    alert('File upload is available in the full Communication Hub');
-                  }}
-                >
-                  <Paperclip className="h-3 w-3" />
-                </Button>
               </div>
+
+              {/* Show selected file or GIF badge */}
+              {selectedFile && (
+                <Badge variant="outline" className="mb-1 gap-1 flex items-center">
+                  {selectedFile.name.length > 15
+                    ? selectedFile.name.substring(0, 12) + '...'
+                    : selectedFile.name}
+                  <button
+                    className="ml-1 hover:text-red-500"
+                    onClick={() => setSelectedFile(null)}
+                  >
+                    ×
+                  </button>
+                </Badge>
+              )}
+
               <div className="flex gap-2">
                 <Textarea
                   value={message}
@@ -564,9 +668,13 @@ export default function TeamChat() {
                   size="icon"
                   className="h-10 w-10 flex-shrink-0"
                   onClick={handleSendMessage}
-                  disabled={message.trim() === ""}
+                  disabled={(message.trim() === "" && !selectedFile && !selectedGif) || isUploading}
                 >
-                  <Send size={16} />
+                  {isUploading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Send size={16} />
+                  )}
                 </Button>
               </div>
             </div>

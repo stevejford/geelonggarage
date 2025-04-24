@@ -1,24 +1,35 @@
-import { convexAuth, getAuthUserId } from "@convex-dev/auth/server";
-import { Password } from "@convex-dev/auth/providers/Password";
-import { Anonymous } from "@convex-dev/auth/providers/Anonymous";
 import { query, mutation, QueryCtx, MutationCtx } from "./_generated/server";
 import { v } from "convex/values";
 import { ConvexError } from "convex/values";
+import { UserIdentity } from "convex/server";
 
-export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
-  providers: [Password, Anonymous],
-});
+/**
+ * Get the authenticated user ID from Clerk
+ */
+async function getAuthUserId(ctx: QueryCtx | MutationCtx): Promise<string | null> {
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity) {
+    return null;
+  }
+  return identity.tokenIdentifier;
+}
 
 /**
  * Get the currently logged in user
  */
 export const loggedInUser = query({
   handler: async (ctx) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) {
+    const clerkId = await getAuthUserId(ctx);
+    if (!clerkId) {
       return null;
     }
-    const user = await ctx.db.get(userId);
+
+    // Find user by clerkId
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerkId", (q) => q.eq("clerkId", clerkId))
+      .first();
+
     if (!user) {
       return null;
     }
@@ -31,13 +42,17 @@ export const loggedInUser = query({
  */
 export const loggedInUserWithRole = query({
   handler: async (ctx) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) {
+    const clerkId = await getAuthUserId(ctx);
+    if (!clerkId) {
       return null;
     }
 
-    // Get user
-    const user = await ctx.db.get(userId);
+    // Get user by clerkId
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerkId", (q) => q.eq("clerkId", clerkId))
+      .first();
+
     if (!user) {
       return null;
     }
@@ -45,7 +60,7 @@ export const loggedInUserWithRole = query({
     // Get user role
     const userRole = await ctx.db
       .query("userRoles")
-      .withIndex("by_userId", (q) => q.eq("userId", userId))
+      .withIndex("by_userId", (q) => q.eq("userId", clerkId))
       .unique();
 
     return {
@@ -59,17 +74,21 @@ export const loggedInUserWithRole = query({
  * Get the authenticated user with role (utility function for internal use)
  */
 export async function getAuthUserWithRole(ctx: QueryCtx | MutationCtx) {
-  const userId = await getAuthUserId(ctx);
-  if (!userId) return null;
+  const clerkId = await getAuthUserId(ctx);
+  if (!clerkId) return null;
 
-  // Get user
-  const user = await ctx.db.get(userId);
+  // Get user by clerkId
+  const user = await ctx.db
+    .query("users")
+    .withIndex("by_clerkId", (q) => q.eq("clerkId", clerkId))
+    .first();
+
   if (!user) return null;
 
   // Get user role
   const userRole = await ctx.db
     .query("userRoles")
-    .withIndex("by_userId", (q) => q.eq("userId", userId))
+    .withIndex("by_userId", (q) => q.eq("userId", clerkId))
     .unique();
 
   return {
