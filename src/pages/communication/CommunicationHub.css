@@ -1,0 +1,61 @@
+/* Styles specific to the Communication Hub page */
+
+/* Main container */
+.communication-hub-container {
+  /* Take up the full viewport height minus the navbar */
+  height: calc(100vh - 64px);
+
+  /* Prevent scrolling of the container itself */
+  overflow: hidden;
+
+  /* Add some padding */
+  padding: 1.5rem;
+
+  /* Set background color */
+  background-color: #f9fafb;
+
+  /* Fix the container to the viewport */
+  position: fixed;
+  top: 64px; /* Height of the navbar */
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
+}
+
+/* Make the tabs container take up the full height */
+.communication-hub-container .tabs-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Make the tab content take up the remaining height */
+.communication-hub-container .tab-content {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+}
+
+/* Make the message area scrollable */
+.communication-hub-container .messages-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+}
+
+/* Keep the input area fixed at the bottom */
+.communication-hub-container .input-container {
+  flex-shrink: 0;
+  border-top: 1px solid #e5e7eb;
+  padding: 1rem;
+  background-color: #ffffff;
+}
+
+/* Make sure the container doesn't affect other pages */
+main > :not(.communication-hub-container) {
+  /* Reset any styles that might be inherited */
+  height: auto;
+  overflow: visible;
+}
