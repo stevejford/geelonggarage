@@ -4,8 +4,8 @@ import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import puppeteer from 'puppeteer';
 import Handlebars from 'handlebars';
+import { createBrowser } from './fallback.js';
 
 // Load environment variables
 dotenv.config();
@@ -55,28 +55,28 @@ app.get('/health', (req, res) => {
 app.post('/api/pdf/generate', async (req, res) => {
   try {
     const { templateName, templateData, options } = req.body;
-    
+
     if (!templateName || !templateData) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'Template name and data are required' 
+      return res.status(400).json({
+        success: false,
+        error: 'Template name and data are required'
       });
     }
-    
+
     // Generate the PDF
     const pdfBuffer = await generatePDF(templateName, templateData, options);
-    
+
     // Set response headers
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `inline; filename="${templateName}.pdf"`);
-    
+
     // Send the PDF
     res.send(pdfBuffer);
   } catch (error) {
     console.error('Error generating PDF:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: error.message || 'Failed to generate PDF' 
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to generate PDF'
     });
   }
 });
@@ -87,48 +87,45 @@ app.get('/api/pdf/templates', (req, res) => {
     const templates = fs.readdirSync(templatesDir)
       .filter(file => file.endsWith('.html'))
       .map(file => file.replace('.html', ''));
-    
+
     res.json({ templates });
   } catch (error) {
     console.error('Error listing templates:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: error.message || 'Failed to list templates' 
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to list templates'
     });
   }
 });
 
 // Function to generate PDF
 async function generatePDF(templateName, data, options = {}) {
-  // Launch a headless browser
-  const browser = await puppeteer.launch({
-    headless: 'new',
-    args: ['--no-sandbox', '--disable-setuid-sandbox'],
-  });
-  
+  // Create a browser instance using our fallback mechanism
+  const browser = await createBrowser();
+
   try {
     // Create a new page
     const page = await browser.newPage();
-    
+
     // Read the template file
     const templatePath = path.join(templatesDir, `${templateName}.html`);
     let templateHtml;
-    
+
     try {
       templateHtml = fs.readFileSync(templatePath, 'utf-8');
     } catch (error) {
       throw new Error(`Template not found: ${templateName}`);
     }
-    
+
     // Compile the template with Handlebars
     const template = Handlebars.compile(templateHtml);
     const html = template(data);
-    
+
     // Set the page content
     await page.setContent(html, {
       waitUntil: 'networkidle0',
     });
-    
+
     // Generate PDF
     const pdfBuffer = await page.pdf({
       format: options.format || 'A4',
@@ -140,7 +137,7 @@ async function generatePDF(templateName, data, options = {}) {
         left: '10mm',
       },
     });
-    
+
     return pdfBuffer;
   } finally {
     // Close the browser
