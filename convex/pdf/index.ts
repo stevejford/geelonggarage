@@ -4,7 +4,6 @@ import { Id } from "../_generated/dataModel";
 import { DocumentType, PdfGenerationResult } from "./types";
 import { callPdfService, updateDocumentWithPdf } from "./service";
 import { getInvoiceData, getQuoteData, getWorkOrderData } from "./dataFetchers";
-import { api } from "../_generated/api";
 
 // Internal mutation to update document with PDF storage ID
 export const updateDocumentPdf = mutation({
@@ -34,18 +33,36 @@ export const generatePdf = action({
       let templateName: string;
       let templateData: any;
 
-      // Query the document data
-      const queryResult = await ctx.runQuery(api.pdf.getDocumentData, {
-        type: documentType,
-        id,
-      });
-
-      if (!queryResult) {
-        throw new Error(`Document not found: ${documentType} ${id}`);
+      // Get the document data based on type
+      switch (documentType) {
+        case "invoice":
+          templateName = "invoice";
+          // Use a separate query to get the invoice data
+          templateData = await ctx.runQuery(async ({ db }) => {
+            return await getInvoiceData(db, id as Id<"invoices">);
+          });
+          break;
+        case "quote":
+          templateName = "quote";
+          // Use a separate query to get the quote data
+          templateData = await ctx.runQuery(async ({ db }) => {
+            return await getQuoteData(db, id as Id<"quotes">);
+          });
+          break;
+        case "workOrder":
+          templateName = "workOrder";
+          // Use a separate query to get the work order data
+          templateData = await ctx.runQuery(async ({ db }) => {
+            return await getWorkOrderData(db, id as Id<"workOrders">);
+          });
+          break;
+        default:
+          throw new Error(`Unsupported document type: ${type}`);
       }
 
-      templateName = documentType;
-      templateData = queryResult;
+      if (!templateData) {
+        throw new Error(`Document not found: ${documentType} ${id}`);
+      }
 
       // Generate the PDF
       const pdfBlob = await callPdfService(templateName, templateData);
@@ -54,7 +71,7 @@ export const generatePdf = action({
       const storageId = await ctx.storage.store(pdfBlob);
 
       // Update the document with the PDF storage ID
-      await ctx.runMutation(api.pdf.updateDocumentPdf, {
+      await ctx.runMutation("pdf:updateDocumentPdf", {
         type: documentType,
         id,
         storageId,
@@ -71,30 +88,6 @@ export const generatePdf = action({
         success: false,
         error: error instanceof Error ? error.message : "Unknown error",
       } as PdfGenerationResult;
-    }
-  },
-});
-
-// Get document data for PDF generation
-export const getDocumentData = query({
-  args: {
-    type: v.string(),
-    id: v.any(),
-  },
-  handler: async (ctx, args) => {
-    const { type, id } = args;
-    const documentType = type as DocumentType;
-
-    // Get the document data based on type
-    switch (documentType) {
-      case "invoice":
-        return await getInvoiceData(ctx.db, id as Id<"invoices">);
-      case "quote":
-        return await getQuoteData(ctx.db, id as Id<"quotes">);
-      case "workOrder":
-        return await getWorkOrderData(ctx.db, id as Id<"workOrders">);
-      default:
-        throw new Error(`Unsupported document type: ${type}`);
     }
   },
 });
