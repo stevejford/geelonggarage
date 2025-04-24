@@ -20,7 +20,7 @@ This service provides PDF generation capabilities for the Geelong Garage applica
    ```
    PORT=3001
    API_KEY=your-secret-api-key
-   ALLOWED_ORIGINS=https://your-convex-app.convex.site,http://localhost:5173
+   ALLOWED_ORIGINS=https://patient-tern-95.convex.site,https://grandiose-swordfish-144.convex.site,http://localhost:5173
    ```
 
 3. Create the `templates` directory and add your HTML templates.
@@ -87,7 +87,19 @@ This service is designed to be deployed on Render.com.
 3. Connect to your GitHub repository
 4. Set the build command: `npm install`
 5. Set the start command: `npm start`
-6. Add the environment variables from your `.env` file
+6. Add the environment variables from your `.env` file:
+   - `PORT`: 3001
+   - `API_KEY`: (your secret API key)
+   - `ALLOWED_ORIGINS`: https://patient-tern-95.convex.site,https://grandiose-swordfish-144.convex.site,http://localhost:5173
+   - `PUPPETEER_SKIP_CHROMIUM_DOWNLOAD`: false
+
+### Troubleshooting
+
+If you encounter a "Cannot find package 'puppeteer'" error:
+
+1. Make sure puppeteer is listed in the dependencies (not optionalDependencies) in package.json
+2. Set the `PUPPETEER_SKIP_CHROMIUM_DOWNLOAD` environment variable to `false`
+3. Redeploy the service
 
 ## Security
 

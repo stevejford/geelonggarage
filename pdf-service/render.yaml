@@ -10,4 +10,6 @@ services:
       - key: API_KEY
         sync: false
       - key: ALLOWED_ORIGINS
-        value: https://grandiose-swordfish-144.convex.site,http://localhost:5173
+        value: https://patient-tern-95.convex.site,https://grandiose-swordfish-144.convex.site,http://localhost:5173
+      - key: PUPPETEER_SKIP_CHROMIUM_DOWNLOAD
+        value: false
