@@ -5,6 +5,7 @@ services:
     buildCommand: |
       echo "VITE_CONVEX_URL=$VITE_CONVEX_URL" > .env
       echo "VITE_CLERK_PUBLISHABLE_KEY=$VITE_CLERK_PUBLISHABLE_KEY" >> .env
+      echo "VITE_GIPHY_API_KEY=$VITE_GIPHY_API_KEY" >> .env
       npm install && npx convex deploy --typecheck=disable && npm run build
     startCommand: npm start
     envVars:
@@ -20,5 +21,7 @@ services:
         sync: false
       - key: CLERK_SECRET_KEY
         sync: false
+      - key: VITE_GIPHY_API_KEY
+        value: pVLRoKGAHC1eWdDJyNSGvEEONDqtOe57
     autoDeploy: true
     plan: starter
