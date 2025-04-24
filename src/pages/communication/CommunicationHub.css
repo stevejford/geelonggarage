@@ -14,9 +14,13 @@
   /* Set background color */
   background-color: #f9fafb;
 
-  /* Use relative positioning instead of fixed to work with the sidebar */
-  position: relative;
-  z-index: 1;
+  /* Fix the container to prevent scrolling issues */
+  position: fixed;
+  top: 64px; /* Height of the navbar */
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
 }
 
 /* Make the tabs container take up the full height */
@@ -67,6 +71,24 @@
 /* Hide scrollbar for Chrome, Safari and Opera */
 .communication-hub-container .chat-sidebar::-webkit-scrollbar {
   display: none;
+}
+
+/* Adjust the container position when sidebar is hidden */
+.communication-hub-container {
+  /* Transition for smooth adjustment when sidebar is toggled */
+  transition: left 0.3s ease-in-out;
+}
+
+/* Default state (sidebar collapsed) */
+.communication-hub-container {
+  left: 0;
+}
+
+/* When sidebar is visible on medium screens and up */
+@media (min-width: 768px) {
+  .sidebar-expanded .communication-hub-container {
+    left: 256px; /* Width of the expanded sidebar */
+  }
 }
 
 /* Make sure the container doesn't affect other pages */

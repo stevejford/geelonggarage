@@ -55,6 +55,20 @@ export default function Layout() {
     }
   }, []);
 
+  // Add or remove sidebar-expanded class on body when sidebar state changes
+  useEffect(() => {
+    if (sidebarOpen) {
+      document.body.classList.add('sidebar-expanded');
+    } else {
+      document.body.classList.remove('sidebar-expanded');
+    }
+
+    // Cleanup on unmount
+    return () => {
+      document.body.classList.remove('sidebar-expanded');
+    };
+  }, [sidebarOpen]);
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Top Navigation Bar - Fixed to top */}
