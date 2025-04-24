@@ -22,6 +22,6 @@ services:
       - key: CLERK_SECRET_KEY
         sync: false
       - key: VITE_GIPHY_API_KEY
-        value: pVLRoKGAHC1eWdDJyNSGvEEONDqtOe57
+        value: FCkpvv7ExFjZrN6fjv013nFsnGXBXcVv
     autoDeploy: true
     plan: starter

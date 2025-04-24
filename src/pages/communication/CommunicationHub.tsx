@@ -382,8 +382,8 @@ export default function CommunicationHub() {
   };
 
   return (
-    <div className="flex flex-col">
-      <div className="flex justify-between items-center mb-4">
+    <div className="flex flex-col h-[calc(100vh-64px)]">
+      <div className="flex justify-between items-center mb-4 flex-shrink-0">
         <h1 className="text-2xl font-bold">Communication Hub</h1>
         <Button variant="outline" size="sm" onClick={() => setIsSettingsOpen(true)}>
           <Settings className="h-4 w-4 mr-2" />
@@ -398,8 +398,8 @@ export default function CommunicationHub() {
         selectedGroupId={selectedChatType === "group" ? selectedChatId || undefined : undefined}
       />
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-        <div className="border-b">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col h-full overflow-hidden">
+        <div className="border-b flex-shrink-0">
           <TabsList className="w-full justify-start">
             <TabsTrigger value="chat" className="flex items-center">
               <MessageSquare className="h-4 w-4 mr-2" />
@@ -412,9 +412,9 @@ export default function CommunicationHub() {
           </TabsList>
         </div>
 
-        <TabsContent value="chat" className="flex-1 flex space-x-4 mt-0 p-0">
+        <TabsContent value="chat" className="flex-1 flex space-x-4 mt-0 p-0 overflow-hidden">
           {/* Sidebar - Groups & Direct Messages */}
-          <div className="w-64 border-r pr-4 flex flex-col h-full">
+          <div className="w-64 border-r pr-4 flex flex-col h-full overflow-y-auto">
             <div className="mb-4 mt-4">
               <div className="flex justify-between items-center mb-2">
                 <h3 className="font-medium text-sm text-gray-500">GROUPS</h3>
@@ -518,9 +518,9 @@ export default function CommunicationHub() {
           </div>
 
           {/* Chat Area */}
-          <div className="flex-1 flex flex-col h-full">
+          <div className="flex-1 flex flex-col h-full overflow-hidden">
             {/* Chat Header */}
-            <div className="border-b p-4">
+            <div className="border-b p-4 flex-shrink-0">
               {!selectedChatId ? (
                 <div className="text-center py-2 text-gray-500">
                   Select a conversation to start chatting
@@ -558,7 +558,7 @@ export default function CommunicationHub() {
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-3 max-h-[calc(100vh-280px)]" style={{ minHeight: '300px' }}>
+            <div className="flex-1 overflow-y-auto p-4 space-y-3">
               {!selectedChatId ? (
                 <div className="h-full flex items-center justify-center text-gray-500">
                   Select a conversation to view messages
@@ -686,7 +686,7 @@ export default function CommunicationHub() {
             </div>
 
             {/* Message Input */}
-            <div className="p-4 border-t">
+            <div className="p-4 border-t flex-shrink-0">
               {!selectedChatId ? (
                 <div className="text-center text-gray-500 py-2">
                   Select a conversation to start chatting
