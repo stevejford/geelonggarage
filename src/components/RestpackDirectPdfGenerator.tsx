@@ -31,24 +31,40 @@ const RestpackDirectPdfGenerator: React.FC<RestpackDirectPdfGeneratorProps> = ({
 
       // Convert HTML to PDF using Restpack API directly
       console.log('Converting HTML to PDF using Restpack API...');
-      
+
+      // Let's try using JSON instead of form data
+      const requestData = {
+        html: htmlContent,
+        pdf_page: 'A4',
+        pdf_orientation: 'portrait',
+        pdf_margins: '10mm',
+        json: true
+      };
+
+      // Log the request for debugging
+      console.log('Restpack API request:', {
+        url: 'https://restpack.io/api/html2pdf/v7/convert',
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-access-token': 'G6CVGSyR9DKEIEXPDhv8WdIRjq4MreFsP8XV6UzXEyQmuQSe'
+        },
+        body: JSON.stringify(requestData)
+      });
+
       const response = await fetch('https://restpack.io/api/html2pdf/v7/convert', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'x-access-token': 'G6CVGSyR9DKEIEXPDhv8WdIRjq4MreFsP8XV6UzXEyQmuQSe'
         },
-        body: JSON.stringify({
-          html: htmlContent,
-          pdf_page: 'A4',
-          pdf_orientation: 'portrait',
-          pdf_margins: '10mm',
-          json: true
-        })
+        body: JSON.stringify(requestData)
       });
 
       if (!response.ok) {
-        throw new Error(`PDF generation failed: ${response.status} ${response.statusText}`);
+        const errorText = await response.text();
+        console.error('Restpack API error response:', errorText);
+        throw new Error(`PDF generation failed: ${response.status} ${response.statusText} - ${errorText}`);
       }
 
       const result = await response.json();
@@ -56,7 +72,7 @@ const RestpackDirectPdfGenerator: React.FC<RestpackDirectPdfGeneratorProps> = ({
 
       // Open the PDF URL in a new tab
       window.open(result.image, '_blank');
-      
+
       toast({
         title: 'PDF Generated',
         description: 'Your PDF has been generated successfully.',
@@ -169,7 +185,7 @@ const RestpackDirectPdfGenerator: React.FC<RestpackDirectPdfGeneratorProps> = ({
         </div>
 
         <div class="document-title">
-          ${templateName === 'invoice_template' ? 'INVOICE' : 
+          ${templateName === 'invoice_template' ? 'INVOICE' :
             templateName === 'quote_template' ? 'QUOTE' : 'WORK ORDER'}
         </div>
 
@@ -242,7 +258,7 @@ const RestpackDirectPdfGenerator: React.FC<RestpackDirectPdfGeneratorProps> = ({
           <div>
             <h3>Notes</h3>
             <p>${data.notes || 'No notes provided.'}</p>
-            
+
             <h3>Technicians</h3>
             <ul>
               ${(data.technicians || []).map(tech => `<li>${tech.name}</li>`).join('')}
