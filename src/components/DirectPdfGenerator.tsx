@@ -42,8 +42,8 @@ export function DirectPdfGenerator({
 
       // Try multiple PDF service URLs in case one fails
       const pdfServiceUrls = [
-        'http://localhost:3001',
-        'https://geelonggarage-1.onrender.com'
+        'https://geelonggarage-1.onrender.com',
+        'http://localhost:3001'
       ];
 
       // Simple test data
@@ -176,7 +176,7 @@ export function DirectPdfGenerator({
               },
               body: JSON.stringify(simplifiedData),
               mode: 'cors',
-              credentials: 'include'
+              credentials: 'omit'
             });
 
             if (response.ok) {
