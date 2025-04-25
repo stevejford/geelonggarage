@@ -3,7 +3,7 @@ services:
     name: geelong-garage-pdf-service
     env: node
     plan: starter
-    buildCommand: npm install
+    buildCommand: chmod +x build.sh && ./build.sh
     startCommand: npm start
     envVars:
       - key: PORT
