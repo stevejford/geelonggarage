@@ -12,14 +12,89 @@ interface RestpackDirectPdfGeneratorProps {
   onPdfGenerated?: (url: string) => void;
 }
 
-const RestpackDirectPdfGenerator: React.FC<RestpackDirectPdfGeneratorProps> = ({
+// Export the PDF generation function for direct use
+export const generatePdf = async (
+  templateName: string,
+  templateData: any,
+  onPdfGenerated?: (url: string) => void
+) => {
+  const { toast } = useToast();
+
+  try {
+    console.log('Preparing to generate PDF with template:', templateName);
+
+    // Create HTML template
+    const html = createHtmlTemplate(templateName, templateData);
+
+    // Convert HTML to PDF using Restpack API
+    console.log('Converting HTML to PDF using Restpack API...');
+
+    const apiKey = 'ZjNmYzA3YTAtMzA0Ni00YzA5LWI3ZDMtOTVlNDIyOGNkMzA0';
+    const apiUrl = 'https://restpack.io/api/html2pdf/v7/convert';
+
+    const requestData = {
+      html: html,
+      page_size: 'A4',
+      orientation: 'portrait',
+      pdf_margins: '10px',
+      json: true
+    };
+
+    console.log('Restpack API request:', {
+      url: apiUrl,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify(requestData)
+    });
+
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify(requestData)
+    });
+
+    if (!response.ok) {
+      throw new Error(`API request failed with status ${response.status}`);
+    }
+
+    const result = await response.json();
+    console.log('Restpack API response:', result);
+
+    if (!result.image) {
+      throw new Error('No PDF URL returned from the API');
+    }
+
+    // Call the onPdfGenerated callback if provided
+    if (onPdfGenerated) {
+      onPdfGenerated(result.image);
+    }
+
+    return result.image;
+  } catch (error) {
+    console.error('Error generating PDF:', error);
+    toast({
+      title: 'Error',
+      description: 'Failed to generate PDF. Please try again.',
+      variant: 'destructive',
+    });
+    throw error;
+  }
+};
+
+const RestpackDirectPdfGenerator = ({
   templateName,
   templateData,
   buttonText = 'Generate PDF',
   className = '',
   variant = 'default',
   onPdfGenerated,
-}) => {
+}: RestpackDirectPdfGeneratorProps) => {
   const { toast } = useToast();
   const [isGenerating, setIsGenerating] = useState(false);
 
@@ -85,17 +160,20 @@ const RestpackDirectPdfGenerator: React.FC<RestpackDirectPdfGeneratorProps> = ({
         throw new Error('No PDF URL returned from the API');
       }
 
-      // Open the PDF URL in a new tab
-      try {
-        window.open(result.image, '_blank');
-      } catch (error) {
-        console.error('Error opening PDF URL:', error);
-        // Provide a fallback by showing the URL to the user
-        toast({
-          title: 'PDF Generated',
-          description: `Your PDF is available at: ${result.image}`,
-          variant: 'default',
-        });
+      // Only open the PDF in a new tab if this is a direct PDF preview request
+      // (not when generating for email)
+      if (buttonText === "PDF Preview") {
+        try {
+          window.open(result.image, '_blank');
+        } catch (error) {
+          console.error('Error opening PDF URL:', error);
+          // Provide a fallback by showing the URL to the user
+          toast({
+            title: 'PDF Generated',
+            description: `Your PDF is available at: ${result.image}`,
+            variant: 'default',
+          });
+        }
       }
 
       // Call the onPdfGenerated callback if provided
@@ -622,6 +700,15 @@ const RestpackDirectPdfGenerator: React.FC<RestpackDirectPdfGeneratorProps> = ({
       )}
     </Button>
   );
+};
+
+// Export the createHtmlTemplate function for use in generatePdf
+export const createHtmlTemplate = (templateName: string, templateData: any) => {
+  if (templateName === 'invoice_template') {
+    return createInvoiceTemplate(templateData);
+  } else {
+    throw new Error(`Unknown template: ${templateName}`);
+  }
 };
 
 export default RestpackDirectPdfGenerator;

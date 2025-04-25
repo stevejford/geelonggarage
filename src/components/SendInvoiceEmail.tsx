@@ -68,6 +68,7 @@ const SendInvoiceEmail: React.FC<SendInvoiceEmailProps> = ({
       setIsSending(true);
 
       // If we don't have a PDF URL and onPdfNeeded is provided, generate the PDF
+      // but don't show it to the user - just use it for the email
       let finalPdfUrl = pdfUrl;
       if (!finalPdfUrl && onPdfNeeded) {
         try {
@@ -75,6 +76,7 @@ const SendInvoiceEmail: React.FC<SendInvoiceEmailProps> = ({
             title: 'Generating PDF',
             description: 'Preparing invoice PDF before sending...',
           });
+          // Set a flag to prevent the PDF from opening in a new tab
           finalPdfUrl = await onPdfNeeded();
         } catch (error) {
           console.error('Error generating PDF:', error);

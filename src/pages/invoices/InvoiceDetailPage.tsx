@@ -31,7 +31,7 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import { PDFPreview } from "@/components/ui/pdf-preview";
 import { DirectPdfGenerator } from "@/components/DirectPdfGenerator";
-import RestpackDirectPdfGenerator from "@/components/RestpackDirectPdfGenerator";
+import RestpackDirectPdfGenerator, { generatePdf } from "@/components/RestpackDirectPdfGenerator";
 import RestpackPdfGenerator from "@/components/RestpackPdfGenerator";
 import SendInvoiceEmail from "@/components/SendInvoiceEmail";
 import EmailHistoryList from "@/components/EmailHistoryList";
@@ -301,37 +301,64 @@ export default function InvoiceDetailPage() {
               onPdfNeeded={async () => {
                 if (pdfUrl) return pdfUrl;
 
-                // Generate PDF if not already available
+                // Generate PDF if not already available, but don't show it to the user
                 toast({
                   title: "Generating PDF",
                   description: "Please wait while we prepare the invoice PDF...",
                 });
 
                 try {
-                  // This is a simplified approach - in a real implementation, you would call
-                  // the PDF generation service and wait for the result
-                  const pdfButton = document.querySelector('[data-testid="pdf-preview-button"]');
-                  if (pdfButton) {
-                    (pdfButton as HTMLButtonElement).click();
+                  // Generate PDF silently without opening it in a new tab
+                  const templateData = {
+                    company_name: 'Geelong Garage',
+                    company_address_line1: '31 Gordon Ave',
+                    company_address_line2: 'Geelong West VIC 3218',
+                    company_phone: '(03) 5221 9222',
+                    company_email: 'admin@geelonggaragedoors.com.au',
+                    company_bank_name: 'Commonwealth Bank of Australia',
+                    company_account_name: 'Geelong Garage Pty Ltd',
+                    company_bsb: '063-000',
+                    company_account_number: '12345678',
+                    customer_name: invoice.contact ? `${invoice.contact.firstName} ${invoice.contact.lastName}` : 'Unknown',
+                    customer_address_line1: invoice.account ? invoice.account.address : '',
+                    customer_address_line2: invoice.account ? `${invoice.account.city || ''}, ${invoice.account.state || ''} ${invoice.account.zip || ''}` : '',
+                    customer_phone: invoice.contact ? invoice.contact.phone : '',
+                    customer_email: invoice.contact ? invoice.contact.email : '',
+                    invoice_number: invoice.invoiceNumber,
+                    invoice_date: new Date(invoice.issueDate).toLocaleDateString(),
+                    due_date: new Date(invoice.dueDate).toLocaleDateString(),
+                    work_order_number: invoice.workOrder ? invoice.workOrder.workOrderNumber : '',
+                    line_items: invoice.lineItems ? invoice.lineItems.map(item => ({
+                      quantity: item.quantity,
+                      description: item.description,
+                      unit_price: item.unitPrice.toFixed(2),
+                      total: item.total.toFixed(2)
+                    })) : [],
+                    subtotal: invoice.subtotal.toFixed(2),
+                    tax: invoice.tax.toFixed(2),
+                    total: invoice.total.toFixed(2)
+                  };
 
-                    // Wait for the PDF to be generated (this is a simplified approach)
-                    return new Promise((resolve) => {
-                      const checkPdfUrl = setInterval(() => {
-                        if (pdfUrl) {
-                          clearInterval(checkPdfUrl);
-                          resolve(pdfUrl);
-                        }
-                      }, 500);
+                  // Generate PDF and get the URL
+                  const pdfUrl = await generatePdf("invoice_template", templateData, (url) => {
+                    setPdfUrl(url);
+                  });
 
-                      // Timeout after 10 seconds
-                      setTimeout(() => {
+                  // Wait for the PDF URL to be set
+                  return new Promise((resolve) => {
+                    const checkPdfUrl = setInterval(() => {
+                      if (pdfUrl) {
                         clearInterval(checkPdfUrl);
-                        throw new Error("PDF generation timed out");
-                      }, 10000);
-                    });
-                  } else {
-                    throw new Error("PDF generation button not found");
-                  }
+                        resolve(pdfUrl);
+                      }
+                    }, 500);
+
+                    // Timeout after 10 seconds
+                    setTimeout(() => {
+                      clearInterval(checkPdfUrl);
+                      throw new Error("PDF generation timed out");
+                    }, 10000);
+                  });
                 } catch (error) {
                   console.error("Error generating PDF:", error);
                   toast({
