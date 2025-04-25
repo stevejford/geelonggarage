@@ -1,10 +1,10 @@
 services:
   - type: web
     name: geelong-garage-pdf-service
-    env: node
+    env: docker
     plan: starter
-    buildCommand: chmod +x build.sh && ./build.sh
-    startCommand: npm start
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
     envVars:
       - key: PORT
         value: 3001
@@ -14,5 +14,3 @@ services:
         value: https://patient-tern-95.convex.site,https://grandiose-swordfish-144.convex.site,http://localhost:5173,http://localhost:3000
       - key: RENDER
         value: true
-      - key: PUPPETEER_CACHE_DIR
-        value: /opt/render/.cache/puppeteer

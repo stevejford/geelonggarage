@@ -9,7 +9,7 @@ export async function createBrowser() {
   try {
     console.log('Creating browser instance...');
 
-    // Launch options
+    // Launch options for Docker environment
     const launchOptions = {
       headless: 'new',
       args: [
