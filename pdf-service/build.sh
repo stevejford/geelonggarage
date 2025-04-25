@@ -2,26 +2,16 @@
 # exit on error
 set -o errexit
 
-# Install Chrome
-echo "Installing Chrome..."
-apt-get update
-apt-get install -y wget gnupg
-wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -
-echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list
-apt-get update
-apt-get install -y google-chrome-stable
-
 # Install dependencies
 echo "Installing dependencies..."
 npm install
 
-# Install Puppeteer
-echo "Installing Puppeteer..."
-npm install puppeteer
+# Set Puppeteer cache directory
+export PUPPETEER_CACHE_DIR=/opt/render/.cache/puppeteer
 
-# Print Chrome version
-echo "Chrome version:"
-google-chrome --version
+# Install Puppeteer with Chromium
+echo "Installing Puppeteer with Chromium..."
+PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=false npm install puppeteer
 
 # Print Node version
 echo "Node version:"
@@ -30,3 +20,7 @@ node --version
 # Print Puppeteer version
 echo "Puppeteer version:"
 npm list puppeteer
+
+# Print Chromium path
+echo "Checking for Chromium..."
+node -e "console.log(require('puppeteer').executablePath())"
