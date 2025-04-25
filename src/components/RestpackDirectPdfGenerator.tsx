@@ -115,7 +115,7 @@ const RestpackDirectPdfGenerator: React.FC<RestpackDirectPdfGeneratorProps> = ({
 
   // Function to generate HTML from template data
   const generateHtmlFromTemplate = (templateName: string, data: any): string => {
-    // Basic HTML template with styling
+    // Enhanced HTML template with better styling
     return `
       <!DOCTYPE html>
       <html lang="en">
@@ -123,174 +123,462 @@ const RestpackDirectPdfGenerator: React.FC<RestpackDirectPdfGeneratorProps> = ({
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>${data.company_name || 'Geelong Garage'} - ${templateName}</title>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
         <style>
-          body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            color: #333;
+          :root {
+            --primary-color: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary-color: #475569;
+            --accent-color: #f59e0b;
+            --success-color: #10b981;
+            --warning-color: #f97316;
+            --danger-color: #ef4444;
+            --light-gray: #f8fafc;
+            --border-color: #e2e8f0;
+            --text-color: #334155;
+            --text-light: #64748b;
           }
+
+          * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+          }
+
+          body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: white;
+            font-size: 14px;
+            padding: 0;
+            margin: 0;
+          }
+
+          .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+          }
+
           .header {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 30px;
+            align-items: flex-start;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
           }
+
+          .logo-container {
+            flex: 1;
+          }
+
           .logo {
-            max-width: 150px;
+            max-width: 180px;
+            height: auto;
           }
+
           .company-info {
             text-align: right;
+            flex: 1;
           }
+
+          .company-name {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary-dark);
+            margin-bottom: 8px;
+          }
+
+          .company-details {
+            font-size: 14px;
+            color: var(--secondary-color);
+            line-height: 1.4;
+          }
+
           .document-title {
             text-align: center;
-            margin: 20px 0;
-            font-size: 24px;
-            color: #2563eb;
+            margin: 30px 0;
+            position: relative;
           }
-          .customer-info {
-            margin-bottom: 20px;
+
+          .document-title h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--primary-color);
+            display: inline-block;
+            padding: 0 15px;
+            background: white;
+            position: relative;
+            z-index: 1;
           }
+
+          .document-title::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            width: 100%;
+            height: 1px;
+            background-color: var(--border-color);
+            z-index: 0;
+          }
+
+          .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+          }
+
+          .info-section {
+            padding: 20px;
+            background-color: var(--light-gray);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+          }
+
+          .info-section h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border-color);
+          }
+
+          .info-row {
+            display: flex;
+            margin-bottom: 8px;
+          }
+
+          .info-label {
+            font-weight: 600;
+            width: 140px;
+            color: var(--secondary-color);
+          }
+
+          .info-value {
+            flex: 1;
+          }
+
           table {
             width: 100%;
             border-collapse: collapse;
-            margin: 20px 0;
+            margin: 30px 0;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
           }
-          th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
+
+          thead {
+            background-color: var(--primary-color);
+            color: white;
           }
+
           th {
-            background-color: #f2f2f2;
+            padding: 12px 15px;
+            text-align: left;
+            font-weight: 600;
           }
-          .totals {
+
+          td {
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border-color);
+          }
+
+          tr:nth-child(even) {
+            background-color: var(--light-gray);
+          }
+
+          tr:last-child td {
+            border-bottom: none;
+          }
+
+          .totals-container {
             margin-top: 20px;
-            text-align: right;
+            margin-left: auto;
+            width: 300px;
           }
-          .footer {
-            margin-top: 50px;
-            text-align: center;
-            font-size: 12px;
-            color: #666;
+
+          .totals-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border-color);
           }
-          .status {
+
+          .totals-row:last-child {
+            border-bottom: none;
+            font-weight: 700;
+            font-size: 16px;
+            color: var(--primary-dark);
+            padding-top: 12px;
+          }
+
+          .payment-info {
+            margin-top: 40px;
+            padding: 20px;
+            background-color: var(--light-gray);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+          }
+
+          .payment-info h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border-color);
+          }
+
+          .payment-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+          }
+
+          .status-badge {
             display: inline-block;
-            padding: 5px 10px;
-            border-radius: 4px;
-            font-weight: bold;
+            padding: 4px 12px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
           }
-          .completed {
-            background-color: #dcfce7;
-            color: #166534;
+
+          .status-completed {
+            background-color: #d1fae5;
+            color: #065f46;
           }
-          .pending {
+
+          .status-pending {
             background-color: #ffedd5;
             color: #9a3412;
           }
-          .in-progress {
+
+          .status-in-progress {
             background-color: #dbeafe;
             color: #1e40af;
+          }
+
+          .footer {
+            margin-top: 60px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-light);
+          }
+
+          .notes-section {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: var(--light-gray);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+          }
+
+          .notes-section h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border-color);
+          }
+
+          .technicians-list {
+            list-style-type: none;
+            margin-top: 10px;
+          }
+
+          .technicians-list li {
+            padding: 5px 0;
+            border-bottom: 1px dashed var(--border-color);
+          }
+
+          .technicians-list li:last-child {
+            border-bottom: none;
           }
         </style>
       </head>
       <body>
-        <div class="header">
-          <div>
-            <img src="${data.logo_url || 'https://via.placeholder.com/150'}" alt="Logo" class="logo">
+        <div class="container">
+          <div class="header">
+            <div class="logo-container">
+              <img src="https://i.imgur.com/8bGJCMl.png" alt="Geelong Garage Logo" class="logo">
+            </div>
+            <div class="company-info">
+              <div class="company-name">${data.company_name || 'Geelong Garage'}</div>
+              <div class="company-details">
+                ${data.company_address_line1 || '123 Main Street'}<br>
+                ${data.company_address_line2 || 'Geelong, VIC 3220'}<br>
+                Phone: ${data.company_phone || '(03) 5222 1234'}<br>
+                Email: ${data.company_email || 'info@geelonggarage.com'}
+              </div>
+            </div>
           </div>
-          <div class="company-info">
-            <h2>${data.company_name || 'Geelong Garage'}</h2>
-            <p>${data.company_address_line1 || '123 Main Street'}</p>
-            <p>${data.company_address_line2 || 'Geelong, VIC 3220'}</p>
-            <p>Phone: ${data.company_phone || '(03) 5222 1234'}</p>
-            <p>Email: ${data.company_email || 'info@geelonggarage.com'}</p>
-          </div>
-        </div>
 
-        <div class="document-title">
-          ${templateName === 'invoice_template' ? 'INVOICE' :
-            templateName === 'quote_template' ? 'QUOTE' : 'WORK ORDER'}
-        </div>
-
-        <div class="customer-info">
-          <h3>Customer Information</h3>
-          <p><strong>Name:</strong> ${data.customer_name || 'Customer Name'}</p>
-          <p><strong>Address:</strong> ${data.customer_address_line1 || 'Customer Address'}</p>
-          <p><strong>Phone:</strong> ${data.customer_phone || 'Customer Phone'}</p>
-          <p><strong>Email:</strong> ${data.customer_email || 'Customer Email'}</p>
-        </div>
-
-        ${templateName === 'invoice_template' ? `
-          <div>
-            <p><strong>Invoice Number:</strong> ${data.invoice_number || 'INV-001'}</p>
-            <p><strong>Invoice Date:</strong> ${data.invoice_date || new Date().toLocaleDateString()}</p>
-            <p><strong>Due Date:</strong> ${data.due_date || new Date().toLocaleDateString()}</p>
-            <p><strong>Work Order Number:</strong> ${data.work_order_number || 'WO-001'}</p>
+          <div class="document-title">
+            <h1>${templateName === 'invoice_template' ? 'INVOICE' :
+              templateName === 'quote_template' ? 'QUOTE' : 'WORK ORDER'}</h1>
           </div>
-        ` : templateName === 'quote_template' ? `
-          <div>
-            <p><strong>Quote Number:</strong> ${data.quote_number || 'Q-001'}</p>
-            <p><strong>Quote Date:</strong> ${data.quote_date || new Date().toLocaleDateString()}</p>
-            <p><strong>Expiry Date:</strong> ${data.expiry_date || new Date().toLocaleDateString()}</p>
-          </div>
-        ` : `
-          <div>
-            <p><strong>Work Order Number:</strong> ${data.work_order_number || 'WO-001'}</p>
-            <p><strong>Created Date:</strong> ${data.created_date || new Date().toLocaleDateString()}</p>
-            <p><strong>Scheduled Date:</strong> ${data.scheduled_date || new Date().toLocaleDateString()}</p>
-            <p><strong>Status:</strong> <span class="status ${data.status_class || 'pending'}">${data.status || 'Pending'}</span></p>
-          </div>
-        `}
 
-        <table>
-          <thead>
-            <tr>
-              <th>Quantity</th>
-              <th>Description</th>
-              <th>Unit Price</th>
-              <th>Total</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${(data.line_items || []).map(item => `
+          <div class="info-grid">
+            <div class="info-section">
+              <h3>Customer Information</h3>
+              <div class="info-row">
+                <div class="info-label">Name:</div>
+                <div class="info-value">${data.customer_name || 'Customer Name'}</div>
+              </div>
+              <div class="info-row">
+                <div class="info-label">Address:</div>
+                <div class="info-value">${data.customer_address_line1 || 'Customer Address'}</div>
+              </div>
+              <div class="info-row">
+                <div class="info-label">Phone:</div>
+                <div class="info-value">${data.customer_phone || 'Customer Phone'}</div>
+              </div>
+              <div class="info-row">
+                <div class="info-label">Email:</div>
+                <div class="info-value">${data.customer_email || 'Customer Email'}</div>
+              </div>
+            </div>
+
+            <div class="info-section">
+              ${templateName === 'invoice_template' ? `
+                <h3>Invoice Details</h3>
+                <div class="info-row">
+                  <div class="info-label">Invoice Number:</div>
+                  <div class="info-value">${data.invoice_number || 'INV-001'}</div>
+                </div>
+                <div class="info-row">
+                  <div class="info-label">Invoice Date:</div>
+                  <div class="info-value">${data.invoice_date || new Date().toLocaleDateString()}</div>
+                </div>
+                <div class="info-row">
+                  <div class="info-label">Due Date:</div>
+                  <div class="info-value">${data.due_date || new Date().toLocaleDateString()}</div>
+                </div>
+                <div class="info-row">
+                  <div class="info-label">Work Order:</div>
+                  <div class="info-value">${data.work_order_number || 'WO-001'}</div>
+                </div>
+              ` : templateName === 'quote_template' ? `
+                <h3>Quote Details</h3>
+                <div class="info-row">
+                  <div class="info-label">Quote Number:</div>
+                  <div class="info-value">${data.quote_number || 'Q-001'}</div>
+                </div>
+                <div class="info-row">
+                  <div class="info-label">Quote Date:</div>
+                  <div class="info-value">${data.quote_date || new Date().toLocaleDateString()}</div>
+                </div>
+                <div class="info-row">
+                  <div class="info-label">Expiry Date:</div>
+                  <div class="info-value">${data.expiry_date || new Date().toLocaleDateString()}</div>
+                </div>
+              ` : `
+                <h3>Work Order Details</h3>
+                <div class="info-row">
+                  <div class="info-label">Work Order:</div>
+                  <div class="info-value">${data.work_order_number || 'WO-001'}</div>
+                </div>
+                <div class="info-row">
+                  <div class="info-label">Created Date:</div>
+                  <div class="info-value">${data.created_date || new Date().toLocaleDateString()}</div>
+                </div>
+                <div class="info-row">
+                  <div class="info-label">Scheduled Date:</div>
+                  <div class="info-value">${data.scheduled_date || new Date().toLocaleDateString()}</div>
+                </div>
+                <div class="info-row">
+                  <div class="info-label">Status:</div>
+                  <div class="info-value">
+                    <span class="status-badge status-${data.status_class || 'pending'}">${data.status || 'Pending'}</span>
+                  </div>
+                </div>
+              `}
+            </div>
+          </div>
+
+          <table>
+            <thead>
               <tr>
-                <td>${item.quantity}</td>
-                <td>${item.description}</td>
-                <td>$${item.unit_price}</td>
-                <td>$${item.total}</td>
+                <th style="width: 10%">Quantity</th>
+                <th style="width: 50%">Description</th>
+                <th style="width: 20%">Unit Price</th>
+                <th style="width: 20%">Total</th>
               </tr>
-            `).join('')}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              ${(data.line_items || []).map(item => `
+                <tr>
+                  <td>${item.quantity}</td>
+                  <td>${item.description}</td>
+                  <td>$${item.unit_price}</td>
+                  <td>$${item.total}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
 
-        <div class="totals">
-          <p><strong>Subtotal:</strong> $${data.subtotal || '0.00'}</p>
-          <p><strong>Tax:</strong> $${data.tax || '0.00'}</p>
-          <p><strong>Total:</strong> $${data.total || '0.00'}</p>
-        </div>
-
-        ${templateName === 'invoice_template' ? `
-          <div>
-            <h3>Payment Information</h3>
-            <p><strong>Bank Name:</strong> ${data.company_bank_name || 'Commonwealth Bank of Australia'}</p>
-            <p><strong>Account Name:</strong> ${data.company_account_name || 'Geelong Garage Pty Ltd'}</p>
-            <p><strong>BSB:</strong> ${data.company_bsb || '063-000'}</p>
-            <p><strong>Account Number:</strong> ${data.company_account_number || '12345678'}</p>
+          <div class="totals-container">
+            <div class="totals-row">
+              <div>Subtotal</div>
+              <div>$${data.subtotal || '0.00'}</div>
+            </div>
+            <div class="totals-row">
+              <div>Tax</div>
+              <div>$${data.tax || '0.00'}</div>
+            </div>
+            <div class="totals-row">
+              <div>Total</div>
+              <div>$${data.total || '0.00'}</div>
+            </div>
           </div>
-        ` : templateName === 'work_order_template' ? `
-          <div>
-            <h3>Notes</h3>
-            <p>${data.notes || 'No notes provided.'}</p>
 
-            <h3>Technicians</h3>
-            <ul>
-              ${(data.technicians || []).map(tech => `<li>${tech.name}</li>`).join('')}
-            </ul>
+          ${templateName === 'invoice_template' ? `
+            <div class="payment-info">
+              <h3>Payment Information</h3>
+              <div class="payment-grid">
+                <div class="info-row">
+                  <div class="info-label">Bank Name:</div>
+                  <div class="info-value">${data.company_bank_name || 'Commonwealth Bank of Australia'}</div>
+                </div>
+                <div class="info-row">
+                  <div class="info-label">Account Name:</div>
+                  <div class="info-value">${data.company_account_name || 'Geelong Garage Pty Ltd'}</div>
+                </div>
+                <div class="info-row">
+                  <div class="info-label">BSB:</div>
+                  <div class="info-value">${data.company_bsb || '063-000'}</div>
+                </div>
+                <div class="info-row">
+                  <div class="info-label">Account Number:</div>
+                  <div class="info-value">${data.company_account_number || '12345678'}</div>
+                </div>
+              </div>
+            </div>
+          ` : templateName === 'work_order_template' ? `
+            <div class="notes-section">
+              <h3>Notes</h3>
+              <p>${data.notes || 'No notes provided.'}</p>
+
+              <h3 style="margin-top: 20px;">Technicians</h3>
+              <ul class="technicians-list">
+                ${(data.technicians || []).map(tech => `<li>${tech.name}</li>`).join('')}
+              </ul>
+            </div>
+          ` : ''}
+
+          <div class="footer">
+            <p>Generated on ${new Date().toLocaleDateString()} | ${data.company_name || 'Geelong Garage'}</p>
+            <p>Thank you for your business!</p>
           </div>
-        ` : ''}
-
-        <div class="footer">
-          <p>Generated on ${new Date().toLocaleDateString()} | ${data.company_name || 'Geelong Garage'}</p>
         </div>
       </body>
       </html>
