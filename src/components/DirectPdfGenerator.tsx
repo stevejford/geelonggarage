@@ -176,7 +176,8 @@ export function DirectPdfGenerator({
               },
               body: JSON.stringify(simplifiedData),
               mode: 'cors',
-              credentials: 'omit'
+              credentials: 'omit',
+              cache: 'no-cache'
             });
 
             if (response.ok) {

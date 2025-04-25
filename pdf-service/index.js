@@ -71,9 +71,22 @@ app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok' });
 });
 
+// Handle OPTIONS requests for CORS preflight
+app.options('*', (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.status(204).end();
+});
+
 // Generate PDF endpoint
 app.post('/api/pdf/generate', async (req, res) => {
   try {
+    // Set CORS headers
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
     const { templateName, templateData, options } = req.body;
 
     if (!templateName || !templateData) {
@@ -104,6 +117,11 @@ app.post('/api/pdf/generate', async (req, res) => {
 // List templates endpoint
 app.get('/api/pdf/templates', (req, res) => {
   try {
+    // Set CORS headers
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
     const templates = fs.readdirSync(templatesDir)
       .filter(file => file.endsWith('.html'))
       .map(file => file.replace('.html', ''));
