@@ -158,15 +158,15 @@ const RestpackDirectPdfGenerator: React.FC<RestpackDirectPdfGeneratorProps> = ({
           .container {
             max-width: 800px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 15px;
           }
 
           .header {
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 40px;
-            padding-bottom: 20px;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
             border-bottom: 1px solid var(--border-color);
           }
 
@@ -175,7 +175,7 @@ const RestpackDirectPdfGenerator: React.FC<RestpackDirectPdfGeneratorProps> = ({
           }
 
           .logo {
-            max-width: 180px;
+            max-width: 200px;
             height: auto;
           }
 
@@ -185,26 +185,26 @@ const RestpackDirectPdfGenerator: React.FC<RestpackDirectPdfGeneratorProps> = ({
           }
 
           .company-name {
-            font-size: 24px;
+            font-size: 22px;
             font-weight: 700;
             color: var(--primary-dark);
-            margin-bottom: 8px;
+            margin-bottom: 5px;
           }
 
           .company-details {
-            font-size: 14px;
+            font-size: 12px;
             color: var(--secondary-color);
-            line-height: 1.4;
+            line-height: 1.3;
           }
 
           .document-title {
             text-align: center;
-            margin: 30px 0;
+            margin: 15px 0;
             position: relative;
           }
 
           .document-title h1 {
-            font-size: 28px;
+            font-size: 24px;
             font-weight: 700;
             color: var(--primary-color);
             display: inline-block;
@@ -228,34 +228,35 @@ const RestpackDirectPdfGenerator: React.FC<RestpackDirectPdfGeneratorProps> = ({
           .info-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 30px;
-            margin-bottom: 30px;
+            gap: 15px;
+            margin-bottom: 15px;
           }
 
           .info-section {
-            padding: 20px;
+            padding: 12px;
             background-color: var(--light-gray);
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border-radius: 6px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
           }
 
           .info-section h3 {
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 600;
             color: var(--primary-color);
-            margin-bottom: 12px;
-            padding-bottom: 8px;
+            margin-bottom: 8px;
+            padding-bottom: 5px;
             border-bottom: 1px solid var(--border-color);
           }
 
           .info-row {
             display: flex;
-            margin-bottom: 8px;
+            margin-bottom: 4px;
+            font-size: 12px;
           }
 
           .info-label {
             font-weight: 600;
-            width: 140px;
+            width: 110px;
             color: var(--secondary-color);
           }
 
@@ -266,10 +267,11 @@ const RestpackDirectPdfGenerator: React.FC<RestpackDirectPdfGeneratorProps> = ({
           table {
             width: 100%;
             border-collapse: collapse;
-            margin: 30px 0;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            border-radius: 8px;
+            margin: 15px 0;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+            border-radius: 6px;
             overflow: hidden;
+            font-size: 12px;
           }
 
           thead {
@@ -278,13 +280,13 @@ const RestpackDirectPdfGenerator: React.FC<RestpackDirectPdfGeneratorProps> = ({
           }
 
           th {
-            padding: 12px 15px;
+            padding: 8px 10px;
             text-align: left;
             font-weight: 600;
           }
 
           td {
-            padding: 12px 15px;
+            padding: 6px 10px;
             border-bottom: 1px solid var(--border-color);
           }
 
@@ -297,55 +299,57 @@ const RestpackDirectPdfGenerator: React.FC<RestpackDirectPdfGeneratorProps> = ({
           }
 
           .totals-container {
-            margin-top: 20px;
+            margin-top: 10px;
             margin-left: auto;
-            width: 300px;
+            width: 200px;
+            font-size: 12px;
           }
 
           .totals-row {
             display: flex;
             justify-content: space-between;
-            padding: 8px 0;
+            padding: 4px 0;
             border-bottom: 1px solid var(--border-color);
           }
 
           .totals-row:last-child {
             border-bottom: none;
             font-weight: 700;
-            font-size: 16px;
+            font-size: 14px;
             color: var(--primary-dark);
-            padding-top: 12px;
+            padding-top: 6px;
           }
 
           .payment-info {
-            margin-top: 40px;
-            padding: 20px;
+            margin-top: 15px;
+            padding: 12px;
             background-color: var(--light-gray);
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border-radius: 6px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+            font-size: 12px;
           }
 
           .payment-info h3 {
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 600;
             color: var(--primary-color);
-            margin-bottom: 12px;
-            padding-bottom: 8px;
+            margin-bottom: 8px;
+            padding-bottom: 5px;
             border-bottom: 1px solid var(--border-color);
           }
 
           .payment-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 15px;
+            gap: 10px;
           }
 
           .status-badge {
             display: inline-block;
-            padding: 4px 12px;
+            padding: 2px 8px;
             border-radius: 50px;
             font-weight: 600;
-            font-size: 12px;
+            font-size: 10px;
             text-transform: uppercase;
           }
 
@@ -365,38 +369,39 @@ const RestpackDirectPdfGenerator: React.FC<RestpackDirectPdfGeneratorProps> = ({
           }
 
           .footer {
-            margin-top: 60px;
-            padding-top: 20px;
+            margin-top: 20px;
+            padding-top: 10px;
             border-top: 1px solid var(--border-color);
             text-align: center;
-            font-size: 12px;
+            font-size: 10px;
             color: var(--text-light);
           }
 
           .notes-section {
-            margin-top: 30px;
-            padding: 20px;
+            margin-top: 15px;
+            padding: 12px;
             background-color: var(--light-gray);
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border-radius: 6px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+            font-size: 12px;
           }
 
           .notes-section h3 {
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 600;
             color: var(--primary-color);
-            margin-bottom: 12px;
-            padding-bottom: 8px;
+            margin-bottom: 8px;
+            padding-bottom: 5px;
             border-bottom: 1px solid var(--border-color);
           }
 
           .technicians-list {
             list-style-type: none;
-            margin-top: 10px;
+            margin-top: 8px;
           }
 
           .technicians-list li {
-            padding: 5px 0;
+            padding: 3px 0;
             border-bottom: 1px dashed var(--border-color);
           }
 
@@ -409,15 +414,15 @@ const RestpackDirectPdfGenerator: React.FC<RestpackDirectPdfGeneratorProps> = ({
         <div class="container">
           <div class="header">
             <div class="logo-container">
-              <img src="https://i.imgur.com/8bGJCMl.png" alt="Geelong Garage Logo" class="logo">
+              <img src="https://geelonggaragedoors.com.au/wp-content/uploads/2023/06/logo-pdfs.png" alt="Geelong Garage Logo" class="logo">
             </div>
             <div class="company-info">
-              <div class="company-name">${data.company_name || 'Geelong Garage'}</div>
+              <div class="company-name">Geelong Garage</div>
               <div class="company-details">
-                ${data.company_address_line1 || '123 Main Street'}<br>
-                ${data.company_address_line2 || 'Geelong, VIC 3220'}<br>
-                Phone: ${data.company_phone || '(03) 5222 1234'}<br>
-                Email: ${data.company_email || 'info@geelonggarage.com'}
+                31 Gordon Ave<br>
+                Geelong West VIC 3218<br>
+                Phone: (03) 5221 9222<br>
+                Email: admin@geelonggaragedoors.com.au
               </div>
             </div>
           </div>
@@ -547,19 +552,19 @@ const RestpackDirectPdfGenerator: React.FC<RestpackDirectPdfGeneratorProps> = ({
               <div class="payment-grid">
                 <div class="info-row">
                   <div class="info-label">Bank Name:</div>
-                  <div class="info-value">${data.company_bank_name || 'Commonwealth Bank of Australia'}</div>
+                  <div class="info-value">Commonwealth Bank of Australia</div>
                 </div>
                 <div class="info-row">
                   <div class="info-label">Account Name:</div>
-                  <div class="info-value">${data.company_account_name || 'Geelong Garage Pty Ltd'}</div>
+                  <div class="info-value">Geelong Garage Pty Ltd</div>
                 </div>
                 <div class="info-row">
                   <div class="info-label">BSB:</div>
-                  <div class="info-value">${data.company_bsb || '063-000'}</div>
+                  <div class="info-value">063-000</div>
                 </div>
                 <div class="info-row">
                   <div class="info-label">Account Number:</div>
-                  <div class="info-value">${data.company_account_number || '12345678'}</div>
+                  <div class="info-value">12345678</div>
                 </div>
               </div>
             </div>
@@ -576,8 +581,9 @@ const RestpackDirectPdfGenerator: React.FC<RestpackDirectPdfGeneratorProps> = ({
           ` : ''}
 
           <div class="footer">
-            <p>Generated on ${new Date().toLocaleDateString()} | ${data.company_name || 'Geelong Garage'}</p>
-            <p>Thank you for your business!</p>
+            <p>Generated on ${new Date().toLocaleDateString()} | Geelong Garage</p>
+            <p>31 Gordon Ave, Geelong West VIC 3218 | Phone: (03) 5221 9222 | Fax: (03) 5222 6186</p>
+            <p>Office Hours: Mon-Fri 9am-4:30pm | Email: admin@geelonggaragedoors.com.au</p>
           </div>
         </div>
       </body>
