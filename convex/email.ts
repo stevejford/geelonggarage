@@ -3,7 +3,9 @@ import { action } from "./_generated/server";
 import { v } from "convex/values";
 import { Resend } from 'resend';
 
-const resend = new Resend('re_RchKUyzV_Fyhkb89U61ePe746UTAVrzua');
+// Get the Resend API key from environment variables
+const RESEND_API_KEY = process.env.RESEND_API_KEY || 're_RchKUyzV_Fyhkb89U61ePe746UTAVrzua';
+const resend = new Resend(RESEND_API_KEY);
 
 export const sendEmail = action({
   args: {

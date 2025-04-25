@@ -4,8 +4,8 @@ import { v } from "convex/values";
 import crypto from "crypto";
 
 // Resend webhook secret for verifying webhook signatures
-// This should be stored in environment variables in production
-const RESEND_WEBHOOK_SECRET = "whsec_your_webhook_secret_here";
+// Get the webhook secret from environment variables
+const RESEND_WEBHOOK_SECRET = process.env.RESEND_WEBHOOK_SECRET || "whsec_your_webhook_secret_here";
 
 // Webhook endpoint for Resend
 export const handler = httpAction(async (ctx, request) => {
@@ -24,10 +24,10 @@ export const handler = httpAction(async (ctx, request) => {
     // Get the raw body
     const rawBody = await request.text();
 
-    // Verify the signature (commented out until we have the actual webhook secret)
-    // if (!verifySignature(signature, rawBody)) {
-    //   return new Response("Invalid signature", { status: 401 });
-    // }
+    // Verify the signature
+    if (!verifySignature(signature, rawBody)) {
+      return new Response("Invalid signature", { status: 401 });
+    }
 
     // Parse the body
     const body = JSON.parse(rawBody);
