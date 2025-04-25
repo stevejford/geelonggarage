@@ -12,14 +12,12 @@ interface RestpackDirectPdfGeneratorProps {
   onPdfGenerated?: (url: string) => void;
 }
 
-// Export the PDF generation function for direct use
+// Export the PDF generation function for direct use without React hooks
 export const generatePdf = async (
   templateName: string,
   templateData: any,
   onPdfGenerated?: (url: string) => void
 ) => {
-  const { toast } = useToast();
-
   try {
     console.log('Preparing to generate PDF with template:', templateName);
 
@@ -78,11 +76,7 @@ export const generatePdf = async (
     return result.image;
   } catch (error) {
     console.error('Error generating PDF:', error);
-    toast({
-      title: 'Error',
-      description: 'Failed to generate PDF. Please try again.',
-      variant: 'destructive',
-    });
+    // Don't use toast here since it's a React hook
     throw error;
   }
 };

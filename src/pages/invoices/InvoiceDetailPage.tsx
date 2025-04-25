@@ -340,25 +340,22 @@ export default function InvoiceDetailPage() {
                   };
 
                   // Generate PDF and get the URL
-                  const pdfUrl = await generatePdf("invoice_template", templateData, (url) => {
-                    setPdfUrl(url);
-                  });
+                  try {
+                    const generatedPdfUrl = await generatePdf("invoice_template", templateData, (url) => {
+                      setPdfUrl(url);
+                    });
 
-                  // Wait for the PDF URL to be set
-                  return new Promise((resolve) => {
-                    const checkPdfUrl = setInterval(() => {
-                      if (pdfUrl) {
-                        clearInterval(checkPdfUrl);
-                        resolve(pdfUrl);
-                      }
-                    }, 500);
-
-                    // Timeout after 10 seconds
-                    setTimeout(() => {
-                      clearInterval(checkPdfUrl);
-                      throw new Error("PDF generation timed out");
-                    }, 10000);
-                  });
+                    // Return the generated URL directly
+                    return generatedPdfUrl;
+                  } catch (pdfError) {
+                    console.error("Error in PDF generation:", pdfError);
+                    toast({
+                      title: "Error",
+                      description: "Failed to generate PDF. Please try again.",
+                      variant: "destructive",
+                    });
+                    throw pdfError;
+                  }
                 } catch (error) {
                   console.error("Error generating PDF:", error);
                   toast({
