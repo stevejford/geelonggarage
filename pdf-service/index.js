@@ -19,7 +19,27 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Middleware
-app.use(cors());
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',')
+  : ['http://localhost:5173', 'https://patient-tern-95.convex.site', 'https://grandiose-swordfish-144.convex.site'];
+
+console.log('Allowed origins:', allowedOrigins);
+
+app.use(cors({
+  origin: function(origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.indexOf(origin) === -1) {
+      console.log(`Origin ${origin} not allowed by CORS`);
+      return callback(null, true); // Temporarily allow all origins for debugging
+    }
+
+    return callback(null, true);
+  },
+  credentials: true
+}));
+
 app.use(express.json());
 
 // Create templates directory if it doesn't exist
