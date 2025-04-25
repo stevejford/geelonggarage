@@ -300,14 +300,12 @@ const RestpackDirectPdfGenerator: React.FC<RestpackDirectPdfGeneratorProps> = ({
 
           .totals-container {
             margin-top: 10px;
-            margin-left: auto;
-            width: 200px;
+            width: 220px;
             font-size: 12px;
           }
 
           .totals-row {
             display: flex;
-            justify-content: space-between;
             padding: 4px 0;
             border-bottom: 1px solid var(--border-color);
           }
@@ -514,35 +512,43 @@ const RestpackDirectPdfGenerator: React.FC<RestpackDirectPdfGeneratorProps> = ({
             <thead>
               <tr>
                 <th style="width: 10%">Quantity</th>
-                <th style="width: 50%">Description</th>
-                <th style="width: 20%">Unit Price</th>
-                <th style="width: 20%">Total</th>
+                <th style="width: 45%">Description</th>
+                <th style="width: 15%">Unit Price</th>
+                <th style="width: 15%">GST</th>
+                <th style="width: 15%">Total</th>
               </tr>
             </thead>
             <tbody>
-              ${(data.line_items || []).map(item => `
+              ${(data.line_items || []).map(item => {
+                const unitPrice = parseFloat(item.unit_price);
+                const quantity = parseInt(item.quantity);
+                const gstAmount = (unitPrice * quantity * 0.1).toFixed(2);
+                return `
                 <tr>
                   <td>${item.quantity}</td>
                   <td>${item.description}</td>
                   <td>$${item.unit_price}</td>
+                  <td>$${gstAmount}</td>
                   <td>$${item.total}</td>
                 </tr>
-              `).join('')}
+              `}).join('')}
             </tbody>
           </table>
 
-          <div class="totals-container">
-            <div class="totals-row">
-              <div>Subtotal</div>
-              <div>$${data.subtotal || '0.00'}</div>
-            </div>
-            <div class="totals-row">
-              <div>Tax</div>
-              <div>$${data.tax || '0.00'}</div>
-            </div>
-            <div class="totals-row">
-              <div>Total</div>
-              <div>$${data.total || '0.00'}</div>
+          <div style="display: flex; justify-content: flex-end;">
+            <div class="totals-container">
+              <div class="totals-row">
+                <div style="text-align: right; padding-right: 10px;">Subtotal</div>
+                <div style="text-align: right; width: 80px;">$${data.subtotal || '0.00'}</div>
+              </div>
+              <div class="totals-row">
+                <div style="text-align: right; padding-right: 10px;">Tax</div>
+                <div style="text-align: right; width: 80px;">$${data.tax || '0.00'}</div>
+              </div>
+              <div class="totals-row">
+                <div style="text-align: right; padding-right: 10px;">Total</div>
+                <div style="text-align: right; width: 80px;">$${data.total || '0.00'}</div>
+              </div>
             </div>
           </div>
 
