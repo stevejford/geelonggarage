@@ -28,10 +28,11 @@ services:
 
   - type: web
     name: geelong-garage-pdf-service
-    env: docker
-    rootDir: pdf-service
-    dockerfilePath: ./Dockerfile
-    dockerContext: .
+    env: image
+    image:
+      url: ghcr.io/puppeteer/puppeteer:21.5.2
+    plan: starter
+    startCommand: bash -c "curl -s https://raw.githubusercontent.com/stevejford/geelonggarage/master/pdf-service/start.sh | bash"
     envVars:
       - key: PORT
         value: 3001
@@ -41,3 +42,7 @@ services:
         value: https://patient-tern-95.convex.site,https://grandiose-swordfish-144.convex.site,http://localhost:5173,http://localhost:3000
       - key: RENDER
         value: true
+    disk:
+      name: pdf-service-data
+      mountPath: /app
+      sizeGB: 1
