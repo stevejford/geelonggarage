@@ -515,7 +515,7 @@ const RestpackDirectPdfGenerator: React.FC<RestpackDirectPdfGeneratorProps> = ({
                 <th style="width: 45%">Description</th>
                 <th style="width: 15%">Unit Price</th>
                 <th style="width: 15%">GST</th>
-                <th style="width: 15%">Total</th>
+                <th style="width: 15%; text-align: right; padding-right: 15px;">Total</th>
               </tr>
             </thead>
             <tbody>
@@ -529,13 +529,13 @@ const RestpackDirectPdfGenerator: React.FC<RestpackDirectPdfGeneratorProps> = ({
                   <td>${item.description}</td>
                   <td>$${item.unit_price}</td>
                   <td>$${gstAmount}</td>
-                  <td>$${item.total}</td>
+                  <td style="text-align: right; padding-right: 15px;">$${item.total}</td>
                 </tr>
               `}).join('')}
             </tbody>
           </table>
 
-          <div style="display: flex; justify-content: flex-end;">
+          <div style="display: flex; justify-content: flex-end; padding-right: 15px;">
             <table style="width: 250px; border-collapse: collapse; margin: 0; box-shadow: none;">
               <tr>
                 <td style="text-align: right; padding: 4px 10px 4px 0; border: none;">Subtotal</td>
