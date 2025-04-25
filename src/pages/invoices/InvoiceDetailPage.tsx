@@ -33,6 +33,7 @@ import { PDFPreview } from "@/components/ui/pdf-preview";
 import { DirectPdfGenerator } from "@/components/DirectPdfGenerator";
 import RestpackDirectPdfGenerator from "@/components/RestpackDirectPdfGenerator";
 import RestpackPdfGenerator from "@/components/RestpackPdfGenerator";
+import SendInvoiceEmail from "@/components/SendInvoiceEmail";
 
 export default function InvoiceDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -101,8 +102,8 @@ export default function InvoiceDetailPage() {
     console.log("Generate PDF");
   };
 
-  // Get PDF URL - we'll use a static URL for now since the Convex functions aren't working
-  const pdfUrl = null; // This will be replaced by the DirectPdfGenerator
+  // State for PDF URL
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
 
   // Check if invoice is overdue
   const isOverdue = (invoice: any) => {
@@ -214,7 +215,7 @@ export default function InvoiceDetailPage() {
                 className="bg-blue-600 hover:bg-blue-700 text-white"
                 onClick={() => openStatusDialog("Sent")}
               >
-                <Send className="mr-2 h-4 w-4" /> Send Invoice
+                <Send className="mr-2 h-4 w-4" /> Mark as Sent
               </Button>
               <Button
                 variant="outline"
@@ -248,10 +249,10 @@ export default function InvoiceDetailPage() {
             templateName="invoice_template"
             templateData={{
               company_name: 'Geelong Garage',
-              company_address_line1: '123 Main Street',
-              company_address_line2: 'Geelong, VIC 3220',
-              company_phone: '(03) 5222 1234',
-              company_email: 'info@geelonggarage.com',
+              company_address_line1: '31 Gordon Ave',
+              company_address_line2: 'Geelong West VIC 3218',
+              company_phone: '(03) 5221 9222',
+              company_email: 'admin@geelonggaragedoors.com.au',
               company_bank_name: 'Commonwealth Bank of Australia',
               company_account_name: 'Geelong Garage Pty Ltd',
               company_bsb: '063-000',
@@ -281,7 +282,19 @@ export default function InvoiceDetailPage() {
             }}
             buttonText={invoice.pdfStorageId ? "View PDF" : "Generate PDF"}
             variant="outline"
+            onPdfGenerated={(url) => setPdfUrl(url)}
           />
+
+          {pdfUrl && (invoice.status === "Draft" || invoice.status === "Sent") && (
+            <SendInvoiceEmail
+              invoiceNumber={invoice.invoiceNumber}
+              customerName={invoice.contact ? `${invoice.contact.firstName} ${invoice.contact.lastName}` : 'Customer'}
+              customerEmail={invoice.contact?.email || ''}
+              total={invoice.total}
+              pdfUrl={pdfUrl}
+              variant="outline"
+            />
+          )}
 
           <Button
             variant="outline"
@@ -557,19 +570,20 @@ export default function InvoiceDetailPage() {
       </AlertDialog>
 
       {/* PDF Preview Dialog */}
-      {showPdfPreview && (
+      {showPdfPreview && pdfUrl && (
         <PDFPreview
           open={showPdfPreview}
           onOpenChange={setShowPdfPreview}
-          pdfUrl={pdfUrl || ""}
+          pdfUrl={pdfUrl}
           title={`Invoice ${invoice?.invoiceNumber || ""}`}
           documentType="invoice"
           documentId={id || ""}
           onSend={() => {
-            toast({
-              title: "Feature Coming Soon",
-              description: "Sending invoices via email will be available in a future update.",
-            });
+            // Open the SendInvoiceEmail dialog
+            const sendEmailButton = document.querySelector('[data-send-invoice-email-button]');
+            if (sendEmailButton) {
+              (sendEmailButton as HTMLButtonElement).click();
+            }
           }}
         />
       )}

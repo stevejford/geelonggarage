@@ -9,6 +9,7 @@ interface RestpackDirectPdfGeneratorProps {
   buttonText?: string;
   className?: string;
   variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
+  onPdfGenerated?: (url: string) => void;
 }
 
 const RestpackDirectPdfGenerator: React.FC<RestpackDirectPdfGeneratorProps> = ({
@@ -17,6 +18,7 @@ const RestpackDirectPdfGenerator: React.FC<RestpackDirectPdfGeneratorProps> = ({
   buttonText = 'Generate PDF',
   className = '',
   variant = 'default',
+  onPdfGenerated,
 }) => {
   const { toast } = useToast();
   const [isGenerating, setIsGenerating] = useState(false);
@@ -94,6 +96,11 @@ const RestpackDirectPdfGenerator: React.FC<RestpackDirectPdfGeneratorProps> = ({
           description: `Your PDF is available at: ${result.image}`,
           variant: 'default',
         });
+      }
+
+      // Call the onPdfGenerated callback if provided
+      if (onPdfGenerated) {
+        onPdfGenerated(result.image);
       }
 
       toast({
