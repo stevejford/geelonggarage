@@ -1,23 +1,24 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useMutation, useQuery } from "convex/react";
+import { useMutation, useQuery, useAction } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { Button } from "@/components/ui/button";
-import { 
-  ArrowLeft, 
-  Edit, 
-  Trash2, 
-  Send, 
-  Download, 
-  CheckCircle, 
-  AlertTriangle, 
+import {
+  ArrowLeft,
+  Edit,
+  Trash2,
+  Send,
+  Download,
+  CheckCircle,
+  AlertTriangle,
   XCircle,
   FileText,
   ClipboardList,
-  Calendar
+  Calendar,
+  Loader2
 } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
-import { 
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -27,29 +28,37 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useToast } from "@/components/ui/use-toast";
+import { PDFPreview } from "@/components/ui/pdf-preview";
+import { DirectPdfGenerator } from "@/components/DirectPdfGenerator";
+import RestpackDirectPdfGenerator from "@/components/RestpackDirectPdfGenerator";
+import RestpackPdfGenerator from "@/components/RestpackPdfGenerator";
 
 export default function InvoiceDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  
+  const { toast } = useToast();
+
   // State for confirmation dialogs
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showStatusDialog, setShowStatusDialog] = useState(false);
+  const [showPdfPreview, setShowPdfPreview] = useState(false);
   const [newStatus, setNewStatus] = useState<string>("");
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
   // Fetch invoice details
-  const invoice = useQuery(api.invoices.getInvoice, { 
-    id: id as any 
+  const invoice = useQuery(api.invoices.getInvoice, {
+    id: id as any
   });
 
-  // Mutations
+  // Mutations and actions
   const deleteInvoice = useMutation(api.invoices.deleteInvoice);
   const changeInvoiceStatus = useMutation(api.invoices.changeInvoiceStatus);
 
   // Handle invoice deletion
   const handleDelete = async () => {
     if (!id) return;
-    
+
     try {
       await deleteInvoice({ id: id as any });
       navigate("/invoices");
@@ -62,11 +71,11 @@ export default function InvoiceDetailPage() {
   // Handle status change
   const handleStatusChange = async () => {
     if (!id || !newStatus) return;
-    
+
     try {
-      await changeInvoiceStatus({ 
-        id: id as any, 
-        status: newStatus 
+      await changeInvoiceStatus({
+        id: id as any,
+        status: newStatus
       });
       setShowStatusDialog(false);
     } catch (error) {
@@ -81,10 +90,19 @@ export default function InvoiceDetailPage() {
     setShowStatusDialog(true);
   };
 
-  // Generate PDF (placeholder for now)
-  const generatePDF = () => {
-    alert("PDF generation will be implemented in a future update.");
+  // Handle PDF preview
+  const handleShowPdfPreview = () => {
+    setShowPdfPreview(true);
   };
+
+  // Generate PDF
+  const handleGeneratePDF = () => {
+    // This is a placeholder function that will be replaced by the DirectPdfGenerator
+    console.log("Generate PDF");
+  };
+
+  // Get PDF URL - we'll use a static URL for now since the Convex functions aren't working
+  const pdfUrl = null; // This will be replaced by the DirectPdfGenerator
 
   // Check if invoice is overdue
   const isOverdue = (invoice: any) => {
@@ -182,23 +200,23 @@ export default function InvoiceDetailPage() {
           <div>
             <h1 className="text-2xl font-bold">{invoice.invoiceNumber}</h1>
             <p className="text-gray-500">
-              {invoice.contact ? `${invoice.contact.firstName} ${invoice.contact.lastName}` : 'Unknown'} • 
-              {invoice.account ? ` ${invoice.account.name}` : ''} • 
+              {invoice.contact ? `${invoice.contact.firstName} ${invoice.contact.lastName}` : 'Unknown'} •
+              {invoice.account ? ` ${invoice.account.name}` : ''} •
               {formatDate(invoice.issueDate)}
             </p>
           </div>
         </div>
-        
+
         <div className="flex flex-wrap gap-2">
           {invoice.status === "Draft" && (
             <>
-              <Button 
+              <Button
                 className="bg-blue-600 hover:bg-blue-700 text-white"
                 onClick={() => openStatusDialog("Sent")}
               >
                 <Send className="mr-2 h-4 w-4" /> Send Invoice
               </Button>
-              <Button 
+              <Button
                 variant="outline"
                 onClick={() => navigate(`/invoices/edit/${id}`)}
               >
@@ -206,35 +224,67 @@ export default function InvoiceDetailPage() {
               </Button>
             </>
           )}
-          
+
           {invoice.status === "Sent" && (
-            <Button 
+            <Button
               className="bg-green-600 hover:bg-green-700 text-white"
               onClick={() => openStatusDialog("Paid")}
             >
               <CheckCircle className="mr-2 h-4 w-4" /> Mark as Paid
             </Button>
           )}
-          
+
           {(invoice.status === "Draft" || invoice.status === "Sent") && (
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               className="text-red-600 border-red-200 hover:bg-red-50"
               onClick={() => openStatusDialog("Void")}
             >
               <XCircle className="mr-2 h-4 w-4" /> Void
             </Button>
           )}
-          
-          <Button 
+
+          <RestpackDirectPdfGenerator
+            templateName="invoice_template"
+            templateData={{
+              company_name: 'Geelong Garage',
+              company_address_line1: '123 Main Street',
+              company_address_line2: 'Geelong, VIC 3220',
+              company_phone: '(03) 5222 1234',
+              company_email: 'info@geelonggarage.com',
+              company_bank_name: 'Commonwealth Bank of Australia',
+              company_account_name: 'Geelong Garage Pty Ltd',
+              company_bsb: '063-000',
+              company_account_number: '12345678',
+
+              customer_name: invoice.contact ? `${invoice.contact.firstName} ${invoice.contact.lastName}` : 'Unknown',
+              customer_address_line1: invoice.account ? invoice.account.address : '',
+              customer_address_line2: invoice.account ? `${invoice.account.city || ''}, ${invoice.account.state || ''} ${invoice.account.zip || ''}` : '',
+              customer_phone: invoice.contact ? invoice.contact.phone : '',
+              customer_email: invoice.contact ? invoice.contact.email : '',
+
+              invoice_number: invoice.invoiceNumber,
+              invoice_date: new Date(invoice.issueDate).toLocaleDateString(),
+              due_date: new Date(invoice.dueDate).toLocaleDateString(),
+              work_order_number: invoice.workOrder ? invoice.workOrder.workOrderNumber : '',
+
+              line_items: invoice.lineItems ? invoice.lineItems.map(item => ({
+                quantity: item.quantity,
+                description: item.description,
+                unit_price: item.unitPrice.toFixed(2),
+                total: item.total.toFixed(2)
+              })) : [],
+
+              subtotal: invoice.subtotal.toFixed(2),
+              tax: invoice.tax.toFixed(2),
+              total: invoice.total.toFixed(2)
+            }}
+            buttonText={invoice.pdfStorageId ? "View PDF" : "Generate PDF"}
             variant="outline"
-            onClick={generatePDF}
-          >
-            <Download className="mr-2 h-4 w-4" /> Download PDF
-          </Button>
-          
-          <Button 
-            variant="outline" 
+          />
+
+          <Button
+            variant="outline"
             className="text-red-600 border-red-200 hover:bg-red-50"
             onClick={() => setShowDeleteDialog(true)}
           >
@@ -402,7 +452,7 @@ export default function InvoiceDetailPage() {
       {(invoice.workOrder || invoice.quote) && (
         <div className="bg-white shadow-md rounded-lg p-6">
           <h2 className="text-lg font-medium mb-4">Related Documents</h2>
-          
+
           {invoice.workOrder && (
             <div className="flex justify-between items-center mb-4 p-4 border rounded-md">
               <div className="flex items-center">
@@ -424,7 +474,7 @@ export default function InvoiceDetailPage() {
               </Button>
             </div>
           )}
-          
+
           {invoice.quote && (
             <div className="flex justify-between items-center p-4 border rounded-md">
               <div className="flex items-center">
@@ -460,7 +510,7 @@ export default function InvoiceDetailPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={handleDelete}
               className="bg-red-600 text-white hover:bg-red-700"
             >
@@ -480,21 +530,21 @@ export default function InvoiceDetailPage() {
               {newStatus === "Void" && "Void Invoice"}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              {newStatus === "Sent" && 
+              {newStatus === "Sent" &&
                 "This will mark the invoice as sent to the customer. You won't be able to edit it after this action."}
-              {newStatus === "Paid" && 
+              {newStatus === "Paid" &&
                 "This will mark the invoice as paid by the customer."}
-              {newStatus === "Void" && 
+              {newStatus === "Void" &&
                 "This will void the invoice. This action cannot be undone."}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={handleStatusChange}
               className={
-                newStatus === "Paid" 
-                  ? "bg-green-600 text-white hover:bg-green-700" 
+                newStatus === "Paid"
+                  ? "bg-green-600 text-white hover:bg-green-700"
                   : newStatus === "Void"
                   ? "bg-red-600 text-white hover:bg-red-700"
                   : "bg-blue-600 text-white hover:bg-blue-700"
@@ -505,6 +555,24 @@ export default function InvoiceDetailPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* PDF Preview Dialog */}
+      {showPdfPreview && (
+        <PDFPreview
+          open={showPdfPreview}
+          onOpenChange={setShowPdfPreview}
+          pdfUrl={pdfUrl || ""}
+          title={`Invoice ${invoice?.invoiceNumber || ""}`}
+          documentType="invoice"
+          documentId={id || ""}
+          onSend={() => {
+            toast({
+              title: "Feature Coming Soon",
+              description: "Sending invoices via email will be available in a future update.",
+            });
+          }}
+        />
+      )}
     </div>
   );
 }
