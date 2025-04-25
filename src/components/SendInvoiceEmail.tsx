@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { Loader2, Send } from 'lucide-react';
-import { useAction } from 'convex/react';
+import { useAction, useMutation } from 'convex/react';
 import { api } from '../../convex/_generated/api';
 import {
   Dialog,
@@ -52,6 +52,7 @@ const SendInvoiceEmail: React.FC<SendInvoiceEmailProps> = ({
   );
 
   const sendEmail = useAction(api.email.sendEmail);
+  const recordEmailHistory = useMutation(api.emailHistoryMutations.recordEmailHistory);
 
   const handleSendEmail = async () => {
     if (!email) {
@@ -130,12 +131,43 @@ const SendInvoiceEmail: React.FC<SendInvoiceEmailProps> = ({
       });
 
       if (result.success) {
+        // Record email history if document info is returned
+        if (result.documentInfo) {
+          await recordEmailHistory({
+            documentType: result.documentInfo.documentType,
+            documentId: result.documentInfo.documentId,
+            recipientEmail: result.documentInfo.recipientEmail,
+            subject: result.documentInfo.subject,
+            message: result.documentInfo.message,
+            pdfUrl: result.documentInfo.pdfUrl,
+            sentAt: result.documentInfo.sentAt,
+            sentBy: result.documentInfo.sentBy,
+            status: result.documentInfo.status,
+          });
+        }
+
         toast({
           title: 'Email Sent',
           description: `Invoice has been sent to ${email}`,
         });
         setIsOpen(false);
       } else {
+        // Record failed email if document info is returned
+        if (result.documentInfo) {
+          await recordEmailHistory({
+            documentType: result.documentInfo.documentType,
+            documentId: result.documentInfo.documentId,
+            recipientEmail: result.documentInfo.recipientEmail,
+            subject: result.documentInfo.subject,
+            message: result.documentInfo.message,
+            pdfUrl: result.documentInfo.pdfUrl,
+            sentAt: result.documentInfo.sentAt,
+            sentBy: result.documentInfo.sentBy,
+            status: result.documentInfo.status,
+            errorMessage: result.documentInfo.errorMessage,
+          });
+        }
+
         throw new Error(result.error || 'Failed to send email');
       }
     } catch (error) {

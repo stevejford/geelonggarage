@@ -27,9 +27,12 @@ export const sendEmail = action({
 
       // Record email in history if document info is provided
       if (args.documentType && args.documentId) {
-        await ctx.runMutation(async ({ db }) => {
-          // Add to email history
-          await db.insert("emailHistory", {
+        // We can't directly call mutations from actions, so we'll return success
+        // and let the client handle recording the email history
+        return {
+          success: true,
+          data,
+          documentInfo: {
             documentType: args.documentType,
             documentId: args.documentId,
             recipientEmail: args.to,
@@ -38,25 +41,21 @@ export const sendEmail = action({
             pdfUrl: args.pdfUrl,
             sentAt: Date.now(),
             sentBy: args.sentBy,
-            status: "sent",
-          });
-
-          // Update the document's lastSentAt field if it's an invoice
-          if (args.documentType === "invoice") {
-            await db.patch(args.documentId as any, {
-              lastSentAt: Date.now(),
-              updatedAt: Date.now(),
-            });
+            status: "sent"
           }
-        });
+        };
       }
 
       return { success: true, data };
     } catch (error) {
       // Record failed email attempt if document info is provided
       if (args.documentType && args.documentId) {
-        await ctx.runMutation(async ({ db }) => {
-          await db.insert("emailHistory", {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        // Return error info for client to handle
+        return {
+          success: false,
+          error,
+          documentInfo: {
             documentType: args.documentType,
             documentId: args.documentId,
             recipientEmail: args.to,
@@ -66,9 +65,9 @@ export const sendEmail = action({
             sentAt: Date.now(),
             sentBy: args.sentBy,
             status: "failed",
-            errorMessage: error instanceof Error ? error.message : String(error),
-          });
-        });
+            errorMessage: errorMessage
+          }
+        };
       }
 
       return { success: false, error };

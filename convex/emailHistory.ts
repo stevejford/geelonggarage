@@ -1,4 +1,3 @@
-"use node";
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 
@@ -10,15 +9,15 @@ export const getEmailHistory = query({
   },
   handler: async (ctx, args) => {
     const { documentType, documentId } = args;
-    
+
     const history = await ctx.db
       .query("emailHistory")
-      .withIndex("by_document", (q) => 
+      .withIndex("by_document", (q) =>
         q.eq("documentType", documentType).eq("documentId", documentId)
       )
-      .order("desc", (q) => q.field("sentAt"))
+      .order("desc")
       .collect();
-    
+
     return history;
   },
 });
@@ -30,13 +29,13 @@ export const getRecentEmailHistory = query({
   },
   handler: async (ctx, args) => {
     const limit = args.limit || 10;
-    
+
     const history = await ctx.db
       .query("emailHistory")
       .withIndex("by_sentAt")
       .order("desc")
       .take(limit);
-    
+
     return history;
   },
 });
@@ -49,14 +48,14 @@ export const getEmailHistoryByRecipient = query({
   },
   handler: async (ctx, args) => {
     const { recipientEmail, limit = 10 } = args;
-    
+
     const history = await ctx.db
       .query("emailHistory")
       .withIndex("by_recipient")
-      .eq("recipientEmail", recipientEmail)
-      .order("desc", (q) => q.field("sentAt"))
+      .filter((q) => q.eq(q.field("recipientEmail"), recipientEmail))
+      .order("desc")
       .take(limit);
-    
+
     return history;
   },
 });
