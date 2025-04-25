@@ -536,20 +536,20 @@ const RestpackDirectPdfGenerator: React.FC<RestpackDirectPdfGeneratorProps> = ({
           </table>
 
           <div style="display: flex; justify-content: flex-end;">
-            <div class="totals-container">
-              <div class="totals-row">
-                <div style="text-align: right; padding-right: 10px;">Subtotal</div>
-                <div style="text-align: right; width: 80px;">$${data.subtotal || '0.00'}</div>
-              </div>
-              <div class="totals-row">
-                <div style="text-align: right; padding-right: 10px;">Tax</div>
-                <div style="text-align: right; width: 80px;">$${data.tax || '0.00'}</div>
-              </div>
-              <div class="totals-row">
-                <div style="text-align: right; padding-right: 10px;">Total</div>
-                <div style="text-align: right; width: 80px;">$${data.total || '0.00'}</div>
-              </div>
-            </div>
+            <table style="width: 250px; border-collapse: collapse; margin: 0; box-shadow: none;">
+              <tr>
+                <td style="text-align: right; padding: 4px 10px 4px 0; border: none;">Subtotal</td>
+                <td style="text-align: right; width: 100px; padding: 4px 0; border: none;">$${data.subtotal || '0.00'}</td>
+              </tr>
+              <tr>
+                <td style="text-align: right; padding: 4px 10px 4px 0; border: none;">Tax</td>
+                <td style="text-align: right; width: 100px; padding: 4px 0; border: none;">$${data.tax || '0.00'}</td>
+              </tr>
+              <tr>
+                <td style="text-align: right; padding: 8px 10px 4px 0; border-top: 1px solid var(--border-color); border-bottom: none; border-left: none; border-right: none; font-weight: 700;">Total</td>
+                <td style="text-align: right; width: 100px; padding: 8px 0 4px 0; border-top: 1px solid var(--border-color); border-bottom: none; border-left: none; border-right: none; font-weight: 700;">$${data.total || '0.00'}</td>
+              </tr>
+            </table>
           </div>
 
           ${templateName === 'invoice_template' ? `
