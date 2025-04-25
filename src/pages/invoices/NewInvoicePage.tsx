@@ -50,6 +50,12 @@ export default function NewInvoicePage() {
   const [dueDate, setDueDate] = useState<string>(
     new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]
   );
+
+  // Fetch contact details when a contact is selected
+  const selectedContact = useQuery(
+    api.contacts.getContact,
+    selectedContactId ? { id: selectedContactId as any } : "skip"
+  );
   const [notes, setNotes] = useState<string>("");
   const [lineItems, setLineItems] = useState<Array<{
     description: string;
@@ -83,6 +89,21 @@ export default function NewInvoicePage() {
     setTax(newTax);
     setTotal(newTotal);
   }, [lineItems]);
+
+  // Auto-select primary account when contact is selected
+  useEffect(() => {
+    if (selectedContact && selectedContact.accounts && selectedContact.accounts.length > 0) {
+      // First try to find the primary account
+      const primaryAccount = selectedContact.accounts.find(account => account.isPrimary);
+
+      if (primaryAccount) {
+        setSelectedAccountId(primaryAccount._id.toString());
+      } else if (selectedContact.accounts[0]) {
+        // If no primary account, select the first account
+        setSelectedAccountId(selectedContact.accounts[0]._id.toString());
+      }
+    }
+  }, [selectedContact]);
 
   // Update line item
   const updateLineItem = (
@@ -299,7 +320,10 @@ export default function NewInvoicePage() {
               <Label htmlFor="contact">Customer Contact</Label>
               <Select
                 value={selectedContactId}
-                onValueChange={setSelectedContactId}
+                onValueChange={(contactId) => {
+                  setSelectedContactId(contactId);
+                  // The account will be auto-selected by the useEffect
+                }}
                 required
               >
                 <SelectTrigger id="contact">

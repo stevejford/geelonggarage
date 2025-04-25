@@ -37,6 +37,12 @@ export default function NewWorkOrderPage() {
   const [notes, setNotes] = useState<string>("");
   const [selectedTechnicianIds, setSelectedTechnicianIds] = useState<string[]>([]);
 
+  // Fetch contact details when a contact is selected
+  const selectedContact = useQuery(
+    api.contacts.getContact,
+    selectedContactId ? { id: selectedContactId as any } : "skip"
+  );
+
   // Fetch technicians (users with technician role)
   const technicians = [
     { id: "tech1", name: "John Technician" },
@@ -82,6 +88,21 @@ export default function NewWorkOrderPage() {
     });
   };
 
+  // Auto-select primary account when contact is selected
+  useEffect(() => {
+    if (selectedContact && selectedContact.accounts && selectedContact.accounts.length > 0) {
+      // First try to find the primary account
+      const primaryAccount = selectedContact.accounts.find(account => account.isPrimary);
+
+      if (primaryAccount) {
+        setSelectedAccountId(primaryAccount._id.toString());
+      } else if (selectedContact.accounts[0]) {
+        // If no primary account, select the first account
+        setSelectedAccountId(selectedContact.accounts[0]._id.toString());
+      }
+    }
+  }, [selectedContact]);
+
   return (
     <Container padding="md">
       <FormLayout
@@ -111,7 +132,10 @@ export default function NewWorkOrderPage() {
               <Label htmlFor="contact">Customer Contact</Label>
               <Select
                 value={selectedContactId}
-                onValueChange={setSelectedContactId}
+                onValueChange={(contactId) => {
+                  setSelectedContactId(contactId);
+                  // The account will be auto-selected by the useEffect
+                }}
                 required
               >
                 <SelectTrigger id="contact">
