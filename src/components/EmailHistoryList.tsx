@@ -10,12 +10,107 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { CheckCircle, XCircle } from 'lucide-react';
+import {
+  CheckCircle,
+  XCircle,
+  Mail,
+  MailCheck,
+  Eye,
+  MousePointer,
+  AlertTriangle,
+  AlertCircle,
+  Clock
+} from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface EmailHistoryListProps {
   documentType: string;
   documentId: string;
 }
+
+// Helper function to get the appropriate status icon
+const getStatusIcon = (email: any) => {
+  switch (email.status) {
+    case 'sent':
+      return (
+        <span className="flex items-center text-blue-600">
+          <Mail className="h-4 w-4 mr-1" /> Sent
+        </span>
+      );
+    case 'delivered':
+      return (
+        <span className="flex items-center text-green-600">
+          <MailCheck className="h-4 w-4 mr-1" /> Delivered
+        </span>
+      );
+    case 'opened':
+      return (
+        <span className="flex items-center text-green-600">
+          <Eye className="h-4 w-4 mr-1" /> Opened
+        </span>
+      );
+    case 'clicked':
+      return (
+        <span className="flex items-center text-green-600">
+          <MousePointer className="h-4 w-4 mr-1" /> Clicked
+        </span>
+      );
+    case 'bounced':
+      return (
+        <span className="flex items-center text-red-600">
+          <AlertTriangle className="h-4 w-4 mr-1" /> Bounced
+        </span>
+      );
+    case 'complained':
+      return (
+        <span className="flex items-center text-red-600">
+          <AlertCircle className="h-4 w-4 mr-1" /> Complained
+        </span>
+      );
+    case 'delayed':
+      return (
+        <span className="flex items-center text-yellow-600">
+          <Clock className="h-4 w-4 mr-1" /> Delayed
+        </span>
+      );
+    case 'failed':
+      return (
+        <span className="flex items-center text-red-600">
+          <XCircle className="h-4 w-4 mr-1" /> Failed
+        </span>
+      );
+    default:
+      return (
+        <span className="flex items-center text-gray-600">
+          <CheckCircle className="h-4 w-4 mr-1" /> {email.status}
+        </span>
+      );
+  }
+};
+
+// Helper function to get the tooltip text
+const getStatusTooltip = (email: any) => {
+  switch (email.status) {
+    case 'sent':
+      return `Email was sent on ${formatDate(email.sentAt)}`;
+    case 'delivered':
+      return `Email was delivered on ${formatDate(email.deliveredAt)}`;
+    case 'opened':
+      return `Email was opened on ${formatDate(email.openedAt)}`;
+    case 'clicked':
+      return `Email link was clicked on ${formatDate(email.clickedAt)}`;
+    case 'bounced':
+      return `Email bounced on ${formatDate(email.bouncedAt)}${email.errorMessage ? `: ${email.errorMessage}` : ''}`;
+    case 'complained':
+      return `Recipient marked as spam on ${formatDate(email.complainedAt)}`;
+    case 'delayed':
+      return `Email delivery was delayed on ${formatDate(email.delayedAt)}`;
+    case 'failed':
+      return `Email failed to send: ${email.errorMessage || 'Unknown error'}`;
+    default:
+      return `Email status: ${email.status}`;
+  }
+};
 
 const EmailHistoryList: React.FC<EmailHistoryListProps> = ({
   documentType,
@@ -47,20 +142,16 @@ const EmailHistoryList: React.FC<EmailHistoryListProps> = ({
               <TableCell>{formatDate(email.sentAt)}</TableCell>
               <TableCell>{email.recipientEmail}</TableCell>
               <TableCell>
-                {email.status === 'sent' ? (
-                  <span className="flex items-center text-green-600">
-                    <CheckCircle className="h-4 w-4 mr-1" /> Sent
-                  </span>
-                ) : (
-                  <span className="flex items-center text-red-600">
-                    <XCircle className="h-4 w-4 mr-1" /> Failed
-                    {email.errorMessage && (
-                      <span className="text-xs text-gray-500 ml-2">
-                        ({email.errorMessage})
-                      </span>
-                    )}
-                  </span>
-                )}
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      {getStatusIcon(email)}
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{getStatusTooltip(email)}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </TableCell>
             </TableRow>
           ))}

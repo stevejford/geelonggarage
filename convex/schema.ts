@@ -353,11 +353,20 @@ const applicationTables = {
     pdfUrl: v.optional(v.string()), // URL of the PDF that was sent
     sentAt: v.number(), // Timestamp when the email was sent
     sentBy: v.optional(v.string()), // User ID who sent the email
-    status: v.string(), // "sent", "failed"
+    status: v.string(), // "sent", "delivered", "opened", "clicked", "bounced", "complained", "delayed", "failed"
     errorMessage: v.optional(v.string()), // Error message if sending failed
+    deliveredAt: v.optional(v.number()), // Timestamp when the email was delivered
+    openedAt: v.optional(v.number()), // Timestamp when the email was opened
+    clickedAt: v.optional(v.number()), // Timestamp when a link in the email was clicked
+    bouncedAt: v.optional(v.number()), // Timestamp when the email bounced
+    complainedAt: v.optional(v.number()), // Timestamp when the email was marked as spam
+    delayedAt: v.optional(v.number()), // Timestamp when the email delivery was delayed
+    lastUpdated: v.optional(v.number()), // Timestamp of the last status update
+    emailId: v.optional(v.string()), // Resend email ID for webhook tracking
   }).index("by_document", ["documentType", "documentId"])
     .index("by_recipient", ["recipientEmail"])
-    .index("by_sentAt", ["sentAt"]),
+    .index("by_sentAt", ["sentAt"])
+    .index("by_emailId", ["emailId"]),
 };
 
 export default defineSchema({

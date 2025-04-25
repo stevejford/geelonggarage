@@ -145,6 +145,8 @@ const SendInvoiceEmail: React.FC<SendInvoiceEmailProps> = ({
             sentAt: result.documentInfo.sentAt,
             sentBy: result.documentInfo.sentBy,
             status: result.documentInfo.status,
+            emailId: result.data?.id, // Store the Resend email ID for webhook tracking
+            lastUpdated: Date.now(),
           });
         }
 
@@ -167,6 +169,8 @@ const SendInvoiceEmail: React.FC<SendInvoiceEmailProps> = ({
             sentBy: result.documentInfo.sentBy,
             status: result.documentInfo.status,
             errorMessage: result.documentInfo.errorMessage,
+            emailId: result.data?.id, // Store the Resend email ID for webhook tracking
+            lastUpdated: Date.now(),
           });
         }
 
