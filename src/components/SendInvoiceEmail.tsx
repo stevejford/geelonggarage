@@ -18,21 +18,29 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 
 interface SendInvoiceEmailProps {
+  invoiceId: string;
   invoiceNumber: string;
   customerName: string;
   customerEmail: string;
   total: number;
-  pdfUrl: string;
+  pdfUrl?: string;
+  lastSentAt?: number;
   variant?: 'default' | 'outline' | 'secondary' | 'destructive' | 'ghost' | 'link';
+  onPdfNeeded?: () => Promise<string>;
+  userId?: string;
 }
 
 const SendInvoiceEmail: React.FC<SendInvoiceEmailProps> = ({
+  invoiceId,
   invoiceNumber,
   customerName,
   customerEmail,
   total,
   pdfUrl,
+  lastSentAt,
   variant = 'default',
+  onPdfNeeded,
+  userId,
 }) => {
   const { toast } = useToast();
   const [isSending, setIsSending] = useState(false);
@@ -58,6 +66,37 @@ const SendInvoiceEmail: React.FC<SendInvoiceEmailProps> = ({
     try {
       setIsSending(true);
 
+      // If we don't have a PDF URL and onPdfNeeded is provided, generate the PDF
+      let finalPdfUrl = pdfUrl;
+      if (!finalPdfUrl && onPdfNeeded) {
+        try {
+          toast({
+            title: 'Generating PDF',
+            description: 'Preparing invoice PDF before sending...',
+          });
+          finalPdfUrl = await onPdfNeeded();
+        } catch (error) {
+          console.error('Error generating PDF:', error);
+          toast({
+            title: 'Error',
+            description: 'Failed to generate PDF. Please try again.',
+            variant: 'destructive',
+          });
+          setIsSending(false);
+          return;
+        }
+      }
+
+      if (!finalPdfUrl) {
+        toast({
+          title: 'Error',
+          description: 'No PDF available to send. Please generate a PDF first.',
+          variant: 'destructive',
+        });
+        setIsSending(false);
+        return;
+      }
+
       // Create HTML email content
       const htmlContent = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -68,7 +107,7 @@ const SendInvoiceEmail: React.FC<SendInvoiceEmailProps> = ({
             <h2 style="color: #3b82f6;">Invoice #${invoiceNumber}</h2>
             <p>${message.replace(/\n/g, '<br>')}</p>
             <p style="margin-top: 30px;">
-              <a href="${pdfUrl}" style="background-color: #3b82f6; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; display: inline-block;">View Invoice</a>
+              <a href="${finalPdfUrl}" style="background-color: #3b82f6; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; display: inline-block;">View Invoice</a>
             </p>
             <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e9ecef; font-size: 12px; color: #6c757d;">
               <p>31 Gordon Ave, Geelong West VIC 3218 | Phone: (03) 5221 9222 | Fax: (03) 5222 6186</p>
@@ -78,11 +117,16 @@ const SendInvoiceEmail: React.FC<SendInvoiceEmailProps> = ({
         </div>
       `;
 
-      // Send the email
+      // Send the email with document tracking information
       const result = await sendEmail({
         to: email,
         subject: subject,
         html: htmlContent,
+        documentType: 'invoice',
+        documentId: invoiceId,
+        message: message,
+        pdfUrl: finalPdfUrl,
+        sentBy: userId,
       });
 
       if (result.success) {
@@ -110,7 +154,8 @@ const SendInvoiceEmail: React.FC<SendInvoiceEmailProps> = ({
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <Button variant={variant} data-send-invoice-email-button>
-          <Send className="mr-2 h-4 w-4" /> Send Invoice
+          <Send className="mr-2 h-4 w-4" />
+          {lastSentAt ? `Resend Invoice (Last: ${new Date(lastSentAt).toLocaleDateString()})` : 'Send Invoice'}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px]">

@@ -268,6 +268,7 @@ const applicationTables = {
     notes: v.optional(v.string()),
     pdfStorageId: v.optional(v.id("_storage")), // Storage ID for generated PDF
     pdfGeneratedAt: v.optional(v.number()), // When the PDF was last generated
+    lastSentAt: v.optional(v.number()), // When the invoice was last sent via email
     createdAt: v.number(),
     updatedAt: v.number(),
     createdBy: v.optional(v.string()), // userId
@@ -341,6 +342,22 @@ const applicationTables = {
     module: v.string(),
     createdAt: v.optional(v.number()),
   }).index("by_module", ["module"]),
+
+  // Email history
+  emailHistory: defineTable({
+    documentType: v.string(), // "invoice", "quote", "workOrder"
+    documentId: v.string(), // ID of the related document
+    recipientEmail: v.string(), // Email address of the recipient
+    subject: v.string(), // Email subject
+    message: v.string(), // Email message content
+    pdfUrl: v.optional(v.string()), // URL of the PDF that was sent
+    sentAt: v.number(), // Timestamp when the email was sent
+    sentBy: v.optional(v.string()), // User ID who sent the email
+    status: v.string(), // "sent", "failed"
+    errorMessage: v.optional(v.string()), // Error message if sending failed
+  }).index("by_document", ["documentType", "documentId"])
+    .index("by_recipient", ["recipientEmail"])
+    .index("by_sentAt", ["sentAt"]),
 };
 
 export default defineSchema({

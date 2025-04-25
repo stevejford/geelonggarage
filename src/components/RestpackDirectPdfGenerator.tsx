@@ -610,6 +610,7 @@ const RestpackDirectPdfGenerator: React.FC<RestpackDirectPdfGeneratorProps> = ({
       disabled={isGenerating}
       className={className}
       variant={variant}
+      data-testid="pdf-preview-button"
     >
       {isGenerating ? (
         <>

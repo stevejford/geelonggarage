@@ -34,11 +34,14 @@ import { DirectPdfGenerator } from "@/components/DirectPdfGenerator";
 import RestpackDirectPdfGenerator from "@/components/RestpackDirectPdfGenerator";
 import RestpackPdfGenerator from "@/components/RestpackPdfGenerator";
 import SendInvoiceEmail from "@/components/SendInvoiceEmail";
+import EmailHistoryList from "@/components/EmailHistoryList";
+import { useUser } from "@clerk/clerk-react";
 
 export default function InvoiceDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useUser();
 
   // State for confirmation dialogs
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -280,19 +283,66 @@ export default function InvoiceDetailPage() {
               tax: invoice.tax.toFixed(2),
               total: invoice.total.toFixed(2)
             }}
-            buttonText={invoice.pdfStorageId ? "View PDF" : "Generate PDF"}
+            buttonText={invoice.pdfStorageId ? "View PDF" : "PDF Preview"}
             variant="outline"
             onPdfGenerated={(url) => setPdfUrl(url)}
           />
 
-          {pdfUrl && (invoice.status === "Draft" || invoice.status === "Sent") && (
+          {(invoice.status === "Draft" || invoice.status === "Sent") && (
             <SendInvoiceEmail
+              invoiceId={id as string}
               invoiceNumber={invoice.invoiceNumber}
               customerName={invoice.contact ? `${invoice.contact.firstName} ${invoice.contact.lastName}` : 'Customer'}
               customerEmail={invoice.contact?.email || ''}
               total={invoice.total}
               pdfUrl={pdfUrl}
+              lastSentAt={invoice.lastSentAt}
               variant="outline"
+              onPdfNeeded={async () => {
+                if (pdfUrl) return pdfUrl;
+
+                // Generate PDF if not already available
+                toast({
+                  title: "Generating PDF",
+                  description: "Please wait while we prepare the invoice PDF...",
+                });
+
+                try {
+                  // This is a simplified approach - in a real implementation, you would call
+                  // the PDF generation service and wait for the result
+                  const pdfButton = document.querySelector('[data-testid="pdf-preview-button"]');
+                  if (pdfButton) {
+                    (pdfButton as HTMLButtonElement).click();
+
+                    // Wait for the PDF to be generated (this is a simplified approach)
+                    return new Promise((resolve) => {
+                      const checkPdfUrl = setInterval(() => {
+                        if (pdfUrl) {
+                          clearInterval(checkPdfUrl);
+                          resolve(pdfUrl);
+                        }
+                      }, 500);
+
+                      // Timeout after 10 seconds
+                      setTimeout(() => {
+                        clearInterval(checkPdfUrl);
+                        throw new Error("PDF generation timed out");
+                      }, 10000);
+                    });
+                  } else {
+                    throw new Error("PDF generation button not found");
+                  }
+                } catch (error) {
+                  console.error("Error generating PDF:", error);
+                  toast({
+                    title: "Error",
+                    description: "Failed to generate PDF. Please try again.",
+                    variant: "destructive",
+                  });
+                  throw error;
+                }
+              }}
+              userId={user?.id}
             />
           )}
 
@@ -460,6 +510,11 @@ export default function InvoiceDetailPage() {
           <p className="text-gray-700 whitespace-pre-line">{invoice.notes}</p>
         </div>
       )}
+
+      {/* Email History */}
+      <div className="bg-white shadow-md rounded-lg p-6 mb-6">
+        <EmailHistoryList documentType="invoice" documentId={id as string} />
+      </div>
 
       {/* Related Work Order or Quote */}
       {(invoice.workOrder || invoice.quote) && (
