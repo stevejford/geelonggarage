@@ -1,4 +1,4 @@
-FROM ghcr.io/puppeteer/puppeteer:21.5.2
+FROM node:18-slim
 
 # Set working directory
 WORKDIR /app
@@ -6,7 +6,7 @@ WORKDIR /app
 # Copy package.json and package-lock.json
 COPY package*.json ./
 
-# Install dependencies with production flag to speed up installation
+# Install dependencies
 RUN npm install --only=production
 
 # Copy the rest of the application
