@@ -1,11 +1,6 @@
 "use node";
 import { httpAction } from "./_generated/server";
 import { v } from "convex/values";
-import crypto from "crypto";
-
-// Resend webhook secret for verifying webhook signatures
-// Get the webhook secret from environment variables
-const RESEND_WEBHOOK_SECRET = process.env.RESEND_WEBHOOK_SECRET || "whsec_your_webhook_secret_here";
 
 // Webhook endpoint for Resend
 export const handler = httpAction(async (ctx, request) => {
@@ -15,19 +10,8 @@ export const handler = httpAction(async (ctx, request) => {
   }
 
   try {
-    // Get the signature from the headers
-    const signature = request.headers.get("Resend-Signature");
-    if (!signature) {
-      return new Response("No signature provided", { status: 401 });
-    }
-
     // Get the raw body
     const rawBody = await request.text();
-
-    // Verify the signature
-    if (!verifySignature(signature, rawBody)) {
-      return new Response("Invalid signature", { status: 401 });
-    }
 
     // Parse the body
     const body = JSON.parse(rawBody);
@@ -46,33 +30,18 @@ export const handler = httpAction(async (ctx, request) => {
   }
 });
 
-// Verify the webhook signature
-function verifySignature(signature: string, payload: string): boolean {
-  try {
-    // Extract timestamp and signatures from the header
-    const [timestamp, signatures] = signature.split(",");
-    const timestampValue = timestamp.split("=")[1];
-    const signaturesValue = signatures.split("=")[1];
-
-    // Create the signature
-    const hmac = crypto.createHmac("sha256", RESEND_WEBHOOK_SECRET);
-    const signedPayload = `${timestampValue}.${payload}`;
-    const expectedSignature = hmac.update(signedPayload).digest("hex");
-
-    // Compare the signatures
-    return crypto.timingSafeEqual(
-      Buffer.from(signaturesValue),
-      Buffer.from(expectedSignature)
-    );
-  } catch (error) {
-    console.error("Error verifying signature:", error);
-    return false;
-  }
-}
-
 // Process the webhook based on the event type
 async function processWebhook(ctx: any, webhook: any) {
   const { type, data } = webhook;
+
+  console.log(`Processing webhook event type: ${type}`);
+  console.log(`Event data:`, data);
+
+  // Make sure we have the email ID
+  if (!data || !data.email_id) {
+    console.log("No email ID found in webhook data");
+    return;
+  }
 
   // Run a mutation to update our database based on the event type
   await ctx.runMutation(async ({ db }) => {
@@ -88,11 +57,13 @@ async function processWebhook(ctx: any, webhook: any) {
     }
 
     const emailHistory = emailHistories[0];
+    console.log(`Found email history record: ${emailHistory._id}`);
 
     // Update the email history based on the event type
     switch (type) {
       case "email.sent":
         // Email was sent successfully
+        console.log(`Updating email history to 'sent' status`);
         await db.patch(emailHistory._id, {
           status: "sent",
           lastUpdated: Date.now(),
@@ -101,6 +72,7 @@ async function processWebhook(ctx: any, webhook: any) {
 
       case "email.delivered":
         // Email was delivered to the recipient's mail server
+        console.log(`Updating email history to 'delivered' status`);
         await db.patch(emailHistory._id, {
           status: "delivered",
           deliveredAt: Date.now(),
@@ -110,6 +82,7 @@ async function processWebhook(ctx: any, webhook: any) {
 
       case "email.opened":
         // Email was opened by the recipient
+        console.log(`Updating email history to 'opened' status`);
         await db.patch(emailHistory._id, {
           status: "opened",
           openedAt: Date.now(),
@@ -119,6 +92,7 @@ async function processWebhook(ctx: any, webhook: any) {
 
       case "email.clicked":
         // A link in the email was clicked
+        console.log(`Updating email history to 'clicked' status`);
         await db.patch(emailHistory._id, {
           status: "clicked",
           clickedAt: Date.now(),
@@ -128,6 +102,7 @@ async function processWebhook(ctx: any, webhook: any) {
 
       case "email.bounced":
         // Email bounced (couldn't be delivered)
+        console.log(`Updating email history to 'bounced' status`);
         await db.patch(emailHistory._id, {
           status: "bounced",
           bouncedAt: Date.now(),
@@ -138,6 +113,7 @@ async function processWebhook(ctx: any, webhook: any) {
 
       case "email.complained":
         // Recipient marked the email as spam
+        console.log(`Updating email history to 'complained' status`);
         await db.patch(emailHistory._id, {
           status: "complained",
           complainedAt: Date.now(),
@@ -147,6 +123,7 @@ async function processWebhook(ctx: any, webhook: any) {
 
       case "email.delivery_delayed":
         // Email delivery was delayed
+        console.log(`Updating email history to 'delayed' status`);
         await db.patch(emailHistory._id, {
           status: "delayed",
           delayedAt: Date.now(),
