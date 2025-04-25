@@ -55,6 +55,7 @@ const EditWorkOrderPage = lazy(() => import("./pages/workOrders/EditWorkOrderPag
 const InvoicesPage = lazy(() => import("./pages/invoices/InvoicesPage"));
 const NewInvoicePage = lazy(() => import("./pages/invoices/NewInvoicePage"));
 const InvoiceDetailPage = lazy(() => import("./pages/invoices/InvoiceDetailPage"));
+const InvoiceEditPage = lazy(() => import("./pages/invoices/InvoiceEditPage"));
 
 // WordPress integration
 const TestInquiryPage = lazy(() => import("./pages/wordpress/TestInquiryPage"));
@@ -69,6 +70,9 @@ const WorkflowTestPage = lazy(() => import("./pages/testing/WorkflowTestPage"));
 const WorkflowTestPage2 = lazy(() => import("./pages/testing/WorkflowTestPage2"));
 const UIConsistencyPage = lazy(() => import("./pages/testing/UIConsistencyPage"));
 const ChartDataTestPage = lazy(() => import("./pages/testing/ChartDataTestPage"));
+
+// Test Component
+import { TestComponent } from "./components/TestComponent";
 
 // Get Convex URL from environment variables or fallback to a default
 const convexUrl = import.meta.env.VITE_CONVEX_URL || "https://patient-tern-95.convex.cloud";
@@ -241,6 +245,11 @@ export default function App() {
                       <NewInvoicePage />
                     </Suspense>
                   } />
+                  <Route path="invoices/edit/:id" element={
+                    <Suspense fallback={<PageLoader />}>
+                      <InvoiceEditPage />
+                    </Suspense>
+                  } />
                   <Route path="invoices/:id" element={
                     <Suspense fallback={<PageLoader />}>
                       <InvoiceDetailPage />
@@ -292,6 +301,7 @@ export default function App() {
                       <UIConsistencyPage />
                     </Suspense>
                   } />
+                  <Route path="testing/convex" element={<TestComponent />} />
                 </Route>
               </Routes>
             </Router>
