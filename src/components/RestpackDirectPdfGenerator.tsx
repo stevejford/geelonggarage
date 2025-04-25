@@ -32,12 +32,20 @@ const RestpackDirectPdfGenerator: React.FC<RestpackDirectPdfGeneratorProps> = ({
       // Convert HTML to PDF using Restpack API directly
       console.log('Converting HTML to PDF using Restpack API...');
 
-      // Let's try using JSON instead of form data
-      const requestData = {
+      // Let's try a simpler approach first with just a URL to test the API
+      const useSimpleTest = false; // Set to true to test with a simple URL instead of HTML content
+
+      const requestData = useSimpleTest ? {
+        url: 'https://google.com',
+        pdf_page: 'A4',
+        pdf_orientation: 'portrait',
+        pdf_margins: '10px',
+        json: true
+      } : {
         html: htmlContent,
         pdf_page: 'A4',
         pdf_orientation: 'portrait',
-        pdf_margins: '10mm',
+        pdf_margins: '10px', // Using a valid format as per the error message
         json: true
       };
 
@@ -70,8 +78,23 @@ const RestpackDirectPdfGenerator: React.FC<RestpackDirectPdfGeneratorProps> = ({
       const result = await response.json();
       console.log('Restpack API response:', result);
 
+      // Check if the response contains an image URL
+      if (!result.image) {
+        throw new Error('No PDF URL returned from the API');
+      }
+
       // Open the PDF URL in a new tab
-      window.open(result.image, '_blank');
+      try {
+        window.open(result.image, '_blank');
+      } catch (error) {
+        console.error('Error opening PDF URL:', error);
+        // Provide a fallback by showing the URL to the user
+        toast({
+          title: 'PDF Generated',
+          description: `Your PDF is available at: ${result.image}`,
+          variant: 'default',
+        });
+      }
 
       toast({
         title: 'PDF Generated',
