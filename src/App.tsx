@@ -71,9 +71,6 @@ const WorkflowTestPage2 = lazy(() => import("./pages/testing/WorkflowTestPage2")
 const UIConsistencyPage = lazy(() => import("./pages/testing/UIConsistencyPage"));
 const ChartDataTestPage = lazy(() => import("./pages/testing/ChartDataTestPage"));
 
-// Test Component
-import { TestComponent } from "./components/TestComponent";
-
 // Get Convex URL from environment variables or fallback to a default
 const convexUrl = import.meta.env.VITE_CONVEX_URL || "https://patient-tern-95.convex.cloud";
 
@@ -301,7 +298,6 @@ export default function App() {
                       <UIConsistencyPage />
                     </Suspense>
                   } />
-                  <Route path="testing/convex" element={<TestComponent />} />
                 </Route>
               </Routes>
             </Router>

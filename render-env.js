@@ -27,7 +27,7 @@ try {
 // Replace the Convex URL
 const updatedEnvContent = envContent.replace(
   /VITE_CONVEX_URL=.*/,
-  'VITE_CONVEX_URL=https://grandiose-swordfish-144.convex.cloud'
+  'VITE_CONVEX_URL=https://patient-tern-95.convex.cloud'
 );
 
 // Write the updated .env file

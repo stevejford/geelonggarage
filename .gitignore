@@ -40,5 +40,13 @@ next-env.d.ts
 # Convex
 .convex/
 
+# shiply
+.shiply.json
+
+# Playwright MCP / local verification artifacts
+.playwright-mcp/
+*-verify.png
+app-signin.png
+
 # Mobile app (in development)
 mobile/
